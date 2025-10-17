@@ -1,0 +1,15 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" role="img" aria-labelledby="title desc">
+  <title id="title">Guide Validator</title>
+  <desc id="desc">Circular checkmark logo for Guide Validator</desc>
+  <defs>
+    <linearGradient id="gv-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#13b35a" />
+      <stop offset="100%" stop-color="#1565c0" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="80" r="60" fill="none" stroke="#0f9b4c" stroke-width="12" stroke-linecap="round" stroke-dasharray="300 40" />
+  <path d="M65 85l28 28 60-80" fill="none" stroke="url(#gv-gradient)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="160" cy="62" r="10" fill="#0f9b4c" />
+  <text x="100" y="190" font-family="'Segoe UI', sans-serif" font-size="40" font-weight="600" text-anchor="middle" fill="#1550a3">Guide</text>
+  <text x="100" y="230" font-family="'Segoe UI', sans-serif" font-size="48" font-weight="700" text-anchor="middle" fill="#18a04f">Validator</text>
+</svg>

@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: #F2F7FC;
+  --color-surface: #DEDEDE;
+  --color-foreground: #0B1F0F;
+  --color-primary: #1FA947;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #1C4473;
+  --color-secondary-foreground: #FFFFFF;
+  --color-accent: #002400;
+  --shadow-soft: 0 18px 48px rgba(0, 36, 0, 0.16);
+  --radius-base: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 1.75rem;
+  --font-sans: var(--font-sans-stack);
+}
+
+:root {
+  --font-sans-stack: var(--font-inter), "Noto Sans", "Noto Sans Arabic", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans-stack);
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 2px;
+  text-decoration-color: color-mix(in srgb, var(--color-primary) 70%, transparent);
+  transition: text-decoration-color 150ms ease;
+}
+
+a:hover {
+  text-decoration-color: var(--color-primary);
+}

@@ -1,0 +1,7 @@
+-- Placeholder for pgTAP tests validating RLS policies.
+-- TODO: add tests verifying:
+--  * profile self-access vs. admin override
+--  * conversation access limited to participants
+--  * guide credential visibility for owners/admins
+--  * payment read restrictions to organization members
+--  * file_uploads ownership enforcement
