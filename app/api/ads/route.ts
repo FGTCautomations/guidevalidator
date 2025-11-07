@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { selectAd } from "@/lib/ads/queries";
 import type { AdPlacement } from "@/lib/ads/types";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;

@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import ExcelJS from "exceljs";
 
 export const runtime = "nodejs";
+export const dynamic = 'force-dynamic';
 
 /**
  * Export Database to Excel
