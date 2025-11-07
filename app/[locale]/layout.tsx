@@ -78,29 +78,52 @@ export default async function LocaleLayout({
   const locale = requestedLocale as SupportedLocale;
   setRequestLocale(locale);
 
-  const supabase = getSupabaseServerClient();
-
-  const [sessionResult, messages, navTranslations, footerTranslations] = await Promise.all([
-    supabase.auth.getSession(),
-    getMessages(),
-    getTranslations({ locale, namespace: "nav" }),
-    getTranslations({ locale, namespace: "footer" }),
-  ]);
-
-  const authUser = sessionResult.data.session?.user ?? null;
+  // Auth data - wrapped in try-catch to handle build-time errors
+  let authUser = null;
   let profileRole: string | null = null;
   let userName: string | null = null;
   let userId: string | null = null;
+  let messages, navTranslations, footerTranslations;
 
-  if (authUser) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, full_name, id")
-      .eq("id", authUser.id)
-      .maybeSingle();
-    profileRole = profile?.role ?? null;
-    userName = profile?.full_name ?? null;
-    userId = profile?.id ?? null;
+  try {
+    const supabase = getSupabaseServerClient();
+
+    const [sessionResult, msgs, navTrans, footerTrans] = await Promise.all([
+      supabase.auth.getSession().catch(() => ({ data: { session: null }, error: null })),
+      getMessages(),
+      getTranslations({ locale, namespace: "nav" }),
+      getTranslations({ locale, namespace: "footer" }),
+    ]);
+
+    messages = msgs;
+    navTranslations = navTrans;
+    footerTranslations = footerTrans;
+
+    authUser = sessionResult.data.session?.user ?? null;
+
+    if (authUser) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, full_name, id")
+        .eq("id", authUser.id)
+        .maybeSingle()
+        .catch(() => ({ data: null, error: null }));
+      profileRole = profile?.role ?? null;
+      userName = profile?.full_name ?? null;
+      userId = profile?.id ?? null;
+    }
+  } catch (error) {
+    // Fail gracefully during build or if database is unavailable
+    console.error('[Layout] Error loading auth data:', error);
+    // Load messages and translations without auth
+    const [msgs, navTrans, footerTrans] = await Promise.all([
+      getMessages(),
+      getTranslations({ locale, namespace: "nav" }),
+      getTranslations({ locale, namespace: "footer" }),
+    ]);
+    messages = msgs;
+    navTranslations = navTrans;
+    footerTranslations = footerTrans;
   }
   const localePrefix = `/${locale}`;
 
