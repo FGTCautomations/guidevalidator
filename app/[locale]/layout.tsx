@@ -88,8 +88,14 @@ export default async function LocaleLayout({
   try {
     const supabase = getSupabaseServerClient();
 
-    const [sessionResult, msgs, navTrans, footerTrans] = await Promise.all([
-      supabase.auth.getSession().catch(() => ({ data: { session: null }, error: null })),
+    let sessionResult: Awaited<ReturnType<typeof supabase.auth.getSession>> = { data: { session: null }, error: null };
+    try {
+      sessionResult = await supabase.auth.getSession();
+    } catch (sessionError) {
+      console.error('[Layout] Error getting session:', sessionError);
+    }
+
+    const [msgs, navTrans, footerTrans] = await Promise.all([
       getMessages(),
       getTranslations({ locale, namespace: "nav" }),
       getTranslations({ locale, namespace: "footer" }),
@@ -102,15 +108,19 @@ export default async function LocaleLayout({
     authUser = sessionResult.data.session?.user ?? null;
 
     if (authUser) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, full_name, id")
-        .eq("id", authUser.id)
-        .maybeSingle()
-        .catch(() => ({ data: null, error: null }));
-      profileRole = profile?.role ?? null;
-      userName = profile?.full_name ?? null;
-      userId = profile?.id ?? null;
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role, full_name, id")
+          .eq("id", authUser.id)
+          .maybeSingle();
+        profileRole = profile?.role ?? null;
+        userName = profile?.full_name ?? null;
+        userId = profile?.id ?? null;
+      } catch (profileError) {
+        console.error('[Layout] Error loading profile:', profileError);
+        // Continue without profile data
+      }
     }
   } catch (error) {
     // Fail gracefully during build or if database is unavailable
