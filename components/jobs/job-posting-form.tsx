@@ -234,45 +234,49 @@ const [formState, formAction] = useFormState(createJobPostingAction, INITIAL_STA
           <h2 className="text-lg font-semibold text-foreground">{copy.requirementsHeading}</h2>
         </header>
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm text-foreground">
+          <div className="flex flex-col gap-2 text-sm text-foreground">
             <span className="font-medium">{copy.languagesLabel}</span>
-            <select
-              name="languageOptions"
-              multiple
-              className="min-h-[120px] rounded-xl border border-foreground/15 bg-background/60 px-3 py-2 text-sm"
-            >
+            <div className="min-h-[120px] max-h-[200px] overflow-y-auto rounded-xl border border-foreground/15 bg-background/60 px-3 py-2">
               {options.languages.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+                <label key={option.value} className="flex items-center gap-2 py-1 cursor-pointer hover:bg-foreground/5 px-2 rounded">
+                  <input
+                    type="checkbox"
+                    name="languageOptions"
+                    value={option.value}
+                    className="w-4 h-4 text-primary focus:ring-2 focus:ring-primary/20 rounded"
+                  />
+                  <span className="text-sm">{option.label}</span>
+                </label>
               ))}
-            </select>
+            </div>
             <input
               name="languages"
               placeholder={copy.languagesPlaceholder}
               className="rounded-xl border border-dashed border-foreground/15 bg-background/40 px-3 py-2 text-sm"
             />
-          </label>
+          </div>
 
-          <label className="flex flex-col gap-2 text-sm text-foreground">
+          <div className="flex flex-col gap-2 text-sm text-foreground">
             <span className="font-medium">{copy.specialtiesLabel}</span>
-            <select
-              name="specialtyOptions"
-              multiple
-              className="min-h-[120px] rounded-xl border border-foreground/15 bg-background/60 px-3 py-2 text-sm"
-            >
+            <div className="min-h-[120px] max-h-[200px] overflow-y-auto rounded-xl border border-foreground/15 bg-background/60 px-3 py-2">
               {options.specialties.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+                <label key={option.value} className="flex items-center gap-2 py-1 cursor-pointer hover:bg-foreground/5 px-2 rounded">
+                  <input
+                    type="checkbox"
+                    name="specialtyOptions"
+                    value={option.value}
+                    className="w-4 h-4 text-primary focus:ring-2 focus:ring-primary/20 rounded"
+                  />
+                  <span className="text-sm">{option.label}</span>
+                </label>
               ))}
-            </select>
+            </div>
             <input
               name="specialties"
               placeholder={copy.specialtiesPlaceholder}
               className="rounded-xl border border-dashed border-foreground/15 bg-background/40 px-3 py-2 text-sm"
             />
-          </label>
+          </div>
         </div>
       </section>
 

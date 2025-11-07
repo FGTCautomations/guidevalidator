@@ -1,0 +1,24 @@
+{
+  "results": {
+    "validation": {
+      "passed": 4,
+      "failed": 0
+    },
+    "foreignKeys": {
+      "added": 0,
+      "skipped": 9,
+      "failed": 1
+    },
+    "checkConstraints": {
+      "added": 0,
+      "skipped": 7,
+      "failed": 0
+    },
+    "functions": {
+      "created": 3,
+      "failed": 0
+    }
+  },
+  "duration": "1.76",
+  "timestamp": "2025-10-18T08:13:06.626Z"
+}

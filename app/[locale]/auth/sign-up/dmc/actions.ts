@@ -165,8 +165,18 @@ export async function submitDmcApplicationAction(
   }
 
   const userId = authData.user?.id;
-  const { data: application, error } = await service.from('dmc_applications').insert({
-    user_id: userId || null,
+
+  if (!userId) {
+    console.error("[DMC Application] No user ID returned from auth.createUser");
+    return { status: "error", message: "Account creation failed - no user ID returned." };
+  }
+
+  console.log("[DMC Application] Auth account created successfully:", userId);
+
+  // NEW CONSOLIDATED APPROACH: Insert into agencies table with type='dmc' and pending status
+  // Prepare application data to preserve original submission
+  const applicationData = {
+    user_id: userId,
     locale,
     legal_entity_name: legalEntityName,
     registration_number: registrationNumber || null,
@@ -212,36 +222,71 @@ export async function submitDmcApplicationAction(
     availability_timezone: availabilityTimezone,
     working_hours: workingHours,
     avatar_url: logoUrl || null,
-  }).select("id").single();
+  };
 
-  if (error) {
-    console.error('submitDmcApplicationAction', error);
-    return { status: 'error', message: error.message ?? 'Unable to submit your DMC application.' };
+  // Insert into agencies table with type='dmc' and pending status
+  const { error: dmcError } = await service.from("agencies").insert({
+    id: userId, // Use userId as agency ID for consistency
+    type: "dmc",
+    name: legalEntityName,
+    slug: legalEntityName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    registration_country: registrationCountry || null,
+    description: companyOverview || null,
+    website_url: websiteUrl || null,
+    contact_email: contactEmail,
+    contact_phone: contactPhone || null,
+    logo_url: logoUrl || null,
+    services_offered: servicesOffered,
+    languages_supported: languagesSpoken,
+    certifications,
+    timezone,
+    availability_timezone: availabilityTimezone,
+    working_hours: workingHours,
+    availability_notes: practicalInfo || null,
+    location_data: locationData,
+    application_data: applicationData, // Preserve original application
+    application_status: "pending",
+    application_submitted_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+
+  if (dmcError) {
+    console.error("[DMC Application] Insert error:", dmcError);
+
+    // Clean up auth account
+    try {
+      await service.auth.admin.deleteUser(userId);
+    } catch (deleteError) {
+      console.error("[DMC Application] Failed to delete auth account:", deleteError);
+    }
+
+    return { status: "error", message: dmcError.message ?? "Unable to submit your DMC application." };
   }
 
+  console.log("[DMC Application] Application saved successfully:", userId);
+
   // Send email notifications
-  if (application) {
-    try {
-      await Promise.all([
-        sendApplicationReceivedEmail({
-          applicantEmail: contactEmail,
-          applicantName: legalEntityName,
-          applicationType: "dmc",
-          applicationId: application.id,
-          locale,
-        }),
-        sendAdminNewApplicationEmail({
-          applicantEmail: contactEmail,
-          applicantName: legalEntityName,
-          applicationType: "dmc",
-          applicationId: application.id,
-          locale,
-        }),
-      ]);
-    } catch (emailError) {
-      console.error("Failed to send application emails", emailError);
-      // Don't fail the application if emails fail
-    }
+  try {
+    await Promise.all([
+      sendApplicationReceivedEmail({
+        applicantEmail: contactEmail,
+        applicantName: legalEntityName,
+        applicationType: "dmc",
+        applicationId: userId, // Use userId as application ID
+        locale,
+      }),
+      sendAdminNewApplicationEmail({
+        applicantEmail: contactEmail,
+        applicantName: legalEntityName,
+        applicationType: "dmc",
+        applicationId: userId,
+        locale,
+      }),
+    ]);
+  } catch (emailError) {
+    console.error("Failed to send application emails", emailError);
+    // Don't fail the application if emails fail
   }
 
   // Redirect to appropriate Stripe payment link based on subscription plan

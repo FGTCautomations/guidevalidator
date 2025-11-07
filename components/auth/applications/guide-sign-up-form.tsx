@@ -19,18 +19,7 @@ export type GuideSignUpFormProps = {
   preselectedPlan?: string;
 };
 
-const GUIDE_EXPERTISE_OPTIONS = [
-  "History & heritage",
-  "Art & architecture",
-  "Food & gastronomy",
-  "Nature & outdoors",
-  "Nightlife & entertainment",
-  "Wellness & retreats",
-  "Family experiences",
-  "Adventure & adrenaline",
-  "Shopping & markets",
-  "Education & workshops",
-] as const;
+// GUIDE_EXPERTISE_OPTIONS removed - now consolidated into GUIDE_SPECIALTY_OPTIONS
 
 function Section({
   title,
@@ -220,11 +209,6 @@ export function GuideSignUpForm({ locale, countries, preselectedPlan }: GuideSig
     []
   );
 
-  const expertiseOptions = useMemo(
-    () => GUIDE_EXPERTISE_OPTIONS.map((item) => ({ value: item, label: item })),
-    []
-  );
-
   return (
     <form action={formAction} className="space-y-6" encType="multipart/form-data">
       <input type="hidden" name="locale" value={locale} />
@@ -303,14 +287,9 @@ export function GuideSignUpForm({ locale, countries, preselectedPlan }: GuideSig
           <CustomLanguageInput value={languages} onChange={setLanguages} />
         </div>
         <CheckboxGroup
-          label="Tour types / specialisations"
+          label="Tour specializations"
           name="specializations"
           options={specializationOptions}
-        />
-        <CheckboxGroup
-          label="Areas of expertise or themes"
-          name="expertiseAreas"
-          options={expertiseOptions}
         />
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">

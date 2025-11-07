@@ -7,13 +7,21 @@
         "build": "next build",
         "start": "next start",
         "lint": "eslint",
-        "db:migrate": "node scripts/apply-migrations.mjs"
+        "db:migrate": "node scripts/apply-migrations.mjs",
+        "i18n:scan": "npx tsx scripts/find-hardcoded-text.ts",
+        "i18n:export": "npx tsx scripts/export-hardcoded-text.ts",
+        "i18n:import": "npx tsx scripts/import-csv-translations.ts",
+        "i18n:audit": "npx tsx scripts/audit-translations.ts",
+        "i18n:fill": "npx tsx scripts/auto-fill-translations.ts",
+        "i18n:helper": "npx tsx scripts/translation-helper.ts"
     },
     "dependencies": {
         "@supabase/ssr": "^0.7.0",
         "@supabase/supabase-js": "^2.57.4",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
+        "dotenv": "^17.2.3",
+        "exceljs": "^4.4.0",
         "lucide-react": "^0.545.0",
         "next": "14.2.7",
         "next-intl": "^4.3.9",

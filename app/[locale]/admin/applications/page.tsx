@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { isSupportedLocale, type SupportedLocale } from "@/i18n/config";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -16,6 +17,7 @@ export default async function AdminApplicationsPage({
   }
 
   const locale = requestedLocale as SupportedLocale;
+  const t = await getTranslations({ locale, namespace: "admin.applications" });
   const supabase = getSupabaseServerClient();
   const {
     data: { user },
@@ -35,24 +37,35 @@ export default async function AdminApplicationsPage({
     redirect(`/${locale}`);
   }
 
-  // Fetch all pending applications
+  // Fetch all pending applications from master tables
   const [guideApps, agencyApps, dmcApps, transportApps] = await Promise.all([
+    // Query guides table with pending status
     supabase
-      .from("guide_applications")
-      .select("*")
-      .order("created_at", { ascending: false }),
+      .from("guides")
+      .select("*, profiles!inner(id, full_name, application_status, application_submitted_at, created_at)")
+      .eq("profiles.application_status", "pending")
+      .order("profiles.application_submitted_at", { ascending: false, nullsFirst: false }),
+    // Query agencies table with pending status and type='agency'
     supabase
-      .from("agency_applications")
+      .from("agencies")
       .select("*")
-      .order("created_at", { ascending: false }),
+      .eq("application_status", "pending")
+      .eq("type", "agency")
+      .order("application_submitted_at", { ascending: false, nullsFirst: false }),
+    // Query agencies table with pending status and type='dmc'
     supabase
-      .from("dmc_applications")
+      .from("agencies")
       .select("*")
-      .order("created_at", { ascending: false }),
+      .eq("application_status", "pending")
+      .eq("type", "dmc")
+      .order("application_submitted_at", { ascending: false, nullsFirst: false }),
+    // Query agencies table with pending status and type='transport'
     supabase
-      .from("transport_applications")
+      .from("agencies")
       .select("*")
-      .order("created_at", { ascending: false }),
+      .eq("application_status", "pending")
+      .eq("type", "transport")
+      .order("application_submitted_at", { ascending: false, nullsFirst: false }),
   ]);
 
   const applications = {
@@ -66,9 +79,9 @@ export default async function AdminApplicationsPage({
     <div className="min-h-[60vh] bg-background px-6 py-12 text-foreground sm:px-12 lg:px-24">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Applications Management</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
           <p className="mt-2 text-sm text-foreground/70">
-            Review and approve or decline new role applications from guides, agencies, DMCs, and transport providers.
+            {t("subtitle")}
           </p>
         </div>
 

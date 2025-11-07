@@ -1,6 +1,21 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { DirectoryFilters, DirectoryListing, DirectorySegment } from "./types";
 
+/**
+ * Normalize text for search by removing accents, diacritics, and special characters
+ * Makes search case-insensitive and accent-insensitive
+ */
+function normalizeSearchText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD") // Decompose combined characters
+    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
+    .replace(/[''`^]/g, "") // Remove quotes and special chars
+    .replace(/đ/g, "d") // Vietnamese đ → d
+    .replace(/Đ/g, "d")
+    .trim();
+}
+
 type GuideRow = {
   profile_id: string;
   headline?: string | null;
@@ -17,6 +32,7 @@ type GuideRow = {
     country_code?: string | null;
     verified?: boolean | null;
     license_verified?: boolean | null;
+    rejection_reason?: string | null;
   }> | null;
   guide_cities?: Array<{
     city_id?: string | null;
@@ -56,6 +72,7 @@ type AgencyRow = {
   featured?: boolean | null;
   languages?: string[] | null;
   specialties?: string[] | null;
+  rejection_reason?: string | null;
 };
 
 type LicensingRow = {
@@ -233,21 +250,31 @@ async function fetchGuideRatingsMap(
     return new Map();
   }
 
-  const { data, error } = await supabase
-    .from("guide_ratings_summary")
-    .select(
-      "guide_id, average_service, average_language, average_knowledge, average_fairness, total_reviews"
-    )
-    .in("guide_id", guideIds);
+  // Batch requests to avoid "414 Request-URI Too Large" error
+  // PostgreSQL `.in()` creates URL query params, so we need to batch
+  const BATCH_SIZE = 500; // Safe size for URL params
+  const allData: any[] = [];
 
-  if (error || !data) {
+  for (let i = 0; i < guideIds.length; i += BATCH_SIZE) {
+    const batch = guideIds.slice(i, i + BATCH_SIZE);
+    const { data, error } = await supabase
+      .from("guide_ratings_summary")
+      .select(
+        "guide_id, average_service, average_language, average_knowledge, average_fairness, total_reviews"
+      )
+      .in("guide_id", batch);
+
     if (error) {
-      console.error("Failed to fetch guide ratings", error);
+      console.error(`Failed to fetch guide ratings for batch ${i / BATCH_SIZE + 1}`, error);
+      continue;
     }
-    return new Map();
+
+    if (data) {
+      allData.push(...data);
+    }
   }
 
-  return data.reduce((map, row) => {
+  return allData.reduce((map, row) => {
     const numericValues = [
       row.average_service,
       row.average_language,
@@ -283,19 +310,28 @@ async function fetchProfileRatingsMap(
     return new Map();
   }
 
-  const { data, error } = await supabase
-    .from("profile_ratings")
-    .select("reviewee_id, avg_overall_rating, total_reviews")
-    .in("reviewee_id", profileIds);
+  // Batch requests to avoid "414 Request-URI Too Large" error
+  const BATCH_SIZE = 500;
+  const allData: any[] = [];
 
-  if (error || !data) {
+  for (let i = 0; i < profileIds.length; i += BATCH_SIZE) {
+    const batch = profileIds.slice(i, i + BATCH_SIZE);
+    const { data, error } = await supabase
+      .from("profile_ratings")
+      .select("reviewee_id, avg_overall_rating, total_reviews")
+      .in("reviewee_id", batch);
+
     if (error) {
-      console.error("Failed to fetch profile ratings", error);
+      console.error(`Failed to fetch profile ratings for batch ${i / BATCH_SIZE + 1}`, error);
+      continue;
     }
-    return new Map();
+
+    if (data) {
+      allData.push(...data);
+    }
   }
 
-  return data.reduce((map, row) => {
+  return allData.reduce((map, row) => {
     map.set(row.reviewee_id, {
       avgOverallRating: row.avg_overall_rating ?? null,
       totalReviews: row.total_reviews ?? 0,
@@ -338,12 +374,11 @@ export async function fetchDirectoryListings(
       .select(
         `profile_id, headline, specialties, spoken_languages, hourly_rate_cents, currency, gender,
          has_liability_insurance, response_time_minutes, avatar_url,
-         profiles!inner(id, full_name, country_code, verified, license_verified),
-         guide_cities:guide_cities(city_id, cities(id, name, region_id, country_code)),
-         guide_regions:guide_regions(region_id, regions(id, name, region_code, country_code))`
+         profiles!inner(id, full_name, country_code, verified, license_verified, application_status, rejection_reason, profile_completed, profile_completion_percentage)`,
+        { count: 'exact' }
       )
-      .order("license_verified", { ascending: false, referencedTable: "profiles" })
-      .limit(200);
+      .eq("profiles.application_status", "approved")  // Only show approved guides
+      .order("license_verified", { ascending: false, referencedTable: "profiles" });
 
     const countryCode = (filters.country ?? filters.region)?.toUpperCase();
     if (countryCode) {
@@ -354,21 +389,32 @@ export async function fetchDirectoryListings(
       query = query.in("profile_id", locationIds);
     }
 
-    if (filters.languages && filters.languages.length > 0) {
-      query = query.contains(
-        "spoken_languages",
-        filters.languages.map((value) => value.toLowerCase())
-      );
-    }
+    // Language filtering - will be done post-query (see below)
+    // Database-level filtering doesn't work reliably with current data format
 
     if (filters.specialties && filters.specialties.length > 0) {
+      // Specialties are stored in original format (e.g., "History & heritage sites", "Family-friendly tours")
+      // Convert kebab-case back to original format
       query = query.contains(
         "specialties",
-        filters.specialties.map((value) => value.toLowerCase())
+        filters.specialties.map((value) => {
+          // Convert "history-&-heritage-sites" back to "History & heritage sites"
+          // Handle special characters like & and preserve proper casing
+          return value
+            .split("-")
+            .map((word) => {
+              // Preserve & symbol
+              if (word === "&") return "&";
+              // Capitalize first letter of each word
+              return word.charAt(0).toUpperCase() + word.slice(1);
+            })
+            .join(" ");
+        })
       );
     }
 
     if (filters.genders && filters.genders.length > 0) {
+      // Gender stored as lowercase (e.g., "male", "female")
       query = query.in(
         "gender",
         filters.genders.map((value) => value.toLowerCase())
@@ -399,19 +445,56 @@ export async function fetchDirectoryListings(
       query = query.lte("hourly_rate_cents", Math.round(filters.maxRate * 100));
     }
 
-    const { data, error } = await query;
+    // Text search for name or license number - implement as post-filter
+    // We'll filter after fetching since we need to search across profiles table and guide_credentials
+    const searchTerm = filters.search?.toLowerCase();
+
+    console.log(`[Directory] Executing query with filters:`, JSON.stringify(filters, null, 2));
+
+    // Fetch ALL guides matching the filters (database does the filtering)
+    // No limit - we want to search the entire database
+    // PostgreSQL indexes (from migration) will ensure this is fast even with 25k+ guides
+    // IMPORTANT: Use .range(0, 99999) to override Supabase's default 1000 row limit
+    const { data, error } = await query.range(0, 99999);
 
     if (error) {
-      console.error("Failed to fetch guides", error);
+      console.error(`[Directory] Error fetching guides:`, error);
       return [];
     }
 
     const rows = (data ?? []) as GuideRow[];
+    console.log(`[Directory] Fetched ${rows.length} guides from database (ALL matching results, no limit)`);
+
+    // Log guide names for debugging (limited to first 10)
+    if (rows.length > 0) {
+      const names = rows.slice(0, 10).map(row => {
+        const profileEntry = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles ?? null;
+        return profileEntry?.full_name ?? "Unknown";
+      });
+      console.log(`[Directory] First 10 guide names: ${names.join(", ")}`);
+    }
+
     if (rows.length === 0) {
       return [];
     }
 
-    let profileIds = rows.map((row) => row.profile_id);
+    // Filter out frozen accounts (those with rejection_reason starting with "FROZEN:")
+    const nonFrozenRows = rows.filter((row) => {
+      const profileEntry = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles ?? null;
+      const rejectionReason = profileEntry?.rejection_reason;
+      const isFrozen = rejectionReason && rejectionReason.startsWith("FROZEN:");
+      if (isFrozen) {
+        console.log(`[Directory] Filtering out frozen guide: ${row.profile_id}, reason: ${rejectionReason}`);
+      }
+      return !isFrozen;
+    });
+
+    console.log(`[Directory] After freeze filter: ${nonFrozenRows.length} guides remaining`);
+    if (nonFrozenRows.length === 0) {
+      return [];
+    }
+
+    let profileIds = nonFrozenRows.map((row) => row.profile_id);
 
     // Filter by availability if date range is provided
     if (filters.availableFrom && filters.availableTo) {
@@ -440,7 +523,7 @@ export async function fetchDirectoryListings(
     ]);
 
     // Filter rows to match filtered profileIds (after availability filtering)
-    const filteredRows = rows.filter((row) => profileIds.includes(row.profile_id));
+    const filteredRows = nonFrozenRows.filter((row) => profileIds.includes(row.profile_id));
 
     const listings = filteredRows.map<DirectoryListing>((row) => {
       const profileEntry = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles ?? null;
@@ -448,12 +531,10 @@ export async function fetchDirectoryListings(
       const profileRatingInfo = profileRatingsMap.get(row.profile_id);
       const countryCodeValue = profileEntry?.country_code?.toUpperCase() ?? countryCode ?? null;
 
-      const cityEntry = row.guide_cities?.find((entry) => entry?.cities?.name);
-      const cityName = cityEntry?.cities?.name ?? null;
-      const cityId = cityEntry?.cities?.id ?? cityEntry?.city_id ?? null;
-
-      const regionEntry = row.guide_regions?.find((entry) => entry?.regions?.id || entry?.region_id);
-      const regionId = regionEntry?.regions?.id ?? regionEntry?.region_id ?? null;
+      // Location data is not available in this query (guide_cities/guide_regions tables don't exist)
+      const cityName = null;
+      const cityId = null;
+      const regionId = null;
 
       const childFriendly = (row.specialties ?? []).some(
         (value) => value?.toLowerCase() === "family-friendly"
@@ -493,6 +574,9 @@ export async function fetchDirectoryListings(
         // Review system fields
         avgOverallRating: profileRatingInfo?.avgOverallRating ?? null,
         totalReviews: profileRatingInfo?.totalReviews ?? 0,
+        // Profile completion tracking
+        profileCompleted: Boolean((profileEntry as any)?.profile_completed),
+        profileCompletionPercentage: (profileEntry as any)?.profile_completion_percentage ?? 100,
       };
 
       listing.featuredScore = computeGuideFeaturedScore(listing);
@@ -500,8 +584,92 @@ export async function fetchDirectoryListings(
       return listing;
     });
 
+    // Log each guide's rating information
+    console.log(`[Directory] Ratings for each guide:`);
+    listings.forEach(listing => {
+      console.log(`  - ${listing.name}: avgOverallRating=${listing.avgOverallRating}, rating=${listing.rating}, totalReviews=${listing.totalReviews}`);
+    });
+
+    // Filter by text search (name or license number) if specified
+    let filteredListings = listings;
+    if (searchTerm && searchTerm.length > 0) {
+      console.log(`[Directory] Filtering by search term: "${searchTerm}"`);
+
+      // Normalize search term for accent-insensitive matching
+      const normalizedSearchTerm = normalizeSearchText(searchTerm);
+      console.log(`[Directory] Normalized search term: "${normalizedSearchTerm}"`);
+
+      // We need to fetch license numbers from guide_credentials for search
+      const {data: credentials} = await supabase
+        .from("guide_credentials")
+        .select("guide_id, license_number")
+        .in("guide_id", profileIds);
+
+      const licenseMap = new Map<string, string[]>();
+      (credentials || []).forEach(cred => {
+        const licenses = licenseMap.get(cred.guide_id) || [];
+        if (cred.license_number) {
+          // Normalize license number for comparison
+          licenses.push(normalizeSearchText(cred.license_number));
+        }
+        licenseMap.set(cred.guide_id, licenses);
+      });
+
+      filteredListings = listings.filter((listing) => {
+        // Search in name (accent-insensitive)
+        const normalizedName = normalizeSearchText(listing.name);
+        if (normalizedName.includes(normalizedSearchTerm)) {
+          return true;
+        }
+        // Search in license numbers (accent-insensitive)
+        const licenses = licenseMap.get(listing.id) || [];
+        return licenses.some(license => license.includes(normalizedSearchTerm));
+      });
+      console.log(`[Directory] Filtered by search: ${filteredListings.length} guides match`);
+    }
+
+    // Language filtering (post-query)
+    if (filters.languages && filters.languages.length > 0) {
+      console.log(`[Directory] Filtering by languages: ${filters.languages.join(", ")}`);
+      const targetLangs = filters.languages.map((lang) => lang.toLowerCase());
+      filteredListings = filteredListings.filter((listing) => {
+        // listing.languages is an array of language codes like ["en", "es", "fr"]
+        // Check if any of the target languages are in the guide's languages
+        const guideLangs = (listing.languages || []).map((lang: string) =>
+          lang.toLowerCase().replace(/["']/g, "").trim()
+        );
+        return targetLangs.some((targetLang) => guideLangs.includes(targetLang));
+      });
+      console.log(`[Directory] Filtered by languages: ${filteredListings.length} guides match`);
+    }
+
+    // Filter by minimum rating if specified
+    if (typeof filters.minRating === "number" && filters.minRating > 0) {
+      console.log(`[Directory] Filtering by minRating: ${filters.minRating}`);
+      console.log(`[Directory] Total listings before rating filter: ${filteredListings.length}`);
+      filteredListings = filteredListings.filter((listing) => {
+        // Use avgOverallRating (from profile_ratings) if available, otherwise use rating (from guide_ratings_summary)
+        const ratingValue = listing.avgOverallRating ?? listing.rating;
+
+        // If guide has no rating, always show them (don't filter out unrated guides)
+        if (typeof ratingValue !== "number" || ratingValue === null) {
+          console.log(`[Directory] Keeping ${listing.name}: no rating yet`);
+          return true;
+        }
+
+        const passes = ratingValue >= filters.minRating!;
+        if (!passes) {
+          console.log(`[Directory] Filtered out ${listing.name}: rating=${ratingValue}, minRating=${filters.minRating}`);
+        }
+        return passes;
+      });
+      console.log(`[Directory] Total listings after rating filter: ${filteredListings.length}`);
+    } else {
+      console.log(`[Directory] No rating filter applied. Showing all ${filteredListings.length} guides`);
+    }
+
     // Sort: Featured profiles first (by score), then alphabetically by name
-    listings.sort((a, b) => {
+    filteredListings.sort((a, b) => {
       // Primary sort: Featured score (higher is better)
       const aFeatured = a.featuredScore ?? 0;
       const bFeatured = b.featuredScore ?? 0;
@@ -517,10 +685,15 @@ export async function fetchDirectoryListings(
       return a.name.localeCompare(b.name);
     });
 
-    const licensingMap = await fetchLicensingMap(listings.map((listing) => listing.countryCode));
-    applyLicensing(listings, licensingMap, segment);
+    const licensingMap = await fetchLicensingMap(filteredListings.map((listing) => listing.countryCode));
+    applyLicensing(filteredListings, licensingMap, segment);
 
-    return listings;
+    console.log(`[Directory] Final result: Returning ${filteredListings.length} guides`);
+    if (filteredListings.length > 0) {
+      console.log(`[Directory] Final guide names: ${filteredListings.map(l => l.name).join(", ")}`);
+    }
+
+    return filteredListings;
   }
 
   const agencyType = segment === "agencies" ? "agency" : segment === "dmcs" ? "dmc" : "transport";
@@ -533,8 +706,9 @@ export async function fetchDirectoryListings(
 
   let query = supabase
     .from("agencies")
-    .select("id, name, coverage_summary, country_code, verified, featured, languages, specialties")
+    .select("id, name, coverage_summary, country_code, verified, featured, languages, specialties, application_status, rejection_reason")
     .eq("type", agencyType)
+    .eq("application_status", "approved")  // Only show approved agencies/DMCs/transport
     .order("featured", { ascending: false })
     .order("verified", { ascending: false })
     .order("name", { ascending: true })
@@ -561,14 +735,27 @@ export async function fetchDirectoryListings(
   }
 
   const rows = (data ?? []) as AgencyRow[];
+  console.log(`[Directory] Fetched ${rows.length} ${segment} from database (approved only)`);
+
+  // Filter out frozen accounts (those with rejection_reason starting with "FROZEN:")
+  const nonFrozenRows = rows.filter((row) => {
+    const rejectionReason = row.rejection_reason;
+    const isFrozen = rejectionReason && rejectionReason.startsWith("FROZEN:");
+    if (isFrozen) {
+      console.log(`[Directory] Filtering out frozen ${segment}: ${row.id} (${row.name}), reason: ${rejectionReason}`);
+    }
+    return !isFrozen;
+  });
+
+  console.log(`[Directory] After freeze filter: ${nonFrozenRows.length} ${segment} remaining`);
 
   // Fetch profile ratings for all agencies
   const profileRatingsMap = await fetchProfileRatingsMap(
     supabase,
-    rows.map((row) => row.id)
+    nonFrozenRows.map((row) => row.id)
   );
 
-  const listings = rows.map<DirectoryListing>((row) => {
+  const listings = nonFrozenRows.map<DirectoryListing>((row) => {
     const countryCode = row.country_code ?? null;
     const profileRatingInfo = profileRatingsMap.get(row.id);
 
@@ -793,4 +980,98 @@ export async function fetchGuidePriceBounds(): Promise<{ min: number; max: numbe
     min: Number((minCents / 100).toFixed(2)),
     max: Number((maxCents / 100).toFixed(2)),
   };
+}
+
+/**
+ * Fetch all countries that have at least one approved, non-frozen listing
+ * Returns countries with count of profiles
+ */
+export async function fetchAvailableCountries(segment: DirectorySegment): Promise<Option[]> {
+  const supabase = getSupabaseServerClient();
+  const countryCountMap = new Map<string, number>();
+
+  if (segment === "guides") {
+    // Get country codes from all approved, non-frozen guides (up to 30k)
+    const { data, error } = await supabase
+      .from("guides")
+      .select("profiles!inner(country_code, application_status, rejection_reason)")
+      .eq("profiles.application_status", "approved")
+      .range(0, 29999);
+
+    if (error) {
+      console.error("Failed to fetch guide countries", error);
+    } else if (data) {
+      data.forEach((row: any) => {
+        const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+        const countryCode = profile?.country_code;
+        const rejectionReason = profile?.rejection_reason;
+        const isFrozen = rejectionReason && rejectionReason.startsWith("FROZEN:");
+
+        if (countryCode && !isFrozen) {
+          const code = countryCode.toUpperCase();
+          countryCountMap.set(code, (countryCountMap.get(code) || 0) + 1);
+        }
+      });
+    }
+
+    console.log(`[fetchAvailableCountries] Counted guides across ${countryCountMap.size} countries`);
+  } else {
+    // Get country codes from approved, non-frozen agencies/DMCs/transport
+    const agencyType = segment === "agencies" ? "agency" : segment === "dmcs" ? "dmc" : "transport";
+    const { data, error } = await supabase
+      .from("agencies")
+      .select("country_code, rejection_reason")
+      .eq("type", agencyType)
+      .eq("application_status", "approved")
+      .range(0, 100000);  // Fetch all (removes default 1000 limit)
+
+    if (error) {
+      console.error(`Failed to fetch ${segment} countries`, error);
+    } else if (data) {
+      data.forEach((row: any) => {
+        const countryCode = row.country_code;
+        const rejectionReason = row.rejection_reason;
+        const isFrozen = rejectionReason && rejectionReason.startsWith("FROZEN:");
+
+        if (countryCode && !isFrozen) {
+          const code = countryCode.toUpperCase();
+          countryCountMap.set(code, (countryCountMap.get(code) || 0) + 1);
+        }
+      });
+    }
+  }
+
+  if (countryCountMap.size === 0) {
+    return [];
+  }
+
+  // Fetch country names for the available country codes
+  const { data: countries, error: countriesError } = await supabase
+    .from("countries")
+    .select("code, name")
+    .in("code", Array.from(countryCountMap.keys()))
+    .order("name", { ascending: true });
+
+  if (countriesError) {
+    console.error("Failed to fetch country names", countriesError);
+    // Return country codes as fallback without counts
+    return Array.from(countryCountMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([code, count]) => ({
+        value: code,
+        label: code,
+        meta: { count },
+      }));
+  }
+
+  return (countries || [])
+    .filter((row): row is { code: string; name: string | null } => Boolean(row.code))
+    .map((row) => {
+      const count = countryCountMap.get(row.code) || 0;
+      return {
+        value: row.code,
+        label: row.name ?? row.code,
+        meta: { count },
+      };
+    });
 }

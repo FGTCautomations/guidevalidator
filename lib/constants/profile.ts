@@ -14,17 +14,32 @@
   "ur"
 ] as const;
 
+// Consolidated tour specializations (merged from previous tour types + expertise areas)
 export const GUIDE_SPECIALTY_OPTIONS = [
-  "Cultural tours",
-  "Adventure & active",
-  "Photography",
-  "Food & wine",
-  "History & heritage",
-  "Nature & wildlife",
-  "Religious & pilgrimage",
-  "Luxury experiences",
-  "Family friendly",
-  "Accessible travel"
+  // Heritage & Culture
+  "History & heritage sites",
+  "Art & architecture",
+  "Religious & pilgrimage tours",
+  "Cultural immersion experiences",
+
+  // Food & Lifestyle
+  "Food & gastronomy tours",
+  "Wine & beverage experiences",
+  "Shopping & markets",
+  "Nightlife & entertainment",
+
+  // Nature & Adventure
+  "Nature & wildlife tours",
+  "Adventure & active experiences",
+  "Outdoor activities & hiking",
+  "Photography tours",
+
+  // Specialized Experiences
+  "Wellness & spa retreats",
+  "Family-friendly tours",
+  "Luxury & VIP experiences",
+  "Accessible travel services",
+  "Educational workshops & classes"
 ] as const;
 
 export const ORGANIZATION_SPECIALTY_OPTIONS = [

@@ -10,6 +10,12 @@ type GuideProfileRow = {
   currency?: string | null;
   years_experience?: number | null;
   response_time_minutes?: number | null;
+  experience_summary?: string | null;
+  sample_itineraries?: string | null;
+  media_gallery?: string | null;
+  availability_notes?: string | null;
+  avatar_url?: string | null;
+  license_number?: string | null;
   profiles?: {
     full_name?: string | null;
     country_code?: string | null;
@@ -30,6 +36,23 @@ export type GuideProfile = {
   yearsExperience?: number | null;
   responseTimeMinutes?: number | null;
   verified: boolean;
+  experienceSummary?: string | null;
+  certifications?: string[];
+  education?: string | null;
+  sampleItineraries?: Array<{ title: string; url: string }>;
+  mediaGallery?: Array<{ title: string; url: string }>;
+  availabilityNotes?: string | null;
+  avatarUrl?: string | null;
+  licenseNumber?: string | null;
+  locationData?: {
+    countries: Array<{
+      countryCode: string;
+      countryName: string;
+      regions?: string[];
+      cities?: string[];
+      parks?: string[];
+    }>;
+  };
 };
 
 export async function fetchGuideProfile(profileId: string): Promise<GuideProfile | null> {
@@ -38,7 +61,7 @@ export async function fetchGuideProfile(profileId: string): Promise<GuideProfile
   const { data, error } = await supabase
     .from("guides")
     .select(
-      `profile_id, headline, bio, specialties, spoken_languages, hourly_rate_cents, currency, years_experience, response_time_minutes, profiles!inner(id, full_name, country_code, verified)`
+      `profile_id, headline, bio, specialties, spoken_languages, hourly_rate_cents, currency, years_experience, response_time_minutes, experience_summary, sample_itineraries, media_gallery, availability_notes, avatar_url, license_number, profiles!inner(id, full_name, country_code, verified)`
     )
     .eq("profile_id", profileId)
     .maybeSingle();
@@ -55,6 +78,26 @@ export async function fetchGuideProfile(profileId: string): Promise<GuideProfile
   const row = data as GuideProfileRow;
   const profileData = row.profiles ?? null;
 
+  // Parse JSON fields if they exist
+  let sampleItineraries: Array<{ title: string; url: string }> | undefined;
+  let mediaGallery: Array<{ title: string; url: string }> | undefined;
+
+  try {
+    if (row.sample_itineraries) {
+      sampleItineraries = JSON.parse(row.sample_itineraries);
+    }
+  } catch (e) {
+    console.error("Failed to parse sample_itineraries", e);
+  }
+
+  try {
+    if (row.media_gallery) {
+      mediaGallery = JSON.parse(row.media_gallery);
+    }
+  } catch (e) {
+    console.error("Failed to parse media_gallery", e);
+  }
+
   return {
     id: row.profile_id,
     name: profileData?.full_name ?? "Guide",
@@ -68,6 +111,15 @@ export async function fetchGuideProfile(profileId: string): Promise<GuideProfile
     yearsExperience: row.years_experience,
     responseTimeMinutes: row.response_time_minutes,
     verified: profileData?.verified ?? false,
+    experienceSummary: row.experience_summary ?? undefined,
+    certifications: undefined, // Not stored in guides table yet
+    education: undefined, // Not stored in guides table yet
+    sampleItineraries,
+    mediaGallery,
+    availabilityNotes: row.availability_notes ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
+    licenseNumber: row.license_number ?? undefined,
+    locationData: undefined, // Will need to fetch from location tables if needed
   };
 }
 

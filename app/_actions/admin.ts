@@ -347,7 +347,7 @@ export async function adminDeleteUserAction(
     }
 
     revalidatePath(`/${locale}/admin`);
-    revalidatePath(`/${locale}/admin/users/${userId}`);
+    // Don't revalidate the deleted user's page since it no longer exists
     return { ok: true, message: "USER_DELETED" };
   } catch (error: any) {
     console.error("adminDeleteUserAction", error);

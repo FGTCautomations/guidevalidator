@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import type { Route } from "next";
@@ -19,6 +19,7 @@ export function AvailabilityFilter({ labels }: AvailabilityFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const [startDate, setStartDate] = useState(searchParams?.get("availableFrom") || "");
   const [endDate, setEndDate] = useState(searchParams?.get("availableTo") || "");
@@ -38,7 +39,9 @@ export function AvailabilityFilter({ labels }: AvailabilityFilterProps) {
       params.delete("availableTo");
     }
 
-    router.push(`${pathname}?${params.toString()}` as Route);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}` as Route);
+    });
   };
 
   const handleClear = () => {
@@ -49,7 +52,9 @@ export function AvailabilityFilter({ labels }: AvailabilityFilterProps) {
     params.delete("availableFrom");
     params.delete("availableTo");
 
-    router.push(`${pathname}?${params.toString()}` as Route);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}` as Route);
+    });
   };
 
   const hasFilters = startDate || endDate;
@@ -93,15 +98,26 @@ export function AvailabilityFilter({ labels }: AvailabilityFilterProps) {
         <div className="flex gap-2">
           <button
             onClick={handleSearch}
-            disabled={!startDate || !endDate}
+            disabled={!startDate || !endDate || isPending}
             className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {labels.search}
+            {isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading...
+              </span>
+            ) : (
+              labels.search
+            )}
           </button>
           {hasFilters && (
             <button
               onClick={handleClear}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              disabled={isPending}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
             >
               {labels.clear}
             </button>

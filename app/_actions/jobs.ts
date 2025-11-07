@@ -83,18 +83,23 @@ export async function createJobPostingAction(
 ): Promise<JobActionState> {
   const authCheck = await requireCurrentProfile();
   if (!authCheck.ok) {
-    return { ok: false, message: authCheck.reason };
+    console.error("Auth check failed:", authCheck.reason);
+    return { ok: false, message: `Authentication failed: ${authCheck.reason}` };
   }
 
   const { supabase, profile, user } = authCheck;
   const locale = String(formData.get("locale") ?? "en");
 
+  console.log("User profile:", { id: user.id, role: profile.role, organization_id: profile.organization_id });
+
   if (!["agency", "dmc"].includes(profile.role)) {
-    return { ok: false, message: "ONLY_AGENCY_OR_DMC_CAN_POST" };
+    console.error("Invalid role:", profile.role);
+    return { ok: false, message: `Only agencies and DMCs can post jobs. Your role: ${profile.role}` };
   }
 
   if (!profile.organization_id) {
-    return { ok: false, message: "MISSING_ORGANISATION" };
+    console.error("Missing organization_id for user:", user.id);
+    return { ok: false, message: "Your account is not linked to an organization. Please contact support." };
   }
 
   const title = String(formData.get("title") ?? "").trim();
@@ -149,6 +154,8 @@ export async function createJobPostingAction(
     status,
   };
 
+  console.log("Creating job with payload:", payload);
+
   const { data, error } = await supabase
     .from("jobs")
     .insert(payload)
@@ -157,7 +164,9 @@ export async function createJobPostingAction(
 
   if (error) {
     console.error("Failed to create job", error);
-    return { ok: false, message: error.message };
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    console.error("Payload was:", JSON.stringify(payload, null, 2));
+    return { ok: false, message: `Database error: ${error.message}` };
   }
 
   if (locale) {

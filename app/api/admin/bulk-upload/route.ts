@@ -1,0 +1,684 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import ExcelJS from "exceljs";
+import { generateProfileCompletionToken, generateProfileCompletionLink } from "@/lib/admin/generate-profile-token";
+
+type UploadResult = {
+  success: boolean;
+  category: string;
+  totalRows: number;
+  successCount: number;
+  errorCount: number;
+  errors: Array<{
+    row: number;
+    email: string;
+    error: string;
+  }>;
+};
+
+type GuideRow = {
+  email: string;
+  password: string;
+  full_name: string;
+  country_code: string;
+  contact_email: string;
+  contact_phone?: string;
+  timezone: string;
+  headline?: string;
+  bio?: string;
+  years_experience?: number;
+  specialties?: string;
+  languages?: string;
+  license_number?: string;
+  license_authority?: string;
+  hourly_rate_cents?: number;
+  currency?: string;
+  gender?: string;
+  has_liability_insurance?: string;
+  response_time_minutes?: number;
+};
+
+type AgencyRow = {
+  email: string;
+  password: string;
+  name: string;
+  country_code: string;
+  contact_email: string;
+  contact_phone?: string;
+  timezone: string;
+  website_url?: string;
+  description?: string;
+  registration_number?: string;
+  registration_country?: string;
+  business_address?: string;
+  services_offered?: string;
+  languages_supported?: string;
+  certifications?: string;
+  tax_id?: string;
+};
+
+type DMCRow = {
+  email: string;
+  password: string;
+  name: string;
+  country_code: string;
+  contact_email: string;
+  contact_phone?: string;
+  timezone: string;
+  website_url?: string;
+  description?: string;
+  registration_number?: string;
+  registration_country?: string;
+  business_address?: string;
+  services_offered?: string;
+  languages_supported?: string;
+  certifications?: string;
+  coverage_summary?: string;
+};
+
+type TransportRow = {
+  email: string;
+  password: string;
+  name: string;
+  country_code: string;
+  contact_email: string;
+  contact_phone?: string;
+  timezone: string;
+  website_url?: string;
+  description?: string;
+  registration_number?: string;
+  business_address?: string;
+  services_offered?: string;
+  languages_supported?: string;
+  fleet_types?: string;
+  fleet_size?: number;
+  certifications?: string;
+};
+
+function parseCommaSeparated(value: any): string[] {
+  if (!value) return [];
+  const str = String(value).trim();
+  if (!str) return [];
+  return str.split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
+}
+
+function parseBoolean(value: any): boolean {
+  if (typeof value === "boolean") return value;
+  const str = String(value).toLowerCase().trim();
+  return str === "true" || str === "1" || str === "yes";
+}
+
+async function processGuidesWorksheet(
+  worksheet: ExcelJS.Worksheet,
+  serviceClient: any
+): Promise<UploadResult> {
+  const result: UploadResult = {
+    success: true,
+    category: "Guides",
+    totalRows: 0,
+    successCount: 0,
+    errorCount: 0,
+    errors: [],
+  };
+
+  const rows: GuideRow[] = [];
+
+  // Build header-to-key mapping from first row
+  const headerRow = worksheet.getRow(1);
+  const columnKeyMap = new Map<number, string>();
+
+  headerRow.eachCell((cell, colNumber) => {
+    const header = String(cell.value || "");
+    // Remove asterisk and clean up header to get field name
+    const cleanHeader = header.split("*")[0].trim().toLowerCase().replace(/\s+/g, "_").replace(/[()]/g, "").replace(/,/g, "");
+
+    // Map specific headers to correct field names
+    const fieldMap: Record<string, string> = {
+      "email": "email",
+      "password": "password",
+      "full_name": "full_name",
+      "country_code": "country_code",
+      "contact_email": "contact_email",
+      "contact_phone": "contact_phone",
+      "timezone": "timezone",
+      "headline": "headline",
+      "bio": "bio",
+      "years_experience": "years_experience",
+      "specialties": "specialties",
+      "languages": "languages",
+      "license_number": "license_number",
+      "license_authority": "license_authority",
+      "hourly_rate_cents": "hourly_rate_cents",
+      "currency": "currency",
+      "gender": "gender",
+      "has_liability_insurance": "has_liability_insurance",
+      "response_time_minutes": "response_time_minutes",
+    };
+
+    const key = fieldMap[cleanHeader] || cleanHeader;
+    if (key) {
+      columnKeyMap.set(colNumber, key);
+    }
+  });
+
+  console.log("Guide column mapping:", Array.from(columnKeyMap.entries()));
+
+  let rowsProcessed = 0;
+  worksheet.eachRow((row, rowNumber) => {
+    rowsProcessed++;
+    console.log(`Guide: Processing row ${rowNumber}, cell count:`, row.cellCount, row.actualCellCount);
+
+    if (rowNumber === 1) return; // Skip header
+
+    const rowData: any = {};
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      // Use the column key from the header mapping
+      const key = columnKeyMap.get(colNumber);
+      if (!key) return;
+
+      // Extract plain text value from cell (handles rich text, hyperlinks, etc.)
+      let value = cell.value;
+      if (value && typeof value === "object") {
+        if ("text" in value) {
+          value = value.text;
+        } else if ("richText" in value) {
+          value = (value as any).richText.map((rt: any) => rt.text).join("");
+        } else {
+          value = String(value);
+        }
+      }
+
+      rowData[key] = value;
+    });
+
+    console.log(`Guide row ${rowNumber} data:`, { email: rowData.email, full_name: rowData.full_name });
+
+    // Skip empty rows
+    if (!rowData.email) {
+      console.log(`Guide row ${rowNumber}: Skipping - no email`);
+      return;
+    }
+
+    rows.push(rowData as GuideRow);
+  });
+
+  console.log(`Guide: Total rows processed: ${rowsProcessed}, Data rows collected: ${rows.length}`);
+
+  result.totalRows = rows.length;
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNumber = i + 2; // +2 because of header and 1-based indexing
+
+    try {
+      // Validate required fields
+      if (!row.email || !row.password || !row.full_name || !row.country_code || !row.contact_email || !row.timezone) {
+        console.log("Guide validation failed for row", rowNumber, {
+          email: row.email,
+          password: row.password ? "***" : undefined,
+          full_name: row.full_name,
+          country_code: row.country_code,
+          contact_email: row.contact_email,
+          timezone: row.timezone,
+        });
+        throw new Error("Missing required fields");
+      }
+
+      console.log("Processing guide row", rowNumber, row.email);
+
+      // Check if email already exists
+      const { data: existingUser } = await serviceClient.auth.admin.listUsers();
+      const emailExists = existingUser?.users?.find((u: any) => u.email === row.email);
+
+      if (emailExists) {
+        // Skip this user - already exists
+        console.log(`Guide row ${rowNumber}: Email already exists, skipping`, row.email);
+        throw new Error("Email already exists - user not created");
+      }
+
+      // Create auth user
+      const { data: authData, error: authError } = await serviceClient.auth.admin.createUser({
+        email: row.email,
+        password: row.password,
+        email_confirm: true,
+      });
+
+      if (authError || !authData.user) {
+        throw new Error(`Auth creation failed: ${authError?.message || "Unknown error"}`);
+      }
+
+      // Create or update profile (upsert to handle auto-created profiles from trigger)
+      const { error: profileError } = await serviceClient.from("profiles").upsert({
+        id: authData.user.id,
+        role: "guide",
+        full_name: row.full_name,
+        locale: "en",
+        country_code: row.country_code.toUpperCase(),
+        timezone: row.timezone,
+        avatar_url: null,
+        application_status: "approved",
+        application_submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
+      });
+
+      if (profileError) {
+        // Rollback: delete auth user
+        await serviceClient.auth.admin.deleteUser(authData.user.id);
+        throw new Error(`Profile creation failed: ${profileError.message}`);
+      }
+
+      // Create guide record
+      const { error: guideError } = await serviceClient.from("guides").insert({
+        profile_id: authData.user.id,
+        headline: row.headline || null,
+        bio: row.bio || null,
+        professional_intro: row.headline || null,
+        specialties: row.specialties ? parseCommaSeparated(row.specialties) : [],
+        expertise_areas: [],
+        spoken_languages: row.languages ? parseCommaSeparated(row.languages) : [],
+        years_experience: row.years_experience ? Number(row.years_experience) : null,
+        experience_summary: null,
+        license_number: row.license_number || null,
+        license_authority: row.license_authority || null,
+        license_proof_url: null,
+        id_document_url: null,
+        avatar_url: null,
+        profile_photo_url: null,
+        sample_itineraries: JSON.stringify({ entries: [] }),
+        media_gallery: JSON.stringify({ entries: [] }),
+        timezone: row.timezone,
+        availability_timezone: row.timezone,
+        working_hours: null,
+        availability_notes: null,
+        location_data: null,
+        application_data: (() => {
+          // Generate unique profile completion token ONCE
+          const token = generateProfileCompletionToken();
+          return {
+            profile_completion_token: token,
+            profile_completion_link: generateProfileCompletionLink(token, 'en'),
+            contact_email: row.contact_email,
+            contact_phone: row.contact_phone || null,
+            hourly_rate_cents: row.hourly_rate_cents ? Number(row.hourly_rate_cents) : null,
+            currency: row.currency || "USD",
+            gender: row.gender || null,
+            has_liability_insurance: row.has_liability_insurance ? parseBoolean(row.has_liability_insurance) : false,
+            response_time_minutes: row.response_time_minutes ? Number(row.response_time_minutes) : null,
+          };
+        })(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      if (guideError) {
+        // Rollback: delete profile and auth user
+        await serviceClient.from("profiles").delete().eq("id", authData.user.id);
+        await serviceClient.auth.admin.deleteUser(authData.user.id);
+        throw new Error(`Guide record creation failed: ${guideError.message}`);
+      }
+
+      result.successCount++;
+    } catch (error) {
+      result.errorCount++;
+      result.errors.push({
+        row: rowNumber,
+        email: row.email,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  result.success = result.errorCount === 0;
+  return result;
+}
+
+async function processOrganizationWorksheet(
+  worksheet: ExcelJS.Worksheet,
+  serviceClient: any,
+  role: "agency" | "dmc" | "transport"
+): Promise<UploadResult> {
+  const result: UploadResult = {
+    success: true,
+    category: role === "agency" ? "Agencies" : role === "dmc" ? "DMCs" : "Transport",
+    totalRows: 0,
+    successCount: 0,
+    errorCount: 0,
+    errors: [],
+  };
+
+  const rows: (AgencyRow | DMCRow | TransportRow)[] = [];
+
+  // Build header-to-key mapping from first row
+  const headerRow = worksheet.getRow(1);
+  const columnKeyMap = new Map<number, string>();
+
+  headerRow.eachCell((cell, colNumber) => {
+    const header = String(cell.value || "");
+    // Remove asterisk and clean up header to get field name
+    const cleanHeader = header.split("*")[0].trim().toLowerCase().replace(/\s+/g, "_").replace(/[()]/g, "").replace(/,/g, "").replace(/-/g, "_");
+
+    // Map specific headers to correct field names
+    const fieldMap: Record<string, string> = {
+      "email": "email",
+      "password": "password",
+      "company_name": "name",
+      "name": "name",
+      "country_code": "country_code",
+      "contact_email": "contact_email",
+      "contact_phone": "contact_phone",
+      "timezone": "timezone",
+      "website_url": "website_url",
+      "description": "description",
+      "registration_number": "registration_number",
+      "registration_country": "registration_country",
+      "business_address": "business_address",
+      "services_offered": "services_offered",
+      "languages_supported": "languages_supported",
+      "certifications": "certifications",
+      "tax_id": "tax_id",
+      "coverage_summary": "coverage_summary",
+      "fleet_types": "fleet_types",
+      "fleet_size": "fleet_size",
+    };
+
+    const key = fieldMap[cleanHeader] || cleanHeader;
+    if (key) {
+      columnKeyMap.set(colNumber, key);
+    }
+  });
+
+  console.log(`${role} column mapping:`, Array.from(columnKeyMap.entries()));
+
+  let rowsProcessed = 0;
+  worksheet.eachRow((row, rowNumber) => {
+    rowsProcessed++;
+    console.log(`${role}: Processing row ${rowNumber}, cell count:`, row.cellCount, row.actualCellCount);
+
+    if (rowNumber === 1) return; // Skip header
+
+    const rowData: any = {};
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      // Use the column key from the header mapping
+      const key = columnKeyMap.get(colNumber);
+      if (!key) return;
+
+      // Extract plain text value from cell (handles rich text, hyperlinks, etc.)
+      let value = cell.value;
+      if (value && typeof value === "object") {
+        if ("text" in value) {
+          value = value.text;
+        } else if ("richText" in value) {
+          value = (value as any).richText.map((rt: any) => rt.text).join("");
+        } else {
+          value = String(value);
+        }
+      }
+
+      rowData[key] = value;
+    });
+
+    console.log(`${role} row ${rowNumber} data:`, { email: rowData.email, name: rowData.name });
+
+    // Skip empty rows
+    if (!rowData.email) {
+      console.log(`${role} row ${rowNumber}: Skipping - no email`);
+      return;
+    }
+
+    rows.push(rowData);
+  });
+
+  console.log(`${role}: Total rows processed: ${rowsProcessed}, Data rows collected: ${rows.length}`);
+
+  result.totalRows = rows.length;
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNumber = i + 2;
+
+    try {
+      // Validate required fields
+      if (!row.email || !row.password || !row.name || !row.country_code || !row.contact_email || !row.timezone) {
+        console.log(`${role} validation failed for row`, rowNumber, {
+          email: row.email,
+          password: row.password ? "***" : undefined,
+          name: row.name,
+          country_code: row.country_code,
+          contact_email: row.contact_email,
+          timezone: row.timezone,
+        });
+        throw new Error("Missing required fields");
+      }
+
+      console.log(`Processing ${role} row`, rowNumber, row.email);
+
+      // Check if email already exists
+      const { data: existingUser } = await serviceClient.auth.admin.listUsers();
+      const emailExists = existingUser?.users?.find((u: any) => u.email === row.email);
+
+      if (emailExists) {
+        // Skip this user - already exists
+        console.log(`${role} row ${rowNumber}: Email already exists, skipping`, row.email);
+        throw new Error("Email already exists - user not created");
+      }
+
+      // Create auth user
+      const { data: authData, error: authError } = await serviceClient.auth.admin.createUser({
+        email: row.email,
+        password: row.password,
+        email_confirm: true,
+      });
+
+      if (authError || !authData.user) {
+        throw new Error(`Auth creation failed: ${authError?.message || "Unknown error"}`);
+      }
+
+      // Prepare application data to preserve in JSONB
+      // Generate unique profile completion token ONCE
+      const profileToken = generateProfileCompletionToken();
+      const applicationData: any = {
+        registration_number: row.registration_number || null,
+        registration_country: (role === "agency" || role === "dmc") ? (row as AgencyRow | DMCRow).registration_country : null,
+        business_address: row.business_address || null,
+        // Use the same token for both fields
+        profile_completion_token: profileToken,
+        profile_completion_link: generateProfileCompletionLink(profileToken, 'en'),
+        contact_email: row.contact_email,
+        contact_phone: row.contact_phone || null,
+      };
+
+      if (role === "agency") {
+        applicationData.tax_id = (row as AgencyRow).tax_id || null;
+      } else if (role === "dmc") {
+        applicationData.coverage_summary = (row as DMCRow).coverage_summary || null;
+      } else if (role === "transport") {
+        const transportRow = row as TransportRow;
+        applicationData.fleet_types = transportRow.fleet_types || null;
+        applicationData.fleet_size = transportRow.fleet_size ? Number(transportRow.fleet_size) : null;
+      }
+
+      // Create agency record with correct column names matching database schema
+      // Fixed: Use 'languages' instead of 'languages_supported', 'website' instead of 'website_url'
+      const agencyData: any = {
+        id: authData.user.id,
+        type: role,
+        name: row.name,
+        slug: row.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + authData.user.id.substring(0, 8),
+        country_code: row.country_code.toUpperCase(),
+        registration_number: row.registration_number || null,
+        vat_id: (role === "agency" && (row as AgencyRow).tax_id) ? (row as AgencyRow).tax_id : null,
+        description: row.description || null,
+        website: row.website_url || null,  // Fixed: 'website' not 'website_url'
+        logo_url: null,
+        verified: false,
+        featured: false,
+        // Fixed: Column is 'languages' not 'languages_supported' in database
+        languages: row.languages_supported ? parseCommaSeparated(row.languages_supported) : [],
+        // Fixed: Column is 'specialties' - map services_offered to it
+        specialties: row.services_offered ? parseCommaSeparated(row.services_offered) : [],
+        coverage_summary: (role === "dmc" && (row as DMCRow).coverage_summary) ? (row as DMCRow).coverage_summary : null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: agencyRecord, error: agencyError} = await serviceClient
+        .from("agencies")
+        .insert(agencyData)
+        .select()
+        .single();
+
+      if (agencyError || !agencyRecord) {
+        // Rollback: delete auth user
+        await serviceClient.auth.admin.deleteUser(authData.user.id);
+        throw new Error(`Agency record creation failed: ${agencyError?.message || "Unknown error"}`);
+      }
+
+      // Create or update profile (upsert to handle auto-created profiles from trigger)
+      const { error: profileError } = await serviceClient.from("profiles").upsert({
+        id: authData.user.id,
+        role: role,
+        full_name: row.name,
+        locale: "en",
+        organization_id: agencyRecord.id,
+        country_code: row.country_code.toUpperCase(),
+        timezone: row.timezone,
+        avatar_url: null,
+        application_status: "approved",
+        application_submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
+      });
+
+      if (profileError) {
+        // Rollback: delete agency and auth user
+        await serviceClient.from("agencies").delete().eq("id", agencyRecord.id);
+        await serviceClient.auth.admin.deleteUser(authData.user.id);
+        throw new Error(`Profile creation failed: ${profileError.message}`);
+      }
+
+      result.successCount++;
+    } catch (error) {
+      result.errorCount++;
+      result.errors.push({
+        row: rowNumber,
+        email: row.email,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  result.success = result.errorCount === 0;
+  return result;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    console.log("Bulk upload API called");
+
+    // Verify admin authentication
+    const supabase = getSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      console.log("Bulk upload: Unauthorized - no user");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || !["admin", "super_admin"].includes(profile.role)) {
+      console.log("Bulk upload: Forbidden - not admin", profile?.role);
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Get form data
+    const formData = await request.formData();
+    const file = formData.get("file") as File;
+
+    if (!file) {
+      console.log("Bulk upload: No file provided");
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    console.log("Bulk upload: Processing file", file.name, file.size, "bytes");
+
+    // Read Excel file
+    const buffer = await file.arrayBuffer();
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+
+    console.log("Bulk upload: Workbook loaded, worksheets:", workbook.worksheets.map(ws => ws.name));
+
+    const serviceClient = getSupabaseServiceClient();
+    const results: UploadResult[] = [];
+
+    // Process each worksheet
+    const guidesSheet = workbook.getWorksheet("Guides");
+    if (guidesSheet) {
+      console.log("Bulk upload: Processing Guides worksheet, actual rows:", guidesSheet.actualRowCount, "row count:", guidesSheet.rowCount);
+      const result = await processGuidesWorksheet(guidesSheet, serviceClient);
+      console.log("Bulk upload: Guides result:", result);
+      results.push(result);
+    }
+
+    const agenciesSheet = workbook.getWorksheet("Agencies");
+    if (agenciesSheet) {
+      console.log("Bulk upload: Processing Agencies worksheet, actual rows:", agenciesSheet.actualRowCount, "row count:", agenciesSheet.rowCount);
+      const result = await processOrganizationWorksheet(agenciesSheet, serviceClient, "agency");
+      console.log("Bulk upload: Agencies result:", result);
+      results.push(result);
+    }
+
+    const dmcsSheet = workbook.getWorksheet("DMCs");
+    if (dmcsSheet) {
+      console.log("Bulk upload: Processing DMCs worksheet, actual rows:", dmcsSheet.actualRowCount, "row count:", dmcsSheet.rowCount);
+      const result = await processOrganizationWorksheet(dmcsSheet, serviceClient, "dmc");
+      console.log("Bulk upload: DMCs result:", result);
+      results.push(result);
+    }
+
+    const transportSheet = workbook.getWorksheet("Transport");
+    if (transportSheet) {
+      console.log("Bulk upload: Processing Transport worksheet, actual rows:", transportSheet.actualRowCount, "row count:", transportSheet.rowCount);
+      const result = await processOrganizationWorksheet(transportSheet, serviceClient, "transport");
+      console.log("Bulk upload: Transport result:", result);
+      results.push(result);
+    }
+
+    if (results.length === 0) {
+      console.log("Bulk upload: No valid data found in any worksheet");
+      return NextResponse.json(
+        { error: "No valid data found in any worksheet" },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      results,
+      summary: {
+        totalCategories: results.length,
+        totalRows: results.reduce((sum, r) => sum + r.totalRows, 0),
+        totalSuccess: results.reduce((sum, r) => sum + r.successCount, 0),
+        totalErrors: results.reduce((sum, r) => sum + r.errorCount, 0),
+      },
+    });
+  } catch (error) {
+    console.error("Bulk upload error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

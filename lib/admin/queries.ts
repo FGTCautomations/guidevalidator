@@ -19,6 +19,8 @@ export type AdminUserSummary = {
   createdAt: string;
   organizationName?: string | null;
   organizationType?: string | null;
+  isFrozen?: boolean;
+  rejectionReason?: string | null;
 };
 
 export type AdminDashboardData = {
@@ -30,6 +32,7 @@ export type AdminDashboardData = {
 export type AdminUserDetail = {
   id: string;
   email: string | null;
+  isFrozen: boolean;
   profile: {
     fullName: string | null;
     role: string;
@@ -44,7 +47,14 @@ export type AdminUserDetail = {
     organizationId: string | null;
     organizationName: string | null;
     organizationType: string | null;
+    applicationStatus: string | null;
+    applicationSubmittedAt: string | null;
+    applicationReviewedAt: string | null;
+    rejectionReason: string | null;
   };
+  applicationData: any | null;
+  guideData: any | null;
+  agencyData: any | null;
   subscriptions: Array<{
     id: string;
     planCode: string | null;
@@ -110,7 +120,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
     supabase
       .from("profiles")
       .select(
-        "id, full_name, role, verified, license_verified, created_at, organization_id, organization:organization_id (id, name, type)"
+        "id, full_name, role, verified, license_verified, created_at, organization_id, rejection_reason, agencies!organization_id (id, name, type, verified)"
       )
       .order("created_at", { ascending: false }),
     supabase.from("guide_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
@@ -132,6 +142,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
 
   const service = getSupabaseServiceClient();
   const emailMap = new Map<string, string | null>();
+  const frozenMap = new Map<string, boolean>();
   let page = 1;
   const perPage = 200;
   while (page <= 3) {
@@ -142,6 +153,12 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
     }
     data.users.forEach((user) => {
       emailMap.set(user.id, user.email ?? null);
+      // Check if user is frozen (banned)
+      const bannedUntil = (user as any).banned_until;
+      frozenMap.set(
+        user.id,
+        bannedUntil ? new Date(bannedUntil) > new Date() : false
+      );
     });
     if (data.users.length < perPage) {
       break;
@@ -149,17 +166,28 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
     page += 1;
   }
 
-  const users: AdminUserSummary[] = (profilesQuery.data ?? []).map((row: any) => ({
-    id: row.id,
-    name: row.full_name ?? null,
-    email: emailMap.get(row.id) ?? null,
-    role: row.role,
-    verified: Boolean(row.verified),
-    licenseVerified: Boolean(row.license_verified),
-    createdAt: row.created_at,
-    organizationName: row.organization?.name ?? null,
-    organizationType: row.organization?.type ?? null,
-  }));
+  const users: AdminUserSummary[] = (profilesQuery.data ?? []).map((row: any) => {
+    // For organization users (agency, dmc, transport), check if organization has verified field
+    // Otherwise use profile verified field (for guides and other users)
+    const isOrgUser = ["agency", "dmc", "transport"].includes(row.role);
+    const agency = row.agencies;
+    const orgVerified = agency?.verified;
+    const verified = isOrgUser && orgVerified !== undefined ? Boolean(orgVerified) : Boolean(row.verified);
+
+    return {
+      id: row.id,
+      name: row.full_name ?? null,
+      email: emailMap.get(row.id) ?? null,
+      role: row.role,
+      verified,
+      licenseVerified: Boolean(row.license_verified),
+      createdAt: row.created_at,
+      organizationName: agency?.name ?? null,
+      organizationType: agency?.type ?? null,
+      isFrozen: frozenMap.get(row.id) || row.rejection_reason?.startsWith("FROZEN:") || false,
+      rejectionReason: row.rejection_reason ?? null,
+    };
+  });
 
   return {
     metrics: {
@@ -179,7 +207,7 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
   const profileQuery = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, verified, license_verified, locale, country_code, timezone, created_at, organization_id, organization:organization_id (id, name, type)"
+      "id, full_name, role, verified, license_verified, locale, country_code, timezone, created_at, organization_id, application_status, application_submitted_at, application_reviewed_at, rejection_reason, organization:organization_id (id, name, type)"
     )
     .eq("id", userId)
     .maybeSingle();
@@ -192,6 +220,28 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
   const profile = profileQuery.data as any;
   if (!profile) {
     return null;
+  }
+
+  // Fetch guide data if user is a guide
+  let guideData = null;
+  if (profile.role === "guide") {
+    const guideQuery = await supabase
+      .from("guides")
+      .select("*")
+      .eq("profile_id", userId)
+      .maybeSingle();
+    guideData = guideQuery.data;
+  }
+
+  // Fetch agency data if user has organization
+  let agencyData = null;
+  if (profile.organization_id) {
+    const agencyQuery = await supabase
+      .from("agencies")
+      .select("*")
+      .eq("id", profile.organization_id)
+      .maybeSingle();
+    agencyData = agencyQuery.data;
   }
 
   const orFilters: string[] = [`profile_id.eq.${userId}`];
@@ -215,9 +265,13 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
 
   const service = getSupabaseServiceClient();
   let email: string | null = null;
+  let isFrozen = false;
   try {
     const { data } = await service.auth.admin.getUserById(userId);
     email = data?.user?.email ?? null;
+    // Check if user is banned (frozen)
+    const bannedUntil = (data?.user as any)?.banned_until;
+    isFrozen = bannedUntil ? new Date(bannedUntil) > new Date() : false;
   } catch (error) {
     console.error("Unable to fetch admin user email", error);
   }
@@ -247,6 +301,7 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
   return {
     id: profile.id,
     email,
+    isFrozen,
     profile: {
       fullName: profile.full_name ?? null,
       role: profile.role,
@@ -259,7 +314,14 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
       organizationId: profile.organization_id ?? null,
       organizationName: profile.organization?.name ?? null,
       organizationType: profile.organization?.type ?? null,
+      applicationStatus: profile.application_status ?? null,
+      applicationSubmittedAt: profile.application_submitted_at ?? null,
+      applicationReviewedAt: profile.application_reviewed_at ?? null,
+      rejectionReason: profile.rejection_reason ?? null,
     },
+    applicationData: guideData?.application_data ?? agencyData?.application_data ?? null,
+    guideData,
+    agencyData,
     subscriptions,
     payments,
     totalIncomeCents,
@@ -381,4 +443,46 @@ export async function fetchPendingVerifications(): Promise<PendingVerificationIt
   items.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return items;
+}
+
+/**
+ * Check if the current user has admin access
+ * @returns Object with authorized boolean and optional user info
+ */
+export async function checkAdminAccess(): Promise<{
+  authorized: boolean;
+  userId?: string;
+  role?: string;
+}> {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { authorized: false };
+    }
+
+    // Get user profile to check role
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return { authorized: false };
+    }
+
+    // Check if user is admin or super_admin
+    const isAdmin = profile.role === "admin" || profile.role === "super_admin";
+
+    return {
+      authorized: isAdmin,
+      userId: user.id,
+      role: profile.role,
+    };
+  } catch (error) {
+    console.error("Error checking admin access:", error);
+    return { authorized: false };
+  }
 }

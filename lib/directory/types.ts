@@ -32,6 +32,9 @@ export type DirectoryListing = {
   // Review system fields
   avgOverallRating?: number | null;
   totalReviews?: number;
+  // Profile completion tracking
+  profileCompleted?: boolean;
+  profileCompletionPercentage?: number;
 };
 
 export type DirectorySortKey = "featured" | "rating" | "response_time";
@@ -51,7 +54,10 @@ export type DirectoryFilters = {
   childFriendlyOnly?: boolean;
   minRate?: number;
   maxRate?: number;
+  minRating?: number;
   sort?: DirectorySortKey;
   availableFrom?: string; // Date string in YYYY-MM-DD format
   availableTo?: string; // Date string in YYYY-MM-DD format
+  search?: string; // Text search for name or license number
+  letter?: string; // Filter by first letter of name (A-Z)
 };

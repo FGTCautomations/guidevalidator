@@ -100,13 +100,13 @@ export async function submitTransportApplicationAction(
   try {
     customLanguages = languagesRaw ? JSON.parse(languagesRaw) : [];
   } catch {
-    return { status: "error", message: "Invalid languages format." }
+    return { status: "error", message: "Invalid languages format." };
+  }
 
   try {
     locationData = locationDataRaw ? JSON.parse(locationDataRaw) : null;
   } catch {
     return { status: "error", message: "Invalid location data format." };
-  };
   }
 
   // Merge custom languages with legacy parsing
@@ -175,87 +175,136 @@ export async function submitTransportApplicationAction(
   }
 
   const userId = authData.user?.id;
-  const { data: application, error } = await service
-    .from("transport_applications")
-    .insert({
-      user_id: userId || null,
-      locale,
-      legal_entity_name: legalEntityName,
-      registration_number: registrationNumber || null,
-      registration_country: registrationCountry || null,
-      company_address: companyAddress || null,
-      contact_email: contactEmail,
-      contact_phone: contactPhone || null,
-      website_url: websiteUrl || null,
-      logo_url: logoUrl || null,
-      short_description: shortDescription || null,
-      fleet_documents: { entries: fleetDocs },
-      insurance_documents: { entries: insuranceDocs },
-      safety_certifications: safetyCertifications,
-      representative_name: representativeName || null,
-      representative_position: representativeRole || null,
-      representative_contact: {
-        email: representativeEmail || null,
-        phone: representativePhone || null,
-      },
-      service_areas: serviceAreas,
-      fleet_overview: { entries: fleetOverview },
-      service_types: serviceTypes,
-      safety_features: safetyFeatures,
-      languages_spoken: languagesSpoken,
-      media_gallery: { entries: mediaGallery },
-      client_references: { entries: clientReferences },
-      availability: {
-        notes: availabilityNotes || null,
-        time_zone: timeZone || null,
-        availability_timezone: availabilityTimezone || null,
-        working_hours: workingHours || null,
-      },
-      booking_info: { entries: bookingInfo },
-      pricing_summary: { entries: pricingSummary },
-      subscription_plan: subscriptionPlan || null,
-      billing_details: { notes: billingNotes || null },
-      login_email: loginEmailRaw,
-      login_password_ciphertext: encryptedPassword.ciphertext,
-      login_password_iv: encryptedPassword.iv,
-      login_password_tag: encryptedPassword.tag,
-      timezone,
-      availability_timezone: availabilityTimezone,
-      working_hours: workingHours,
-      avatar_url: logoUrl || null,
-    })
-    .select("id")
-    .single();
 
-  if (error) {
-    console.error("submitTransportApplicationAction", error);
+  if (!userId) {
+    console.error("[Transport Application] No user ID returned from auth.createUser");
+    return { status: "error", message: "Account creation failed - no user ID returned." };
+  }
+
+  console.log("[Transport Application] Auth account created successfully:", userId);
+
+  // NEW CONSOLIDATED APPROACH: Insert into agencies table with type='transport' and pending status
+  // Prepare application data to preserve original submission
+  const applicationData = {
+    user_id: userId,
+    locale,
+    legal_entity_name: legalEntityName,
+    registration_number: registrationNumber || null,
+    registration_country: registrationCountry || null,
+    company_address: companyAddress || null,
+    contact_email: contactEmail,
+    contact_phone: contactPhone || null,
+    website_url: websiteUrl || null,
+    logo_url: logoUrl || null,
+    short_description: shortDescription || null,
+    fleet_documents: { entries: fleetDocs },
+    insurance_documents: { entries: insuranceDocs },
+    safety_certifications: safetyCertifications,
+    representative_name: representativeName || null,
+    representative_position: representativeRole || null,
+    representative_contact: {
+      email: representativeEmail || null,
+      phone: representativePhone || null,
+    },
+    service_areas: serviceAreas,
+    fleet_overview: { entries: fleetOverview },
+    service_types: serviceTypes,
+    safety_features: safetyFeatures,
+    languages_spoken: languagesSpoken,
+    media_gallery: { entries: mediaGallery },
+    client_references: { entries: clientReferences },
+    availability: {
+      notes: availabilityNotes || null,
+      time_zone: timeZone || null,
+      availability_timezone: availabilityTimezone || null,
+      working_hours: workingHours || null,
+    },
+    booking_info: { entries: bookingInfo },
+    pricing_summary: { entries: pricingSummary },
+    subscription_plan: subscriptionPlan || null,
+    billing_details: { notes: billingNotes || null },
+    login_email: loginEmailRaw,
+    login_password_ciphertext: encryptedPassword.ciphertext,
+    login_password_iv: encryptedPassword.iv,
+    login_password_tag: encryptedPassword.tag,
+    timezone,
+    availability_timezone: availabilityTimezone,
+    working_hours: workingHours,
+    avatar_url: logoUrl || null,
+  };
+
+  // Insert into agencies table with type='transport' and pending status
+  const { error: transportError } = await service.from("agencies").insert({
+    id: userId, // Use userId as agency ID for consistency
+    type: "transport",
+    name: legalEntityName,
+    slug: legalEntityName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    registration_country: registrationCountry || null,
+    description: shortDescription || null,
+    website_url: websiteUrl || null,
+    contact_email: contactEmail,
+    contact_phone: contactPhone || null,
+    logo_url: logoUrl || null,
+    services_offered: serviceTypes,
+    languages_supported: languagesSpoken,
+    certifications: safetyCertifications,
+    timezone,
+    availability_timezone: availabilityTimezone,
+    working_hours: workingHours,
+    availability_notes: availabilityNotes || null,
+    location_data: locationData,
+    fleet_data: {
+      fleet_overview: fleetOverview,
+      fleet_documents: fleetDocs,
+      insurance_documents: insuranceDocs,
+      safety_features: safetyFeatures,
+    },
+    application_data: applicationData, // Preserve original application
+    application_status: "pending",
+    application_submitted_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+
+  if (transportError) {
+    console.error("[Transport Application] Insert error:", transportError);
+
+    // Clean up auth account
+    try {
+      await service.auth.admin.deleteUser(userId);
+    } catch (deleteError) {
+      console.error("[Transport Application] Failed to delete auth account:", deleteError);
+    }
+
     return {
       status: "error",
-      message: error.message ?? "Unable to submit your transport application.",
+      message: transportError.message ?? "Unable to submit your transport application.",
     };
   }
 
-  if (application) {
-    try {
-      await Promise.all([
-        sendApplicationReceivedEmail({
-          applicantEmail: contactEmail,
-          applicantName: legalEntityName,
-          applicationType: "transport",
-          applicationId: application.id,
-          locale,
-        }),
-        sendAdminNewApplicationEmail({
-          applicantEmail: contactEmail,
-          applicantName: legalEntityName,
-          applicationType: "transport",
-          applicationId: application.id,
-          locale,
-        }),
-      ]);
-    } catch (emailError) {
-      console.error("Failed to send application emails", emailError);
-    }
+  console.log("[Transport Application] Application saved successfully:", userId);
+
+  // Send email notifications
+  try {
+    await Promise.all([
+      sendApplicationReceivedEmail({
+        applicantEmail: contactEmail,
+        applicantName: legalEntityName,
+        applicationType: "transport",
+        applicationId: userId, // Use userId as application ID
+        locale,
+      }),
+      sendAdminNewApplicationEmail({
+        applicantEmail: contactEmail,
+        applicantName: legalEntityName,
+        applicationType: "transport",
+        applicationId: userId,
+        locale,
+      }),
+    ]);
+  } catch (emailError) {
+    console.error("Failed to send application emails", emailError);
+    // Don't fail the application if emails fail
   }
 
   redirect(`/${locale}/auth/sign-up/thanks?role=transport`);

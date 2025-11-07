@@ -1,46 +1,96 @@
 {
     "home": {
-        "tagline": "Global verified talent, ready on demand",
-        "heroTitle": "Connect tour guides, DMCs, agencies, and transport partners with confidence.",
-        "heroDescription": "Guide Validator is the marketplace for licensed professionals. Discover multilingual experts, manage compliance, and keep every engagement audit-ready without sacrificing speed.",
-        "primaryCta": "Preview the directory",
-        "primaryCtaHref": "/directory",
-        "secondaryCta": "Talk to our team",
-        "secondaryCtaHref": "/contact",
-        "trustBadge": "Identity-verified partners",
-        "metrics": {
-            "verified": {
-                "label": "Verified professionals",
-                "value": "40k+"
-            },
-            "countries": {
-                "label": "Countries covered",
-                "value": "120"
-            },
-            "sla": {
-                "label": "Compliance SLA",
-                "value": "24h"
+        "hero": {
+            "title": "Connecting Verified Tour Guides, DMCs & Travel Companies Worldwide",
+            "subtitle": "Discover verified tour guides, travel agencies, DMCs, and transportation partners — all in one place.",
+            "primaryCta": "Explore Verified Partners"
+        },
+        "about": {
+            "title": "The World's Trusted Marketplace for Verified Travel Professionals",
+            "description": "Guide Validator connects travel professionals through a global verification system that ensures safety, compliance, and quality standards. Every partner undergoes rigorous identity verification, credential validation, and compliance checks before joining our marketplace.",
+            "features": {
+                "verifiedIdentity": {
+                    "title": "Verified Identity",
+                    "description": "Multi-factor identity verification"
+                },
+                "credentialValidation": {
+                    "title": "Credential Validation",
+                    "description": "License and certification checks"
+                },
+                "globalStandards": {
+                    "title": "Global Standards",
+                    "description": "Compliance with local regulations"
+                },
+                "communityTrust": {
+                    "title": "Community Trust",
+                    "description": "Peer reviews and ratings"
+                }
             }
         },
-        "pillars": {
-            "enterprise": {
-                "title": "Why enterprises choose us",
-                "body": "Built for compliance teams and operations leaders who need verified partners, granular coverage filtering, and dependable renewals."
+        "stakeholders": {
+            "tourGuides": {
+                "title": "Tour Guides",
+                "benefits": {
+                    "one": "Get discovered by global travel agencies and DMCs",
+                    "two": "Showcase verified credentials and specialties",
+                    "three": "Connect directly with potential clients"
+                },
+                "cta": "Join as a Tour Guide"
             },
-            "localization": {
-                "title": "Always multilingual",
-                "body": "Eleven fully localized experiences, including RTL support for Arabic and Urdu, so every partner can onboard in their preferred language."
+            "travelAgencies": {
+                "title": "Travel Agencies",
+                "benefits": {
+                    "one": "Access vetted tour guides and local partners worldwide",
+                    "two": "Streamline supplier verification processes",
+                    "three": "Build trusted partnerships at scale"
+                },
+                "cta": "Register Your Agency"
             },
-            "infrastructure": {
-                "title": "Infrastructure ready",
-                "body": "Supabase, Stripe, and Resend integrations are planned from day one, keeping audit trails, renewals, and billing in sync."
+            "dmcs": {
+                "title": "DMCs",
+                "benefits": {
+                    "one": "Expand your network of verified local experts",
+                    "two": "Ensure compliance across all destinations",
+                    "three": "Connect with agencies seeking ground services"
+                },
+                "cta": "Partner as a DMC"
+            },
+            "transport": {
+                "title": "Transport Providers",
+                "benefits": {
+                    "one": "List your fleet with verified credentials",
+                    "two": "Connect with tour operators and agencies",
+                    "three": "Demonstrate safety and licensing compliance"
+                },
+                "cta": "Add Your Transport Company"
             }
         },
-        "cta": {
-            "title": "Ready to validate your supply chain?",
-            "body": "Schedule a compliance walkthrough with our verification team to see how we keep every document in check.",
-            "action": "Book a demo",
-            "href": "/contact"
+        "howItWorks": {
+            "title": "How It Works",
+            "steps": {
+                "one": {
+                    "title": "Create Profile",
+                    "description": "Sign up and create your professional profile with your credentials, services, and expertise."
+                },
+                "two": {
+                    "title": "Get Verified",
+                    "description": "Complete our verification process including identity checks, credential validation, and compliance review."
+                },
+                "three": {
+                    "title": "Connect & Grow",
+                    "description": "Start connecting with verified partners, showcase your services, and grow your travel business."
+                }
+            }
+        },
+        "globalCta": {
+            "title": "Ready to Grow Your Travel Business — the Verified Way?",
+            "subtitle": "Join the world's fastest-growing network of trusted travel professionals.",
+            "buttons": {
+                "guide": "Join as a Tour Guide",
+                "agency": "Register Your Travel Agency",
+                "transport": "Add Your Transport Company",
+                "dmc": "Partner as a DMC"
+            }
         }
     },
     "nav": {
@@ -694,6 +744,10 @@
             "trust": "Trustworthiness",
             "clarity": "Job Clarity",
             "support": "Support"
+        },
+        "applications": {
+            "title": "Applications Management",
+            "subtitle": "Review and approve or decline new role applications from guides, agencies, DMCs, and transport providers."
         }
     },
     "reviews": {

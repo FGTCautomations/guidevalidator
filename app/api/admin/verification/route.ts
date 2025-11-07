@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { sendVerificationApprovedEmail, sendVerificationRejectedEmail } from "@/lib/email/resend";
 
 type VerificationActionPayload = {
@@ -12,6 +13,7 @@ type VerificationActionPayload = {
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
+    const serviceClient = getSupabaseServiceClient();
 
     // Check authentication
     const {
@@ -49,86 +51,132 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid application type" }, { status: 400 });
     }
 
-    // Determine table name
-    const tableName = `${type}_applications`;
+    const newStatus = action === "approve" ? "approved" : "rejected";
 
-    // Fetch the application
-    const { data: application, error: fetchError } = await supabase
-      .from(tableName)
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
+    // CONSOLIDATED APPROACH: Update status in master tables
+    if (type === "guide") {
+      // For guides: Update profiles table (since guides uses profile_id)
+      const { data: guideData, error: fetchError } = await supabase
+        .from("guides")
+        .select("*, profiles!inner(id, full_name, application_status)")
+        .eq("profile_id", id)
+        .maybeSingle();
 
-    if (fetchError || !application) {
-      return NextResponse.json({ error: "Application not found" }, { status: 404 });
-    }
+      if (fetchError || !guideData) {
+        return NextResponse.json({ error: "Guide application not found" }, { status: 404 });
+      }
 
-    // Update verification status
-    const verificationStatus = action === "approve" ? "approved" : "rejected";
-    const { error: updateError } = await supabase
-      .from(tableName)
-      .update({
-        verification_status: verificationStatus,
-        verification_notes: notes || null,
-        verified_at: new Date().toISOString(),
-        verified_by: user.id,
-      })
-      .eq("id", id);
-
-    if (updateError) {
-      console.error("Failed to update verification status", updateError);
-      return NextResponse.json({ error: "Failed to update verification status" }, { status: 500 });
-    }
-
-    // If approved, also update the main status field to approved
-    if (action === "approve") {
-      await supabase
-        .from(tableName)
-        .update({ status: "approved" })
-        .eq("id", id);
-    }
-
-    // Get applicant details for email
-    const applicantName =
-      type === "guide"
-        ? application.full_name
-        : application.legal_company_name || application.legal_entity_name;
-    const applicantEmail = application.contact_email;
-    const locale = application.locale || "en";
-
-    // Send email notification
-    if (action === "approve") {
-      await sendVerificationApprovedEmail({
-        applicantEmail,
-        applicantName,
-        applicationType: type,
-        locale,
-        notes: notes || null,
-      });
-    } else {
-      await sendVerificationRejectedEmail({
-        applicantEmail,
-        applicantName,
-        applicationType: type,
-        locale,
-        reason: notes || null,
-      });
-    }
-
-    // If approved, update profile verified flags
-    if (action === "approve" && application.user_id) {
-      // Update profile verified flag
-      await supabase
+      // Update profile status
+      const { error: updateError } = await supabase
         .from("profiles")
-        .update({ verified: true })
-        .eq("id", application.user_id);
+        .update({
+          application_status: newStatus,
+          application_reviewed_at: new Date().toISOString(),
+          application_reviewed_by: user.id,
+          rejection_reason: action === "reject" ? notes || null : null,
+          verified: action === "approve" ? true : false,
+          license_verified: action === "approve" && guideData.license_proof_url ? true : false,
+        })
+        .eq("id", id);
 
-      // For guides, also update license_verified if license proof exists
-      if (type === "guide" && application.license_proof_url) {
-        await supabase
-          .from("profiles")
-          .update({ license_verified: true })
-          .eq("id", application.user_id);
+      if (updateError) {
+        console.error("Failed to update profile status", updateError);
+        return NextResponse.json({ error: "Failed to update application status" }, { status: 500 });
+      }
+
+      // Unban the user if approved
+      if (action === "approve") {
+        try {
+          await serviceClient.auth.admin.updateUserById(id, {
+            ban_duration: "none",
+          });
+          console.log(`[Admin Verification] Unbanned user ${id}`);
+        } catch (unbanError) {
+          console.error("Failed to unban user", unbanError);
+          // Don't fail the approval if unban fails
+        }
+      }
+
+      // Get applicant details from application_data
+      const applicationData = guideData.application_data as any;
+      const applicantName = guideData.profiles?.full_name || "Guide Applicant";
+      const applicantEmail = applicationData?.contact_email || applicationData?.login_email;
+      const locale = applicationData?.locale || "en";
+
+      // Send email notification
+      if (applicantEmail) {
+        if (action === "approve") {
+          await sendVerificationApprovedEmail({
+            applicantEmail,
+            applicantName,
+            applicationType: type,
+            locale,
+            notes: notes || null,
+          });
+        } else {
+          await sendVerificationRejectedEmail({
+            applicantEmail,
+            applicantName,
+            applicationType: type,
+            locale,
+            reason: notes || null,
+          });
+        }
+      }
+    } else {
+      // For agencies/DMCs/transport: Update agencies table
+      const { data: agencyData, error: fetchError } = await supabase
+        .from("agencies")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (fetchError || !agencyData) {
+        return NextResponse.json({ error: "Application not found" }, { status: 404 });
+      }
+
+      // Update agency status
+      const { error: updateError } = await supabase
+        .from("agencies")
+        .update({
+          application_status: newStatus,
+          application_reviewed_at: new Date().toISOString(),
+          application_reviewed_by: user.id,
+          rejection_reason: action === "reject" ? notes || null : null,
+          verified: action === "approve" ? true : false,
+        })
+        .eq("id", id);
+
+      if (updateError) {
+        console.error("Failed to update agency status", updateError);
+        return NextResponse.json({ error: "Failed to update application status" }, { status: 500 });
+      }
+
+      // Get applicant details from application_data or direct fields
+      const applicationData = agencyData.application_data as any;
+      const applicantName = agencyData.name;
+      const applicantEmail = agencyData.contact_email || applicationData?.contact_email;
+      const locale = applicationData?.locale || "en";
+
+      // Send email notification
+      if (applicantEmail) {
+        if (action === "approve") {
+          await sendVerificationApprovedEmail({
+            applicantEmail,
+            applicantName,
+            applicationType: type,
+            locale,
+            notes: notes || null,
+          });
+        } else {
+          await sendVerificationRejectedEmail({
+            applicantEmail,
+            applicantName,
+            applicationType: type,
+            locale,
+            reason: notes || null,
+          });
+        }
       }
     }
 

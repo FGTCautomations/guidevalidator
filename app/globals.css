@@ -13,15 +13,27 @@
   --color-secondary: #1C4473;
   --color-secondary-foreground: #FFFFFF;
   --color-accent: #002400;
+
+  /* Brand color aliases */
+  --color-brand-primary: #1FA947;
+  --color-brand-neutral: #DEDEDE;
+  --color-brand-bg: #F2F7FC;
+  --color-brand-navy: #1C4473;
+  --color-brand-ink: #002400;
+
   --shadow-soft: 0 18px 48px rgba(0, 36, 0, 0.16);
   --radius-base: 1rem;
   --radius-xl: 1.5rem;
   --radius-2xl: 1.75rem;
   --font-sans: var(--font-sans-stack);
+  --font-roboto: var(--font-roboto-stack);
+  --font-inter: var(--font-inter-stack);
 }
 
 :root {
-  --font-sans-stack: var(--font-inter), "Noto Sans", "Noto Sans Arabic", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans-stack: "Noto Sans", "Noto Sans Arabic", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-roboto-stack: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-inter-stack: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 * {
@@ -47,4 +59,13 @@ a {
 
 a:hover {
   text-decoration-color: var(--color-primary);
+}
+
+/* Brand Typography Utilities */
+.font-roboto {
+  font-family: var(--font-roboto-stack);
+}
+
+.font-inter {
+  font-family: var(--font-inter-stack);
 }

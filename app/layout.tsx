@@ -1,22 +1,31 @@
 import type { Metadata } from "next";
 import { ReactNode } from "react";
-import { Inter } from "next/font/google";
 import { getLocale } from "next-intl/server";
+import { Roboto, Inter } from "next/font/google";
 import "./globals.css";
 import "@/styles/anti-scraping.css";
 import { AppProviders } from "./providers";
 import { defaultLocale, getDirection, isSupportedLocale, type SupportedLocale } from "@/i18n/config";
 
+// Brand fonts
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-roboto-stack",
+  display: "swap",
+});
+
 const inter = Inter({
   subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-inter-stack",
   display: "swap",
-  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "Guide Validator",
+  title: "Find Verified Tour Guides, DMCs & Travel Agencies Worldwide | GuideValidator",
   description:
-    "Marketplace connecting verified tour guides with agencies, DMCs, and transport partners.",
+    "Discover verified tour guides, travel agencies, DMCs, and transportation partners — all in one place. Join the world's trusted marketplace for verified travel professionals.",
 };
 
 export default async function RootLayout({
@@ -32,7 +41,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={direction} suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased bg-background text-foreground`}>
+      <body className={`font-sans antialiased bg-background text-foreground ${roboto.variable} ${inter.variable}`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

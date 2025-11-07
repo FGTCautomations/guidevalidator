@@ -1,0 +1,31 @@
+{
+  "results": {
+    "indexes": {
+      "created": 7,
+      "skipped": 0,
+      "failed": 8
+    },
+    "views": {
+      "created": 0,
+      "skipped": 0,
+      "failed": 2
+    },
+    "matviews": {
+      "created": 1,
+      "skipped": 0,
+      "failed": 0
+    },
+    "columns": {
+      "added": 5,
+      "skipped": 0,
+      "failed": 0
+    },
+    "functions": {
+      "created": 2,
+      "skipped": 0,
+      "failed": 0
+    }
+  },
+  "duration": "2.20",
+  "timestamp": "2025-10-18T07:57:30.970Z"
+}

@@ -1,592 +1,1472 @@
 {
-    "home": {
-        "tagline": "Global verified talent, ready on demand",
-        "heroTitle": "Connect tour guides, DMCs, agencies, and transport partners with confidence.",
-        "heroDescription": "Guide Validator is the marketplace for licensed professionals. Discover multilingual experts, manage compliance, and keep every engagement audit-ready without sacrificing speed.",
-        "primaryCta": "Preview the directory",
-        "primaryCtaHref": "/directory",
-        "secondaryCta": "Talk to our team",
-        "secondaryCtaHref": "/contact",
-        "trustBadge": "Identity-verified partners",
-        "metrics": {
-            "verified": {
-                "label": "Verified professionals",
-                "value": "40k+"
-            },
-            "countries": {
-                "label": "Countries covered",
-                "value": "120"
-            },
-            "sla": {
-                "label": "Compliance SLA",
-                "value": "24h"
-            }
-        },
-        "pillars": {
-            "enterprise": {
-                "title": "Why enterprises choose us",
-                "body": "Built for compliance teams and operations leaders who need verified partners, granular coverage filtering, and dependable renewals."
-            },
-            "localization": {
-                "title": "Always multilingual",
-                "body": "Eleven fully localized experiences, including RTL support for Arabic and Urdu, so every partner can onboard in their preferred language."
-            },
-            "infrastructure": {
-                "title": "Infrastructure ready",
-                "body": "Supabase, Stripe, and Resend integrations are planned from day one, keeping audit trails, renewals, and billing in sync."
-            }
-        },
-        "cta": {
-            "title": "Ready to validate your supply chain?",
-            "body": "Schedule a compliance walkthrough with our verification team to see how we keep every document in check.",
-            "action": "Book a demo",
-            "href": "/contact"
+  "home": {
+    "tagline": "Global verified talent, ready on demand",
+    "heroTitle": "Connect tour guides, DMCs, agencies, and transport partners with confidence.",
+    "heroDescription": "Guide Validator is the marketplace for licensed professionals. Discover multilingual experts, manage compliance, and keep every engagement audit-ready without sacrificing speed.",
+    "primaryCta": "Preview the directory",
+    "primaryCtaHref": "/directory",
+    "secondaryCta": "Talk to our team",
+    "secondaryCtaHref": "/contact",
+    "trustBadge": "Identity-verified partners",
+    "metrics": {
+      "verified": {
+        "label": "Verified professionals",
+        "value": "40k+"
+      },
+      "countries": {
+        "label": "Countries covered",
+        "value": "120"
+      },
+      "sla": {
+        "label": "Compliance SLA",
+        "value": "24h"
+      }
+    },
+    "pillars": {
+      "enterprise": {
+        "title": "Why enterprises choose us",
+        "body": "Built for compliance teams and operations leaders who need verified partners, granular coverage filtering, and dependable renewals."
+      },
+      "localization": {
+        "title": "Always multilingual",
+        "body": "Eleven fully localized experiences, including RTL support for Arabic and Urdu, so every partner can onboard in their preferred language."
+      },
+      "infrastructure": {
+        "title": "Infrastructure ready",
+        "body": "Supabase, Stripe, and Resend integrations are planned from day one, keeping audit trails, renewals, and billing in sync."
+      }
+    },
+    "cta": {
+      "title": "Ready to validate your supply chain?",
+      "body": "Schedule a compliance walkthrough with our verification team to see how we keep every document in check.",
+      "action": "Book a demo",
+      "href": "/contact"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "directory": "Directory",
+    "pricing": "Pricing",
+    "jobs": "Jobs",
+    "contact": "Contact",
+    "signin": "Sign in",
+    "signup": "Get started",
+    "signout": "Sign out",
+    "admin": "Admin",
+    "selectLanguage": "Sprache ausw'hlen",
+    "guideValidator": "Leitfaden Validator"
+  },
+  "footer": {
+    "tagline": "Compliance-first marketplace for verified travel professionals.",
+    "links": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "dpa": "DPA",
+      "dsar": "Data Rights",
+      "security": "Security",
+      "support": "Support",
+      "status": "Status"
+    },
+    "cta": {
+      "title": "Need region coverage support?",
+      "body": "Our verification team can help you onboard faster.",
+      "action": "Chat with us"
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "description": "Access your workspace to manage profiles, jobs, and verifications.",
+      "emailLabel": "Work email",
+      "passwordLabel": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Continue",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create one",
+      "error": "We couldn't sign you in. Check your credentials and try again."
+    },
+    "success": {
+      "redirecting": "Redirecting to your dashboard..."
+    },
+    "signUp": {
+      "title": "Create your account",
+      "description": "Launch your presence on Guide Validator in minutes.",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "emailLabel": "Work email",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm password",
+      "submit": "Create account",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "terms": "By continuing you agree to our",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy",
+      "error": "We couldn't create your account. Please try again."
+    },
+    "status": {
+      "checkEmailTitle": "Check your email",
+      "checkEmailBody": "We sent a verification link to {email}. Confirm it to access your workspace.",
+      "resend": "Resend link",
+      "backToSignIn": "Back to sign in"
+    },
+    "reset": {
+      "request": {
+        "title": "Reset your password",
+        "description": "Enter the email associated with your account.",
+        "submit": "Send reset link",
+        "success": "If an account exists, we'll send reset instructions.",
+        "emailLabel": "Work email"
+      },
+      "update": {
+        "title": "Set a new password",
+        "passwordLabel": "New password",
+        "confirmPasswordLabel": "Confirm new password",
+        "submit": "Update password",
+        "success": "Your password was updated successfully."
+      },
+      "backToSignIn": "Return to sign in"
+    },
+    "dmcApplication": "DMC-Anwendung",
+    "licensedGuideApplication": "Lizenzierte Guide-Anwendung",
+    "createYourGuideValidator": "Erstellen Sie Ihr Guide Validator-Konto",
+    "contactSupport": "Support kontaktieren",
+    "accountCredentials": "Anmeldeinformationen f'r das Konto",
+    "companyRegistration": "Firmenregistrierung",
+    "legalCompanyName": "Offizieller Firmenname",
+    "registrationNumberBusinessLicense": "Registrierungsnummer / Gewerbeschein",
+    "businessAddress": "Gesch'ftsadresse",
+    "officialContactDetails": "Offizielle Kontaktdaten",
+    "businessEmail": "Gesch'ftliche E-Mail-Adresse",
+    "phoneWhatsapp": "Telefon / WhatsApp",
+    "websiteUrl": "Website URL",
+    "taxIdVatNumber": "Steuer-ID / Umsatzsteuer-Identifikationsnummer",
+    "socialMediaLinks": "Links zu sozialen Medien",
+    "instagramHttpsinstagramcomyouragencynlinkedinHttpslinkedincomcompanyyouragency": "Auf Instagram | https://instagram.com/youragency\\nlinkedin | https://linkedin.com/company/youragency",
+    "uploadAgencyLicense": "Agenturlizenz hochladen",
+    "publicProfile": "'ffentliches Profil",
+    "logoUrl": "Logo-URL",
+    "proofOfActivityUrl": "URL f'r den Aktivit'tsnachweis",
+    "representative": "Vertreter",
+    "contactPersonName": "Name der Kontaktperson",
+    "positionRole": "Position / Rolle",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "idPassportCopy": "Kopie des Personalausweises / Reisepasses",
+    "servicesPortfolio": "Leistungen & Portfolio",
+    "servicesOffered": "Angebotene Dienstleistungen",
+    "nicheFocus": "Nischenfokus",
+    "certificationsMemberships": "Zertifizierungen & Mitgliedschaften",
+    "iatanastanlocalTourismBoard": "IATA\\nASTA\\nLokaler Tourismusverband",
+    "portfolioLinks": "Portfolio-Verkn'pfungen",
+    "testimonials": "Empfehlungsschreiben",
+    "clientNameShortTestimonial": "Name des Kunden - kurzer Erfahrungsbericht",
+    "companyDescriptionMission": "Unternehmensbeschreibung / Mission",
+    "availabilityContact": "Verf'gbarkeit & Kontakt",
+    "availableDailyExceptMondays": "T'glich au'er montags verf'gbar. In der Hochsaison fallen Zuschl'ge an",
+    "preferredContactChannels": "Bevorzugte Kontaktkan'le",
+    "subscriptionBilling": "Abonnement & Abrechnung",
+    "selectYourPlan": "W'hlen Sie Ihren Plan",
+    "billingNotes": "Hinweise zur Abrechnung",
+    "legalBillingEntityVat": "Juristische Abrechnungsstelle, Mehrwertsteuervorschriften usw",
+    "companyRegistration2": "Registrierung von Unternehmen",
+    "legalEntityName": "Name der juristischen Person",
+    "registrationTradeLicenseNumber": "Registrierungs-/Gewerbescheinnummer",
+    "countryOfIncorporation": "Land der Gr'ndung",
+    "officeAddress": "B'roadresse",
+    "officialEmail": "Offizielle E-Mail",
+    "taxVatNumber": "Steuer-/Umsatzsteuer-Identifikationsnummer",
+    "licenseAccreditationUploadLink": "Link zum Hochladen von Lizenzen / Akkreditierungen",
+    "membershipsOnePerLine": "Mitgliedschaften (eine pro Zeile)",
+    "aboutUsMissionStatement": "'ber uns / Leitbild",
+    "keyContactName": "Name des Schl'sselkontakts",
+    "position": "Position",
+    "destinationCoverageServices": "Abdeckung und Dienstleistungen der Destinationen",
+    "portfolioMedia": "Portfolio & Medien",
+    "highlightProjectsTitleLink": "Projekte hervorheben (Titel | Link pro Zeile)",
+    "photosOrVideosTitle": "Fotos oder Videos (Titel | Link)",
+    "eventHighlightHttps": "H'hepunkt der Veranstaltung | https://...",
+    "clientReferencesNameTestimoniallink": "Kundenreferenzen (Name | Erfahrungsbericht/Link)",
+    "typicalResponseTime": "Typische Reaktionszeit",
+    "within24Hours": "Innerhalb von 24 Stunden",
+    "practicalInformationOfficeHours": "Praktische Informationen (Sprechzeiten, Reaktionszeit)",
+    "languagesCertifications": "Sprachen & Zertifizierungen",
+    "languagesSpokenByStaff": "Vom Personal gesprochene Sprachen",
+    "selectEveryLanguageYour": "W'hlen Sie jede Sprache aus, in der Ihr Team kommunizieren kann.",
+    "certifications": "Bescheinigungen",
+    "preferredContactChannelsChannel": "Bevorzugte Kontaktkan'le (Kanal | Wert pro Zeile)",
+    "billingEntityVatEtc": "Abrechnungsstelle, Mehrwertsteuer usw.",
+    "personalInformation": "Pers'nliche Informationen",
+    "fullLegalName": "Vollst'ndiger offizieller Name",
+    "dateOfBirth": "Geburtsdatum",
+    "cityOfResidence": "Stadt des Wohnsitzes",
+    "officialLicense": "Offizielle Lizenz",
+    "specialisationsExpertise": "Spezialisierungen & Expertise",
+    "profilePortfolio": "Profil & Portfolio",
+    "whoYouAreAnd": "Wer Sie sind und was die Besucher erwarten k'nnen",
+    "yearsOfGuidingExperience": "Jahre Erfahrung als Guide",
+    "notableClientsTrainingHighlights": "Namhafte Kunden, Schulungen, Highlights",
+    "oldQuarterFoodTour": "Kulinarische Tour durch die Altstadt | https://...\\nSaigon nach Einbruch der Dunkelheit | https://...",
+    "profilePhotoHttpsntourHighlight": "Profilfoto | https://...\\nH'hepunkt der Tour | https://...",
+    "contactMethodsChannelValue": "Kontaktmethoden (Kanal | Wert pro Zeile)",
+    "emailGuideexamplecomnwhatsapp84000": "E-Mail | guide@example.com\\nWhatsApp | +84 000 000 000\\nLink zur Buchung | https://cal.com/guide",
+    "companyBillingEntityVat": "Abrechnungsstelle des Unternehmens, Mehrwertsteuer usw.",
+    "countryOfRegistration": "Land der Zulassung",
+    "companyAddress": "Firmenadresse",
+    "shortDescriptionTagline": "Kurzbeschreibung / Slogan",
+    "safeAndReliableFleet": "Sichere und zuverl'ssige Flotte, die seit 2008 Zentralvietnam bedient.",
+    "fleetLicensingInsurance": "Flottenlizenzierung & Versicherung",
+    "fleetDocumentsTitleLink": "Flottendokumente (Titel | Link pro Zeile)",
+    "vehicleRegistrationHttpsnoperatingPermit": "Fahrzeugzulassung | https://...\\nBetriebserlaubnis | https://...",
+    "insuranceDocumentsTitleLink": "Versicherungsdokumente (Titel | Link pro Zeile)",
+    "passengerLiabilityInsuranceHttps": "Insassen-Haftpflichtversicherung | https://...",
+    "safetyCertificationsOnePer": "Sicherheitszertifizierungen (eine pro Zeile)",
+    "iso39001nlocalTransportAuthority": "ISO 39001\\nZertifikat der lokalen Verkehrsbeh'rde",
+    "servicesCoverage": "Dienstleistungen & Abdeckung",
+    "fleetOverviewVehicleType": "Flotten'bersicht (Fahrzeugtyp | Kapazit't pro Linie)",
+    "luxuryVan7Seatsnmini": "Luxus-Van | 7 Sitze\\nMinibus | 24 Sitzpl'tze",
+    "serviceTypes": "Arten von Diensten",
+    "airportTransfersncorporateShuttlesnprivateChauffeur": "Flughafentransfers\\nFirmenshuttles\\nPrivater Chauffeur",
+    "safetyComfortFeatures": "Sicherheits- und Komfortmerkmale",
+    "wifinchildSeatsOnRequestnwheelchair": "Wi-Fi\\nKindersitze auf Anfrage\\nRollstuhlgerecht",
+    "selectEveryLanguageYour2": "W'hlen Sie jede Sprache aus, in der Ihre Mitarbeiter kommunizieren k'nnen.",
+    "portfolioReferences": "Portfolio & Referenzen",
+    "mediaGalleryTitleLink": "Mediengalerie (Titel | Link pro Zeile)",
+    "luxuryCoachInteriorHttps": "Interieur eines Luxus-Reisebusses | https://...",
+    "clientReferencesNameTestimonial": "Kundenreferenzen (Name | Erfahrungsbericht oder Link pro Zeile)",
+    "atlasTravelProvided20coach": "Atlas Reisen | Bereitstellung eines Konvois mit 20 Reisebussen f'r die MICE 2024",
+    "availabilityBooking": "Verf'gbarkeit & Buchung",
+    "setYourTypicalOperating": "Legen Sie Ihre typischen Betriebszeiten f'r jeden Wochentag fest.",
+    "availableDaily06002200Peak": "T'glich von 06:00 bis 22:00 Uhr verf'gbar. In der Hochsaison fallen Zuschl'ge an.",
+    "bookingChannelsChannelDetails": "Buchungskan'le (Kanal | Details pro Zeile)",
+    "emailBookingsyourtransportcomnwhatsapp84000": "E-Mail | bookings@yourtransport.com\\nWhatsApp | +84 000 000 000",
+    "pricingSummaryServiceRate": "Preis'bersicht (Service | Tarifhinweise pro Zeile)",
+    "billingEntityVatRequirements": "Abrechnungseinheit, Mehrwertsteueranforderungen, etc",
+    "enterYourLicenseNumber": "Geben Sie Ihre Lizenznummer ein",
+    "youremailexamplecom": "your.email@example.com"
+  },
+  "directory": {
+    "title": "Find verified partners",
+    "description": "Search across guides, DMCs, and transport companies with compliance-first filters.",
+    "tabs": {
+      "guides": "Guides",
+      "dmcs": "DMCs",
+      "transport": "Transport",
+      "agencies": "Agencies"
+    },
+    "empty": {
+      "heading": "No results match your filters",
+      "body": "Adjust your filters or try another region to discover more verified partners."
+    },
+    "filters": {
+      "region": "Region",
+      "languages": "Languages",
+      "specialties": "Specialties",
+      "priceRange": "Price range",
+      "rating": "Rating",
+      "availability": "Availability",
+      "verified": "Verified only",
+      "city": "City"
+    },
+    "sort": {
+      "label": "Sort by",
+      "featured": "Featured",
+      "rating": "Rating",
+      "responseTime": "Response time",
+      "recency": "Recency"
+    },
+    "actions": {
+      "guide": "View profile",
+      "dmc": "View organization",
+      "transport": "View fleet",
+      "agency": "View agency"
+    },
+    "selectACountry": "W'hlen Sie ein Land aus",
+    "chooseACountryTo": "W'hlen Sie ein Land aus, um Agenturen zu erkunden",
+    "country": "Land",
+    "selectCountry": "Land ausw'hlen",
+    "chooseACountryTo2": "W'hlen Sie ein Land aus, um DMCs zu erkunden",
+    "chooseACountryTo3": "W'hlen Sie ein Land aus, um Reisef'hrer zu erkunden",
+    "verifiedProfessionals": "Gepr'fte Fachleute",
+    "globalCoverage": "Globale Abdeckung",
+    "instantConnect": "Sofortige Verbindung",
+    "allCountries": "Alle L'nder",
+    "browseVerifiedProfilesWith": "Durchsuchen Sie verifizierte Profile mit Bewertungen und Rezensionen",
+    "filterByLocationLanguage": "Filtern Sie nach Standort, Sprache und Fachgebiet",
+    "viewAvailabilityAndBook": "Verf'gbarkeit anzeigen und direkt buchen",
+    "accessContactInformationAnd": "Greifen Sie auf Kontaktinformationen und Preise zu",
+    "chooseACountryTo4": "W'hlen Sie ein Land aus, um Transportanbieter zu erkunden",
+    "browseByName": "Nach Name durchsuchen",
+    "activeFilter": "Aktiver Filter:",
+    "closeFilters": "Filter schlie'en",
+    "loadingFilterOptions": "Filteroptionen werden geladen...",
+    "berlinBarcelonaTokyo": "Berlin, Barcelona, Tokio...",
+    "maxPrice": "Maximaler Preis:",
+    "loadingGuides": "Anleitungen zum Laden..."
+  },
+  "profile": {
+    "actions": {
+      "contact": "Request contact",
+      "shortlist": "Add to shortlist"
+    },
+    "guide": {
+      "headline": "Guide",
+      "specialties": "Specialties",
+      "languages": "Languages",
+      "rates": "Rates",
+      "experience": "Experience",
+      "responseTime": "Avg. response",
+      "verified": "License verified",
+      "availabilityCta": "Check availability",
+      "infoTitle": "Guide overview",
+      "regionCoverage": "Region coverage"
+    },
+    "meta": {
+      "featured": "Featured",
+      "verified": "Verified"
+    },
+    "breadcrumbs": {
+      "directory": "Directory",
+      "guides": "Guides",
+      "agencies": "Agencies",
+      "dmcs": "DMCs",
+      "transport": "Transport"
+    },
+    "fallback": {
+      "title": "We couldn't load this profile",
+      "description": "This guide may have been removed or is not available in this region."
+    },
+    "transport": {
+      "headline": "Transport",
+      "fleet": "Fleet details",
+      "coverage": "Coverage",
+      "languages": "Driver languages",
+      "capacity": "Capacity",
+      "services": "Services"
+    },
+    "overview": "'berblick",
+    "languages": "Sprachen",
+    "specialties": "Spezialit'ten",
+    "location": "Ort",
+    "website": "Website",
+    "registrationNumber": "Registrierungsnummer",
+    "vatId": "Umsatzsteuer-Identifikationsnummer",
+    "experienceSummary": "Zusammenfassung der Erfahrungen",
+    "certificationsQualifications": "Zertifizierungen & Qualifikationen",
+    "education": "Bildung",
+    "sampleItineraries": "Beispiele f'r Reiserouten",
+    "photosVideos": "Fotos & Videos",
+    "operatingLocations": "Einsatzorte",
+    "availability": "Verf'gbarkeit",
+    "close": "Schlie'en",
+    "pleaseNote": "Bitte beachten Sie:",
+    "thisActionWillBe": "Diese Aktion wird aus Sicherheitsgr'nden protokolliert",
+    "contactInformationShouldOnly": "Kontaktinformationen sollten nur f'r legitime Gesch'ftsanfragen verwendet werden",
+    "misuseMayResultIn": "Missbrauch kann zur Sperrung des Kontos f'hren",
+    "youWillUseThis": "Sie werden diese Informationen verantwortungsbewusst verwenden",
+    "thisActionIsPermanent": "Diese Aktion ist dauerhaft und wird protokolliert",
+    "youMayBeContacted": "M'glicherweise werden Sie zur Verifizierung kontaktiert",
+    "loadingAvailability": "Verf'gbarkeit wird geladen...",
+    "legend": "Legende:",
+    "selectedTime": "Gew'hlte Zeit:",
+    "previousWeek": "Vorwoche",
+    "weekView": "Wochenansicht",
+    "nextWeek": "N'chste Woche",
+    "jumpToDate": "Zum Datum springen...",
+    "clickToSeeHourly": "Klicken Sie hier, um die st'ndliche Verf'gbarkeit anzuzeigen",
+    "protected": "Gesch'tzt",
+    "thisContactIsLogged": "Dieser Kontakt wird protokolliert und 'berwacht"
+  },
+  "jobs": {
+    "badge": "Marketplace jobs",
+    "title": "Browse active agency requests",
+    "description": "Find high-intent opportunities from vetted agencies and DMCs. Use filters to match your specialties, languages, and availability.",
+    "cta": {
+      "post": "Post a job",
+      "contact": "Talk to our team",
+      "signIn": "Sign in to post",
+      "upgrade": "Upgrade to post",
+      "postNoteUnauth": "Sign in with an agency or DMC account to post a job.",
+      "postNoteUnauthorized": "Only agency and DMC accounts can post jobs."
+    },
+    "filters": {
+      "search": "Search jobs",
+      "country": "Country",
+      "languages": "Languages",
+      "specialties": "Specialties",
+      "status": "Status",
+      "clear": "Clear filters",
+      "options": {
+        "status": {
+          "open": "Open",
+          "draft": "Draft",
+          "closed": "Closed",
+          "filled": "Filled"
         }
+      },
+      "region": "Region",
+      "city": "City",
+      "startDateFrom": "Start date from",
+      "startDateTo": "Start date to",
+      "budgetMin": "Budget min",
+      "budgetMax": "Budget max",
+      "startDateFromLabel": "From",
+      "startDateToLabel": "To"
     },
-    "nav": {
-        "home": "Home",
-        "directory": "Directory",
-        "pricing": "Pricing",
-        "jobs": "Jobs",
-        "contact": "Contact",
-        "signin": "Sign in",
-        "signup": "Get started",
-        "signout": "Sign out",
-        "admin": "Admin"
+    "empty": {
+      "title": "No jobs match your filters yet",
+      "description": "Adjust your filters or check back soon. New agency requests go live throughout the day."
     },
-    "footer": {
-        "tagline": "Compliance-first marketplace for verified travel professionals.",
-        "links": {
-            "privacy": "Privacy Policy",
-            "terms": "Terms of Service",
-            "dpa": "DPA",
-            "dsar": "Data Rights",
-            "security": "Security",
-            "support": "Support",
-            "status": "Status"
+    "card": {
+      "cta": "View details"
+    },
+    "create": {
+      "badge": "Create a job",
+      "title": "Post a new job",
+      "description": "Share availability details, budget, and requirements so qualified guides can apply.",
+      "sections": {
+        "details": {
+          "heading": "Job details",
+          "description": "Add a clear title, summary, and location details."
         },
-        "cta": {
-            "title": "Need region coverage support?",
-            "body": "Our verification team can help you onboard faster.",
-            "action": "Chat with us"
+        "dates": {
+          "heading": "Schedule"
+        },
+        "budget": {
+          "heading": "Budget"
+        },
+        "requirements": {
+          "heading": "Requirements"
         }
-    },
-    "auth": {
-        "signIn": {
-            "title": "Sign in",
-            "description": "Access your workspace to manage profiles, jobs, and verifications.",
-            "emailLabel": "Work email",
-            "passwordLabel": "Password",
-            "rememberMe": "Remember me",
-            "forgotPassword": "Forgot your password?",
-            "submit": "Continue",
-            "noAccount": "Don't have an account?",
-            "createAccount": "Create one",
-            "error": "We couldn't sign you in. Check your credentials and try again."
+      },
+      "fields": {
+        "title": {
+          "label": "Job title",
+          "placeholder": "Luxury tour in Paris"
         },
-        "success": {
-            "redirecting": "Redirecting to your dashboard..."
+        "description": {
+          "label": "Description",
+          "placeholder": "Share deliverables, expectations, and context."
         },
-        "signUp": {
-            "title": "Create your account",
-            "description": "Launch your presence on Guide Validator in minutes.",
-            "firstNameLabel": "First name",
-            "lastNameLabel": "Last name",
-            "emailLabel": "Work email",
-            "passwordLabel": "Password",
-            "confirmPasswordLabel": "Confirm password",
-            "submit": "Create account",
-            "alreadyHaveAccount": "Already have an account?",
-            "signIn": "Sign in",
-            "terms": "By continuing you agree to our",
-            "termsLink": "Terms of Service",
-            "privacyLink": "Privacy Policy",
-            "error": "We couldn't create your account. Please try again."
+        "country": {
+          "label": "Country"
+        },
+        "region": {
+          "label": "Region"
+        },
+        "city": {
+          "label": "City"
+        },
+        "startDate": {
+          "label": "Start date"
+        },
+        "endDate": {
+          "label": "End date"
+        },
+        "applicationDeadline": {
+          "label": "Application deadline"
+        },
+        "budgetMin": {
+          "label": "Budget minimum"
+        },
+        "budgetMax": {
+          "label": "Budget maximum"
+        },
+        "currency": {
+          "label": "Currency"
+        },
+        "languages": {
+          "label": "Required languages",
+          "placeholder": "Comma-separated languages"
+        },
+        "specialties": {
+          "label": "Required specialties",
+          "placeholder": "Comma-separated specialties"
         },
         "status": {
-            "checkEmailTitle": "Check your email",
-            "checkEmailBody": "We sent a verification link to {email}. Confirm it to access your workspace.",
-            "resend": "Resend link",
-            "backToSignIn": "Back to sign in"
-        },
-        "reset": {
-            "request": {
-                "title": "Reset your password",
-                "description": "Enter the email associated with your account.",
-                "submit": "Send reset link",
-                "success": "If an account exists, we'll send reset instructions.",
-                "emailLabel": "Work email"
-            },
-            "update": {
-                "title": "Set a new password",
-                "passwordLabel": "New password",
-                "confirmPasswordLabel": "Confirm new password",
-                "submit": "Update password",
-                "success": "Your password was updated successfully."
-            },
-            "backToSignIn": "Return to sign in"
+          "label": "Visibility"
         }
+      },
+      "actions": {
+        "submit": "Publish job",
+        "cancel": "Reset"
+      },
+      "flash": {
+        "success": "Job saved successfully.",
+        "error": "We couldn't save this job. Try again."
+      }
     },
-    "directory": {
-        "title": "Find verified partners",
-        "description": "Search across guides, DMCs, and transport companies with compliance-first filters.",
-        "tabs": {
-            "guides": "Guides",
-            "dmcs": "DMCs",
-            "transport": "Transport",
-            "agencies": "Agencies"
-        },
-        "empty": {
-            "heading": "No results match your filters",
-            "body": "Adjust your filters or try another region to discover more verified partners."
-        },
-        "filters": {
-            "region": "Region",
-            "languages": "Languages",
-            "specialties": "Specialties",
-            "priceRange": "Price range",
-            "rating": "Rating",
-            "availability": "Availability",
-            "verified": "Verified only",
-            "city": "City"
-        },
-        "sort": {
-            "label": "Sort by",
-            "featured": "Featured",
-            "rating": "Rating",
-            "responseTime": "Response time",
-            "recency": "Recency"
+    "detail": {
+      "postedBy": "Posted by {agency}",
+      "location": "Location",
+      "dates": "Dates",
+      "budget": "Budget",
+      "deadline": "Apply by",
+      "aboutHeading": "About this opportunity",
+      "languages": "Languages",
+      "specialties": "Specialties",
+      "none": "Not specified",
+      "application": {
+        "heading": "Send your application",
+        "description": "Introduce yourself, confirm availability, and highlight relevant experience.",
+        "coverLetterLabel": "Cover letter",
+        "coverLetterPlaceholder": "Explain why you're a great fit...",
+        "budget": "Budget expectation",
+        "availabilityHeading": "Availability",
+        "availableFrom": "Available from",
+        "availableTo": "Available until",
+        "languages": "Languages",
+        "languagesPlaceholder": "Optional: additional languages",
+        "specialties": "Specialties",
+        "specialtiesPlaceholder": "Optional: additional specialties",
+        "submit": "Submit application",
+        "success": "Application sent successfully.",
+        "error": "We couldn't submit your application. Try again.",
+        "alreadyApplied": "You already applied. Current status: {status}."
+      },
+      "loginPrompt": "Sign in to apply for this job.",
+      "loginCta": "Sign in",
+      "review": {
+        "heading": "Applicant review",
+        "empty": "No applications yet.",
+        "submittedAt": "Submitted on {date}",
+        "budget": "Budget",
+        "availability": "Availability",
+        "languages": "Languages",
+        "specialties": "Specialties",
+        "status": {
+          "pending": "Pending",
+          "accepted": "Accepted",
+          "rejected": "Rejected"
         },
         "actions": {
-            "guide": "View profile",
-            "dmc": "View organization",
-            "transport": "View fleet",
-            "agency": "View agency"
-        }
+          "accept": "Accept",
+          "reject": "Reject",
+          "reset": "Reset"
+        },
+        "countLabel": "Applications: {count}",
+        "unknownGuide": "Unknown guide"
+      },
+      "backToJobs": "Back to jobs",
+      "description": "Job Description",
+      "requirements": "Requirements",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "contact": "Contact",
+      "interestedTitle": "Interested in this opportunity?",
+      "interestedDescription": "Apply now to submit your application.",
+      "apply": "Apply Now",
+      "applySignIn": "Sign In to Apply",
+      "applyUpgrade": "Upgrade to Apply"
     },
-    "profile": {
+    "applyDirectlyWithYour": "Bewerben Sie sich direkt mit Ihrem validierten Profil",
+    "getNotifiedAboutNew": "Lassen Sie sich 'ber neue Stellenangebote benachrichtigen",
+    "filterByLocationSalary": "Filtern Sie nach Standort, Gehalt und Jobtyp"
+  },
+  "account": {
+    "billing": {
+      "title": "Manage guide subscriptions and verification",
+      "description": "Upgrade to premium placement or renew your verified badge to stay visible to top agencies.",
+      "guide": {
+        "heading": "Guide billing",
+        "body": "Premium boosts your profile in searches. The verification badge confirms your licensing for one year.",
         "actions": {
-            "contact": "Request contact",
-            "shortlist": "Add to shortlist"
+          "premium": "Start premium checkout",
+          "verification": "Purchase verification badge",
+          "pending": "Processing",
+          "errorPrefix": "Error:"
         },
-        "guide": {
-            "headline": "Guide",
-            "specialties": "Specialties",
-            "languages": "Languages",
-            "rates": "Rates",
-            "experience": "Experience",
-            "responseTime": "Avg. response",
-            "verified": "License verified",
-            "availabilityCta": "Check availability",
-            "infoTitle": "Guide overview",
-            "regionCoverage": "Region coverage"
-        },
-        "meta": {
-            "featured": "Featured",
-            "verified": "Verified"
-        },
-        "breadcrumbs": {
-            "directory": "Directory",
-            "guides": "Guides"
-        },
-        "fallback": {
-            "title": "We couldn't load this profile",
-            "description": "This guide may have been removed or is not available in this region."
-        },
-        "transport": {
-            "headline": "Transport",
-            "fleet": "Fleet details",
-            "coverage": "Coverage",
-            "languages": "Driver languages",
-            "capacity": "Capacity",
-            "services": "Services"
+        "pricing": {
+          "premium": "Premium visibility is {amount} per month.",
+          "verification": "Verification badge review is {amount} per year."
         }
-    },
-    "jobs": {
-        "badge": "Marketplace jobs",
-        "title": "Browse active agency requests",
-        "description": "Find high-intent opportunities from vetted agencies and DMCs. Use filters to match your specialties, languages, and availability.",
-        "cta": {
-            "post": "Post a job",
-            "contact": "Talk to our team",
-            "signIn": "Sign in to post",
-            "upgrade": "Upgrade to post",
-            "postNoteUnauth": "Sign in with an agency or DMC account to post a job.",
-            "postNoteUnauthorized": "Only agency and DMC accounts can post jobs."
+      },
+      "status": {
+        "heading": "Billing status",
+        "none": "No billing activity yet.",
+        "customer": "Stripe customer ID: {id}",
+        "recentPayments": "Recent payments",
+        "noPayments": "No payments recorded yet.",
+        "planHeading": "Plan overview",
+        "planLabels": {
+          "guide_premium_monthly": "Premium visibility",
+          "guide_verification_annual": "Verification badge",
+          "default": "Other plan"
         },
-        "filters": {
-            "search": "Search jobs",
-            "country": "Country",
-            "languages": "Languages",
-            "specialties": "Specialties",
-            "status": "Status",
-            "clear": "Clear filters",
-            "options": {
-                "status": {
-                    "open": "Open",
-                    "draft": "Draft",
-                    "closed": "Closed",
-                    "filled": "Filled"
-                }
-            },
-            "region": "Region",
-            "city": "City",
-            "startDateFrom": "Start date from",
-            "startDateTo": "Start date to",
-            "budgetMin": "Budget min",
-            "budgetMax": "Budget max",
-            "startDateFromLabel": "From",
-            "startDateToLabel": "To"
-        },
-        "empty": {
-            "title": "No jobs match your filters yet",
-            "description": "Adjust your filters or check back soon. New agency requests go live throughout the day."
-        },
-        "card": {
-            "cta": "View details"
-        },
-        "create": {
-            "badge": "Create a job",
-            "title": "Post a new job",
-            "description": "Share availability details, budget, and requirements so qualified guides can apply.",
-            "sections": {
-                "details": {
-                    "heading": "Job details",
-                    "description": "Add a clear title, summary, and location details."
-                },
-                "dates": {
-                    "heading": "Schedule"
-                },
-                "budget": {
-                    "heading": "Budget"
-                },
-                "requirements": {
-                    "heading": "Requirements"
-                }
-            },
-            "fields": {
-                "title": {
-                    "label": "Job title",
-                    "placeholder": "Luxury tour in Paris"
-                },
-                "description": {
-                    "label": "Description",
-                    "placeholder": "Share deliverables, expectations, and context."
-                },
-                "country": {
-                    "label": "Country"
-                },
-                "region": {
-                    "label": "Region"
-                },
-                "city": {
-                    "label": "City"
-                },
-                "startDate": {
-                    "label": "Start date"
-                },
-                "endDate": {
-                    "label": "End date"
-                },
-                "applicationDeadline": {
-                    "label": "Application deadline"
-                },
-                "budgetMin": {
-                    "label": "Budget minimum"
-                },
-                "budgetMax": {
-                    "label": "Budget maximum"
-                },
-                "currency": {
-                    "label": "Currency"
-                },
-                "languages": {
-                    "label": "Required languages",
-                    "placeholder": "Comma-separated languages"
-                },
-                "specialties": {
-                    "label": "Required specialties",
-                    "placeholder": "Comma-separated specialties"
-                },
-                "status": {
-                    "label": "Visibility"
-                }
-            },
-            "actions": {
-                "submit": "Publish job",
-                "cancel": "Reset"
-            },
-            "flash": {
-                "success": "Job saved successfully.",
-                "error": "We couldn't save this job. Try again."
-            }
-        },
-        "detail": {
-            "postedBy": "Posted by {agency}",
-            "location": "Location",
-            "dates": "Dates",
-            "budget": "Budget",
-            "deadline": "Apply by",
-            "aboutHeading": "About this opportunity",
-            "languages": "Languages",
-            "specialties": "Specialties",
-            "none": "Not specified",
-            "application": {
-                "heading": "Send your application",
-                "description": "Introduce yourself, confirm availability, and highlight relevant experience.",
-                "coverLetterLabel": "Cover letter",
-                "coverLetterPlaceholder": "Explain why you're a great fit...",
-                "budget": "Budget expectation",
-                "availabilityHeading": "Availability",
-                "availableFrom": "Available from",
-                "availableTo": "Available until",
-                "languages": "Languages",
-                "languagesPlaceholder": "Optional: additional languages",
-                "specialties": "Specialties",
-                "specialtiesPlaceholder": "Optional: additional specialties",
-                "submit": "Submit application",
-                "success": "Application sent successfully.",
-                "error": "We couldn't submit your application. Try again.",
-                "alreadyApplied": "You already applied. Current status: {status}."
-            },
-            "loginPrompt": "Sign in to apply for this job.",
-            "loginCta": "Sign in",
-            "review": {
-                "heading": "Applicant review",
-                "empty": "No applications yet.",
-                "submittedAt": "Submitted on {date}",
-                "budget": "Budget",
-                "availability": "Availability",
-                "languages": "Languages",
-                "specialties": "Specialties",
-                "status": {
-                    "pending": "Pending",
-                    "accepted": "Accepted",
-                    "rejected": "Rejected"
-                },
-                "actions": {
-                    "accept": "Accept",
-                    "reject": "Reject",
-                    "reset": "Reset"
-                },
-                "countLabel": "Applications: {count}",
-                "unknownGuide": "Unknown guide"
-            }
-        }
-    },
-    "account": {
-        "billing": {
-            "title": "Manage guide subscriptions and verification",
-            "description": "Upgrade to premium placement or renew your verified badge to stay visible to top agencies.",
-            "guide": {
-                "heading": "Guide billing",
-                "body": "Premium boosts your profile in searches. The verification badge confirms your licensing for one year.",
-                "actions": {
-                    "premium": "Start premium checkout",
-                    "verification": "Purchase verification badge",
-                    "pending": "Processing",
-                    "errorPrefix": "Error:"
-                },
-                "pricing": {
-                    "premium": "Premium visibility is {amount} per month.",
-                    "verification": "Verification badge review is {amount} per year."
-                }
-            },
-            "status": {
-                "heading": "Billing status",
-                "none": "No billing activity yet.",
-                "customer": "Stripe customer ID: {id}",
-                "recentPayments": "Recent payments",
-                "noPayments": "No payments recorded yet.",
-                "planHeading": "Plan overview",
-                "planLabels": {
-                    "guide_premium_monthly": "Premium visibility",
-                    "guide_verification_annual": "Verification badge",
-                    "default": "Other plan"
-                },
-                "premium": {
-                    "title": "Premium visibility",
-                    "statuses": {
-                        "active": "Active until {date}",
-                        "trialing": "Trial active until {date}",
-                        "past_due": "Payment past due since {date}.",
-                        "canceled": "Canceled on {date}",
-                        "incomplete": "Checkout incomplete. Finish setup in Stripe.",
-                        "incomplete_expired": "Checkout session expired before completing payment.",
-                        "unpaid": "Subscription unpaid. Update your billing details.",
-                        "paused": "Subscription paused in Stripe.",
-                        "inactive": "Not subscribed yet.",
-                        "default": "Status: {status}"
-                    }
-                },
-                "verification": {
-                    "title": "Verified badge",
-                    "statuses": {
-                        "valid": "Valid through {date}",
-                        "expired": "Expired on {date}",
-                        "pending": "Awaiting payment confirmation.",
-                        "failed": "Payment failed. Please try again.",
-                        "none": "No verification purchase recorded yet."
-                    }
-                }
-            },
-            "alerts": {
-                "success": "Payment confirmed. Your billing details are syncing.",
-                "cancel": "Checkout cancelled. No charges were applied.",
-                "error": "We couldn't update your billing data yet. Please try again shortly."
-            }
+        "premium": {
+          "title": "Premium visibility",
+          "statuses": {
+            "active": "Active until {date}",
+            "trialing": "Trial active until {date}",
+            "past_due": "Payment past due since {date}.",
+            "canceled": "Canceled on {date}",
+            "incomplete": "Checkout incomplete. Finish setup in Stripe.",
+            "incomplete_expired": "Checkout session expired before completing payment.",
+            "unpaid": "Subscription unpaid. Update your billing details.",
+            "paused": "Subscription paused in Stripe.",
+            "inactive": "Not subscribed yet.",
+            "default": "Status: {status}"
+          }
         },
         "verification": {
-            "title": "Guide verification",
-            "description": "Upload your licensing documents after checkout so we can review and activate your verified badge.",
-            "body": "Once payment is complete we will prompt you for the required documents. Verification typically completes within 48 hours.",
-            "steps": {
-                "checkStatus": "Return to this page to check the status of your verification request.",
-                "uploadDocs": "Have your government ID, license, and recent photo ready for secure upload.",
-                "support": "If you need help, contact support with your Stripe receipt number."
-            },
-            "status": {
-                "heading": "Verification status",
-                "states": {
-                    "not_started": {
-                        "title": "No verification on file",
-                        "description": "Purchase the badge in billing to unlock document uploads and get in the review queue."
-                    },
-                    "pending": {
-                        "title": "In review",
-                        "description": "Submitted on {date}. Our verification team typically responds within 48 hours."
-                    },
-                    "approved": {
-                        "title": "Badge active",
-                        "description": "Valid through {date}. Keep your documents handy for annual renewal reminders."
-                    },
-                    "expired": {
-                        "title": "Verification expired",
-                        "description": "Expired on {date}. Upload fresh documents so we can reactivate your badge."
-                    },
-                    "rejected": {
-                        "title": "More information required",
-                        "description": "Last review on {date}. Check your email for feedback and upload the requested documents again."
-                    }
-                },
-                "actions": {
-                    "prompt": "Need to purchase the verification badge?",
-                    "manageBilling": "Manage billing"
-                }
-            },
-            "alerts": {
-                "success": "Payment confirmed. You can upload your documents below.",
-                "cancel": "Checkout was cancelled. No charge was made.",
-                "error": "We could not confirm your checkout. Please try again or contact support."
-            }
+          "title": "Verified badge",
+          "statuses": {
+            "valid": "Valid through {date}",
+            "expired": "Expired on {date}",
+            "pending": "Awaiting payment confirmation.",
+            "failed": "Payment failed. Please try again.",
+            "none": "No verification purchase recorded yet."
+          }
         }
+      },
+      "alerts": {
+        "success": "Payment confirmed. Your billing details are syncing.",
+        "cancel": "Checkout cancelled. No charges were applied.",
+        "error": "We couldn't update your billing data yet. Please try again shortly."
+      }
     },
-    "admin": {
-        "dashboard": {
-            "title": "Admin dashboard",
-            "subtitle": "Monitor platform health and manage accounts.",
-            "cards": {
-                "totalUsers": "Total users",
-                "newUsers": "New last 7 days",
-                "activeSubscriptions": "Active subscriptions",
-                "totalIncome": "Total income"
-            },
-            "users": {
-                "heading": "Accounts",
-                "caption": "Latest registrations across roles.",
-                "columns": {
-                    "name": "Name",
-                    "email": "Email",
-                    "role": "Role",
-                    "created": "Created",
-                    "verified": "Verified",
-                    "actions": "Actions"
-                },
-                "verified": "Verified",
-                "notVerified": "Unverified",
-                "view": "View profile",
-                "empty": "No accounts found.",
-                "fallbackName": "Unknown name"
-            },
-            "create": {
-                "title": "Add user",
-                "description": "Create a user with an initial role. They can update their profile after signing in.",
-                "email": "Email",
-                "password": "Password",
-                "fullName": "Full name",
-                "role": "Role",
-                "submit": "Create user",
-                "success": "User created successfully.",
-                "error": "Failed to create user",
-                "locale": "Language",
-                "country": "Country",
-                "timezone": "Timezone"
-            }
+    "verification": {
+      "title": "Guide verification",
+      "description": "Upload your licensing documents after checkout so we can review and activate your verified badge.",
+      "body": "Once payment is complete we will prompt you for the required documents. Verification typically completes within 48 hours.",
+      "steps": {
+        "checkStatus": "Return to this page to check the status of your verification request.",
+        "uploadDocs": "Have your government ID, license, and recent photo ready for secure upload.",
+        "support": "If you need help, contact support with your Stripe receipt number."
+      },
+      "status": {
+        "heading": "Verification status",
+        "states": {
+          "not_started": {
+            "title": "No verification on file",
+            "description": "Purchase the badge in billing to unlock document uploads and get in the review queue."
+          },
+          "pending": {
+            "title": "In review",
+            "description": "Submitted on {date}. Our verification team typically responds within 48 hours."
+          },
+          "approved": {
+            "title": "Badge active",
+            "description": "Valid through {date}. Keep your documents handy for annual renewal reminders."
+          },
+          "expired": {
+            "title": "Verification expired",
+            "description": "Expired on {date}. Upload fresh documents so we can reactivate your badge."
+          },
+          "rejected": {
+            "title": "More information required",
+            "description": "Last review on {date}. Check your email for feedback and upload the requested documents again."
+          }
         },
-        "detail": {
-            "title": "Account overview",
-            "back": "Back to dashboard",
-            "unknownEmail": "Email unknown",
-            "unknown": "Unknown",
-            "labels": {
-                "yes": "Yes",
-                "no": "No"
-            },
-            "cards": {
-                "joined": "Joined",
-                "role": "Role",
-                "verified": "Verified",
-                "totalIncome": "Total income"
-            },
-            "sections": {
-                "profile": "Profile",
-                "subscriptions": "Subscriptions",
-                "payments": "Payments"
-            },
-            "fields": {
-                "fullName": "Full name",
-                "role": "Role",
-                "verified": "Verified",
-                "licenseVerified": "License verified",
-                "organization": "Organization",
-                "locale": "Language",
-                "country": "Country",
-                "timezone": "Timezone"
-            },
-            "forms": {
-                "update": {
-                    "heading": "Update account",
-                    "submit": "Save changes",
-                    "success": "Profile updated.",
-                    "error": "Failed to update profile"
-                }
-            },
-            "subscriptions": {
-                "none": "No subscriptions recorded.",
-                "unknownPlan": "Unknown plan",
-                "nextRenewal": "Next renewal on {date}"
-            },
-            "payments": {
-                "none": "No payments recorded.",
-                "paidOn": "Paid on {date}"
-            },
-            "delete": {
-                "heading": "Danger zone",
-                "body": "Deleting an account removes all associated access immediately.",
-                "confirm": "Are you sure you want to delete this user? This cannot be undone.",
-                "submit": "Delete user",
-                "success": "User deleted.",
-                "error": "Failed to delete user"
-            }
-        },
-        "roles": {
-            "super_admin": "Super admin",
-            "admin": "Admin",
-            "agency": "Travel agency",
-            "dmc": "DMC",
-            "transport": "Transport",
-            "guide": "Guide",
-            "visitor": "Visitor"
+        "actions": {
+          "prompt": "Need to purchase the verification badge?",
+          "manageBilling": "Manage billing"
         }
-    }
+      },
+      "alerts": {
+        "success": "Payment confirmed. You can upload your documents below.",
+        "cancel": "Checkout was cancelled. No charge was made.",
+        "error": "We could not confirm your checkout. Please try again or contact support."
+      }
+    },
+    "onboarding": {
+      "title": "Complete Your Profile",
+      "description": "Please complete your profile information to get started with Guide Validator."
+    },
+    "privacy Data": "Datenschutz & Daten",
+    "yourProfileRoleDoes": "F'r Ihre Profilrolle sind keine zus'tzlichen Abdeckungseinstellungen erforderlich.",
+    "available": "Verf'gbar",
+    "unavailable": "Nicht verf'gbar",
+    "blocked": "Gesperrt",
+    "requests": "Aufforderungen",
+    "hold": "Halten",
+    "dragToCreate": "Ziehen Sie, um Folgendes zu erstellen:",
+    "availableDates": "Verf'gbare Termine",
+    "unavailableDates": "Nicht verf'gbare Daten",
+    "setAvailability": "Verf'gbarkeit einstellen:",
+    "bookingRequest": "Buchungsanfrage",
+    "hasRequests": "Hat Anfragen",
+    "hasHolds": "Hat Holds",
+    "availabilityHolds": "Verf'gbarkeitssperren",
+    "request": "Bitten:",
+    "quickSelect": "Schnellauswahl:",
+    "allTimesAvailableFor": "Alle Zeiten f'r dieses Datum verf'gbar",
+    "blockSpecificTimesWhen": "Blockieren Sie bestimmte Zeiten, zu denen Sie nicht verf'gbar sind",
+    "howItWorks": "So funktioniert's:",
+    "byDefaultYouAre": "Standardm''ig sind Sie den ganzen Tag 'ber verf'gbar",
+    "blockSpecificTimesWhen2": "Blockieren Sie bestimmte Zeiten, zu denen Sie NICHT verf'gbar sind",
+    "agenciesAndDmcsCan": "Agenturen und DMCs k'nnen nur w'hrend Ihrer verf'gbaren Zeiten Holds anfordern",
+    "unblockATimeSlot": "Entsperren Sie ein Zeitfenster, um sich wieder verf'gbar zu machen",
+    "tellUsAboutYourself": "Erz'hlen Sie uns etwas 'ber sich...",
+    "viewFile": "Datei anzeigen",
+    "basicInformation": "Grundlegende Informationen",
+    "businessNameFullName": "Firmenname / Vollst'ndiger Name",
+    "yourProfessionalName": "Ihr beruflicher Name",
+    "yearsOfGuidingExperience": "Jahre Erfahrung als Guide",
+    "credentialsLicensing": "Referenzen & Lizenzierung",
+    "licenseNumber": "Lizenznummer",
+    "enterNaIfNot": "Geben Sie N/A ein, falls nicht verf'gbar",
+    "issuingAuthority": "Ausstellende Beh'rde",
+    "uploadOfficialGuideLicense": "Offizielle Guide-Lizenz hochladen",
+    "uploadIdPassportCopy": "Ausweis-/Passkopie hochladen",
+    "specializationsExpertise": "Spezialisierungen & Expertise",
+    "languagesSpoken": "Gesprochene Sprachen",
+    "selectEveryLanguageYou": "W'hlen Sie jede Sprache aus, in der Sie sich wohl f'hlen.",
+    "tourSpecializations": "Spezialisierungen der Tour",
+    "regionsDestinationsLicensedTo": "Regionen/Destinationen, die f'r den Betrieb lizenziert sind",
+    "hanoi10hoChiMinhCity10halong": "Hanoi Ho-Chi-Minh-Stadt Halong-Bucht",
+    "profilePortfolio": "Profil & Portfolio",
+    "profilePhoto": "Profilfoto",
+    "shortIntroduction": "Kurze Einf'hrung",
+    "whoYouAreAnd": "Wer Sie sind und was die Besucher erwarten k'nnen.",
+    "experienceSummary": "Zusammenfassung der Erfahrungen",
+    "notableClientsTrainingHighlights": "Namhafte Kunden, Schulungen, Highlights.",
+    "sampleItinerariesTitleLink": "Beispiele f'r Reiserouten (Titel | Link pro Zeile)",
+    "oldQuarterFoodTour": "Kulinarische Tour durch die Altstadt | https://... Saigon nach Einbruch der Dunkelheit | https://...",
+    "photosOrVideosTitle": "Fotos oder Videos (Titel | Link pro Zeile)",
+    "profilePhotoHttps10tourHighlight": "Profilfoto | https://... H'hepunkt der Tour | https://...",
+    "availabilityContact": "Verf'gbarkeit & Kontakt",
+    "primaryTimezone": "Prim're Zeitzone",
+    "availabilityTimezone": "Verf'gbarkeit Zeitzone",
+    "workingHours": "Arbeitszeit",
+    "setYourTypicalWorking": "Legen Sie Ihre typischen Arbeitszeiten f'r jeden Wochentag fest.",
+    "availabilityNotes": "Hinweise zur Verf'gbarkeit",
+    "anyAdditionalNotesAbout": "Zus'tzliche Hinweise zu Ihrer Verf'gbarkeit",
+    "saveProfile": "Profil speichern",
+    "languagesYourTeamSupports": "Sprachen, die Ihr Team unterst'tzt",
+    "addAdditionalLanguagesSeparated": "F'gen Sie zus'tzliche Sprachen hinzu, die durch Kommas getrennt sind",
+    "specialisations": "Spezialisierungen",
+    "addAdditionalSpecialtiesSeparated": "F'gen Sie zus'tzliche Spezialit'ten hinzu, die durch Kommas getrennt sind",
+    "countries": "L'nder",
+    "regions": "Regionen",
+    "cities": "St'dte",
+    "saveOrganisationProfile": "Organisationsprofil speichern"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Admin dashboard",
+      "subtitle": "Monitor platform health and manage accounts.",
+      "cards": {
+        "totalUsers": "Total users",
+        "newUsers": "New last 7 days",
+        "activeSubscriptions": "Active subscriptions",
+        "totalIncome": "Total income"
+      },
+      "users": {
+        "heading": "Accounts",
+        "caption": "Latest registrations across roles.",
+        "columns": {
+          "name": "Name",
+          "email": "Email",
+          "role": "Role",
+          "created": "Created",
+          "verified": "Verified",
+          "actions": "Actions"
+        },
+        "verified": "Verified",
+        "notVerified": "Unverified",
+        "view": "View profile",
+        "empty": "No accounts found.",
+        "fallbackName": "Unknown name"
+      },
+      "create": {
+        "title": "Add user",
+        "description": "Create a user with an initial role. They can update their profile after signing in.",
+        "email": "Email",
+        "password": "Password",
+        "fullName": "Full name",
+        "role": "Role",
+        "submit": "Create user",
+        "success": "User created successfully.",
+        "error": "Failed to create user",
+        "locale": "Language",
+        "country": "Country",
+        "timezone": "Timezone"
+      }
+    },
+    "detail": {
+      "title": "Account overview",
+      "back": "Back to dashboard",
+      "unknownEmail": "Email unknown",
+      "unknown": "Unknown",
+      "labels": {
+        "yes": "Yes",
+        "no": "No"
+      },
+      "cards": {
+        "joined": "Joined",
+        "role": "Role",
+        "verified": "Verified",
+        "totalIncome": "Total income"
+      },
+      "sections": {
+        "profile": "Profile",
+        "subscriptions": "Subscriptions",
+        "payments": "Payments"
+      },
+      "fields": {
+        "fullName": "Full name",
+        "role": "Role",
+        "verified": "Verified",
+        "licenseVerified": "License verified",
+        "organization": "Organization",
+        "locale": "Language",
+        "country": "Country",
+        "timezone": "Timezone"
+      },
+      "forms": {
+        "update": {
+          "heading": "Update account",
+          "submit": "Save changes",
+          "success": "Profile updated.",
+          "error": "Failed to update profile"
+        }
+      },
+      "subscriptions": {
+        "none": "No subscriptions recorded.",
+        "unknownPlan": "Unknown plan",
+        "nextRenewal": "Next renewal on {date}"
+      },
+      "payments": {
+        "none": "No payments recorded.",
+        "paidOn": "Paid on {date}"
+      },
+      "delete": {
+        "heading": "Danger zone",
+        "body": "Deleting an account removes all associated access immediately.",
+        "confirm": "Are you sure you want to delete this user? This cannot be undone.",
+        "submit": "Delete user",
+        "success": "User deleted.",
+        "error": "Failed to delete user"
+      }
+    },
+    "roles": {
+      "super_admin": "Super admin",
+      "admin": "Admin",
+      "agency": "Travel agency",
+      "dmc": "DMC",
+      "transport": "Transport",
+      "guide": "Guide",
+      "visitor": "Visitor"
+    },
+    "verification": {
+      "title": "Verification Dashboard",
+      "subtitle": "Review and approve pending verifications for guides, agencies, DMCs, and transport partners.",
+      "pending": "pending",
+      "noItems": "No pending verifications at this time.",
+      "type": "Type",
+      "applicant": "Applicant",
+      "email": "Email",
+      "submitted": "Submitted",
+      "actions": "Actions",
+      "viewDetails": "View Details",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approving": "Approving...",
+      "rejecting": "Rejecting...",
+      "notes": "Notes / Feedback",
+      "notesPlaceholder": "Add any notes or feedback for the applicant (optional)",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "success": "Verification processed successfully",
+      "error": "Failed to process verification. Please try again.",
+      "selfie": "Selfie",
+      "license": "License Proof",
+      "idDocument": "ID Document",
+      "logo": "Company Logo",
+      "noImage": "No images provided",
+      "guide": "Guide",
+      "agency": "Agency",
+      "dmc": "DMC",
+      "transport": "Transport"
+    },
+    "reviews": {
+      "title": "Review Moderation",
+      "subtitle": "Review and approve or reject user-submitted reviews.",
+      "pending": "pending",
+      "reported": "reported",
+      "pendingTab": "Pending Reviews",
+      "reportedTab": "Reported Reviews",
+      "noReviews": "No reviews to moderate at this time.",
+      "reviewer": "Reviewer",
+      "reviewee": "Reviewee",
+      "rating": "Rating",
+      "submitted": "Submitted",
+      "actions": "Actions",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approving": "Approving...",
+      "rejecting": "Rejecting...",
+      "notes": "Moderation Notes",
+      "notesPlaceholder": "Add any notes about this decision (optional)",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "success": "Review moderated successfully",
+      "error": "Failed to moderate review. Please try again.",
+      "viewDetails": "View Details",
+      "reportReason": "Report Reason",
+      "service": "Service Quality",
+      "communication": "Communication",
+      "value": "Value for Money",
+      "professionalism": "Professionalism",
+      "paymentSpeed": "Payment Speed",
+      "trust": "Trustworthiness",
+      "clarity": "Job Clarity",
+      "support": "Support"
+    },
+    "applicationsManagement": "Anwendungsmanagement",
+    "importantNotes": "Wichtige Hinweise:",
+    "allUploadedProfilesWill": "Alle hochgeladenen Profile werden mit dem Status genehmigt erstellt",
+    "emailAddressesMustBe": "E-Mail-Adressen m'ssen im gesamten System eindeutig sein",
+    "invalidRowsWillBe": "Ung'ltige Zeilen werden 'bersprungen, wobei Fehlerdetails angegeben werden",
+    "theUploadProcessCannot": "Der Upload-Vorgang kann nicht r'ckg'ngig gemacht werden - 'berpr'fen Sie Ihre Daten sorgf'ltig",
+    "guidesInStaging": "Hilfslinien in der Inszenierung",
+    "alreadyImported": "Bereits importiert",
+    "importProcess": "Import-Prozess",
+    "createAuthUsers": "Erstellen von Authentifizierungsbenutzern",
+    "createProfiles": "Erstellen von Profilen",
+    "createGuideEntries": "Erstellen von Guide-Eintr'gen",
+    "storeCredentials": "Anmeldeinformationen speichern",
+    "generateClaimTokens": "Generieren von Anspruchstoken",
+    "afterImport": "Nach dem Import",
+    "selectGuidesAndExport": "W'hlen Sie Leitf'den aus und exportieren Sie Anspruchslinks in CSV",
+    "sendInvitationEmailsTo": "Senden Sie Einladungs-E-Mails an Leitf'den mit ihren Anspruchslinks",
+    "guidesClaimProfilesAnd": "F'hrt zu Anspruchsprofilen und erg'nzt fehlende Informationen",
+    "bulkUpload": "Massen-Upload",
+    "reviewStats": "Statistiken 'berpr'fen",
+    "adsManagement": "Verwaltung von Anzeigen",
+    "applications": {
+      "title": "Applications Management",
+      "subtitle": "Review and approve or decline new role applications from guides, agencies, DMCs, and transport providers."
+    },
+    "antiscraping": "Anti-Kratzen",
+    "status": "Status",
+    "reviewStatistics": "Statistik 'berpr'fen",
+    "overviewOfAllReview": "'berblick 'ber alle 'berpr'fungsaktivit'ten",
+    "totalReviews": "Bewertungen insgesamt",
+    "pending": "Anh'ngig",
+    "approved": "Gebilligt",
+    "rejected": "Zur'ckgewiesen",
+    "reported": "Berichtet",
+    "averageRating": "Durchschnittliche Bewertung",
+    "recentReviews": "Neueste Bewertungen",
+    "noReviewsYet": "Noch keine Bewertungen",
+    "topRatedProfiles": "Top bewertete Profile",
+    "noRatingsYet": "Noch keine Bewertungen",
+    "antiscrapingSettings": "Anti-Scraping-Einstellungen",
+    "totalReveals": "Enth'llungen insgesamt",
+    "allTime": "Gesamte Zeit",
+    "revealsToday": "Enth'llt heute",
+    "currentLimits": "Aktuelle Grenzwerte",
+    "free": "Kostenlos:",
+    "pro": "Profi:",
+    "dmc": "DMC:",
+    "perUserPerDay": "Pro Benutzer und Tag",
+    "rateLimitConfiguration": "Konfiguration der Ratenbegrenzung",
+    "textSelectionProtection": "Schutz der Textauswahl",
+    "printProtection": "Druckschutz",
+    "dynamicWatermarks": "Dynamische Wasserzeichen",
+    "activityLogging": "Aktivit'tsprotokollierung",
+    "rateLimiting": "Ratenbegrenzung",
+    "usersManagement": "Benutzerverwaltung",
+    "userProfile": "Benutzerprofil",
+    "userManagement": "Benutzerverwaltung",
+    "messages": "Meldungen",
+    "conversations": "Gespr'che",
+    "payments": "Zahlungen",
+    "accountAge": "Alter des Kontos",
+    "status2": "Status:",
+    "application": "Anwendung:",
+    "reason": "Grund:",
+    "allSubscriptions": "Alle Abonnements",
+    "noSubscriptionsFound": "Keine Abonnements gefunden",
+    "paymentHistory": "Zahlungsverlauf",
+    "noPaymentsFound": "Keine Zahlungen gefunden",
+    "previewNotes": "Vorschau-Hinweise:",
+    "actualRenderingDependsOn": "Das tats'chliche Rendering h'ngt von der Platzierung und der Bildschirmgr''e ab",
+    "clickTrackingIsDisabled": "Klick-Tracking ist im Vorschaumodus deaktiviert",
+    "loadingAds": "Anzeigen werden geladen...",
+    "banner": "Banner",
+    "nativeCard": "Native Karte",
+    "partnerTile": "Partner-Kachel",
+    "preview": "Vorschau",
+    "learnMore": "Weitere Informationen",
+    "usgbfr": "US,GB,FR",
+    "noAdsCreatedYet": "Es wurden noch keine Anzeigen erstellt",
+    "applicationData": "Anwendungsdaten",
+    "specializations": "Spezialisierungen:",
+    "languages": "Sprachen:",
+    "registrationNumber": "Registrierungsnummer:",
+    "declined": "Abgelehnt",
+    "categories": "Kategorien",
+    "totalRows": "Zeilen insgesamt",
+    "success": "Erfolg",
+    "errors": "Irrt'mer",
+    "total": "Gesamt",
+    "europeberlin": "Europa/Berlin",
+    "selectGender": "Geschlecht ausw'hlen",
+    "selectCurrency": "W'hrung ausw'hlen",
+    "selectTimezone": "Zeitzone ausw'hlen",
+    "separateValuesWithCommas": "Trennen von Werten durch Kommas",
+    "noApplicationDataAvailable": "Keine Anwendungsdaten verf'gbar",
+    "empty": "Leer",
+    "exporting": "Exportierend...",
+    "exportToExcel": "Exportieren nach Excel",
+    "freezeAccount": "Konto einfrieren",
+    "enterTheReasonFor": "Geben Sie den Grund f'r das Einfrieren dieses Kontos ein...",
+    "totalImported": "Gesamt importiert",
+    "unclaimed": "Unbeansprucht",
+    "claimed": "Beanspruchte",
+    "expired": "Abgelaufen",
+    "noGuidesFoundFor": "F'r den ausgew'hlten Filter wurden keine Hilfslinien gefunden.",
+    "subjectClaimYourGuide": "Betreff: Beanspruchen Sie Ihr Guide-Profil auf Guide Validator",
+    "yourLicenseNumber": "Ihre Lizenznummer:",
+    "claimYourProfile": "Beanspruchen Sie Ihr Profil:",
+    "completeYourProfessionalProfile": "Vervollst'ndigen Sie Ihr berufliches Profil",
+    "getDiscoveredByTravel": "Lassen Sie sich von Reiseb'ros und DMCs entdecken",
+    "receiveBookingRequestsDirectly": "Buchungsanfragen direkt erhalten",
+    "manageYourAvailabilityCalendar": "Verwalten Sie Ihren Verf'gbarkeitskalender",
+    "bestRegards": "Alles Gute",
+    "guideValidatorTeam": "Guide Validator Team",
+    "guideLanguagesLocations": "Sprachen und Orte des Reisef'hrers",
+    "adjustTheGuidesSpoken": "Passen Sie die gesprochenen Sprachen, Fachgebiete und Servicebereiche des Reiseleiters an.",
+    "spokenLanguages": "Gesprochene Sprachen",
+    "saveGuideSegments": "Hilfsliniensegmente speichern",
+    "claimTokens": "Token beanspruchen",
+    "credentials": "Beglaubigungsschreiben",
+    "guides": "F'hrer",
+    "profiles": "Profile",
+    "authUsers": "Benutzer authentifizieren",
+    "warnings": "Warnungen:",
+    "imported": "Eingef'hrt",
+    "skipped": "Geh'pft",
+    "error": "Fehler",
+    "languagesSupported": "Unterst'tzte Sprachen",
+    "saveOrganisationCoverage": "Sichern Sie die Abdeckung Ihrer Organisation",
+    "comment": "Kommentar",
+    "categoryRatings": "Kategorie-Bewertungen",
+    "unfreezeAccount": "Konto entsperren",
+    "usageStatistics": "Nutzungsstatistiken",
+    "accountOverview": "Konto'bersicht",
+    "lastLogin": "Letzter Login",
+    "communication": "Kommunikation",
+    "totalMessages": "Nachrichten insgesamt",
+    "last30Days": "Letzte 30 Tage",
+    "activeChats": "Aktive Chats",
+    "financial": "Finanziell",
+    "totalRevenue": "Gesamtumsatz",
+    "thisMonth": "Diesen Monat",
+    "lastMonth": "Letzter Monat",
+    "totalPayments": "Zahlungen insgesamt",
+    "guideActivity": "Guide-Aktivit't",
+    "totalBookings": "Buchungen insgesamt",
+    "completed": "Abgeschlossen",
+    "canceled": "Abgebrochen",
+    "availabilitySet": "Verf'gbarkeitsgruppe",
+    "visibility": "Sichtbarkeit",
+    "directoryStatus": "Status des Verzeichnisses",
+    "profileViews": "Profilansichten",
+    "outOf50": "Von 5.0",
+    "email": "E-Mail:",
+    "country": "Land:",
+    "experience": "Erfahrung:",
+    "specialties": "Spezialit'ten:",
+    "bio": "Bio:",
+    "hourlyRate": "Stundensatz:",
+    "created": "Erstellt:",
+    "applied": "Angewandt:",
+    "rejectionReason": "Grund f'r die Ablehnung:",
+    "phone": "Telefon:",
+    "website": "Website:",
+    "description": "Beschreibung:",
+    "services": "Dienste:",
+    "certifications": "Bescheinigungen:",
+    "searchByNameOr": "Suche nach Name oder E-Mail...",
+    "allStatus": "Alle Status",
+    "selfie": "Selfie",
+    "license": "Lizenz",
+    "idDocument": "Ausweisdokument",
+    "logo": "Logo"
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "description": "Have questions or need support? We're here to help.",
+    "info": {
+      "title": "Contact Information",
+      "email": {
+        "label": "Email"
+      },
+      "phone": {
+        "label": "Phone"
+      },
+      "hours": {
+        "label": "Support Hours",
+        "value": "Monday - Friday, 9:00 AM - 6:00 PM (GMT+7)"
+      }
+    },
+    "additional": {
+      "title": "Need Help?",
+      "description": "Our support team typically responds within 24 hours. For urgent matters, please call us directly during business hours."
+    },
+    "form": {
+      "title": "Send us a Message"
+    },
+    "johnDoe": "Otto Normalverbraucher",
+    "johnexamplecom": "john@example.com",
+    "selectASubject": "W'hlen Sie ein Thema aus",
+    "generalInquiry": "Allgemeine Anfrage",
+    "technicalSupport": "Technischer Support",
+    "verificationQuestions": "Fragen zur Verifizierung",
+    "billingSubscriptions": "Abrechnung & Abonnements",
+    "partnershipOpportunities": "Partnerschaftsm'glichkeiten",
+    "other": "Andere",
+    "tellUsHowWe": "Sagen Sie uns, wie wir Ihnen helfen k'nnen..."
+  },
+  "reviews": {
+    "submit": {
+      "title": "Write a Review",
+      "subtitle": "Share your experience with {name}",
+      "cta": "Write Review",
+      "overallRating": "Overall Rating",
+      "reviewTitle": "Review Title",
+      "reviewTitlePlaceholder": "Summarize your experience",
+      "comment": "Your Review",
+      "commentPlaceholder": "Tell us about your experience working together...",
+      "submit": "Submit Review",
+      "submitting": "Submitting...",
+      "success": "Review submitted successfully! It will be published after moderation.",
+      "error": "Failed to submit review. Please try again.",
+      "cancel": "Cancel",
+      "serviceRating": "Service Quality",
+      "communicationRating": "Communication",
+      "valueRating": "Value for Money",
+      "professionalismRating": "Professionalism",
+      "paymentSpeedRating": "Payment Speed",
+      "trustRating": "Trustworthiness",
+      "clarityRating": "Job Clarity",
+      "supportRating": "Support & Responsiveness"
+    },
+    "categories": {
+      "service": "Service",
+      "communication": "Communication",
+      "value": "Value",
+      "professionalism": "Professionalism",
+      "paymentSpeed": "Payment Speed",
+      "trust": "Trust",
+      "clarity": "Clarity",
+      "support": "Support"
+    },
+    "list": {
+      "title": "Reviews",
+      "reviews": "reviews",
+      "noReviews": "No reviews yet. Be the first to leave a review!",
+      "empty": "No reviews yet",
+      "loadMore": "Load More Reviews",
+      "loading": "Loading...",
+      "service": "Service",
+      "communication": "Communication",
+      "value": "Value",
+      "professionalism": "Professionalism",
+      "paymentSpeed": "Payment",
+      "trust": "Trust",
+      "clarity": "Clarity",
+      "support": "Support",
+      "report": "Report",
+      "reported": "Reported",
+      "by": "by",
+      "reportConfirm": "Are you sure you want to report this review?",
+      "reportSuccess": "Review reported successfully",
+      "reportError": "Failed to report review",
+      "viewAll": "View all reviews"
+    },
+    "response": {
+      "responseTitle": "Response from Business",
+      "responsePlaceholder": "Write your response to this review...",
+      "submitResponse": "Submit Response",
+      "updateResponse": "Update Response",
+      "submitting": "Submitting...",
+      "cancel": "Cancel",
+      "respondLabel": "Respond",
+      "editResponse": "Edit Response",
+      "success": "Response submitted successfully",
+      "error": "Failed to submit response"
+    },
+    "invalidRequest": "Ung'ltige Anfrage",
+    "profileNotFound": "Profil nicht gefunden",
+    "cannotSubmitReview": "Bewertung kann nicht abgegeben werden",
+    "alreadyReviewed": "Bereits bewertet",
+    "reportReview": "'berpr'fung des Berichts",
+    "pleaseDescribeWhyYou": "Bitte beschreiben Sie, warum Sie"
+  },
+  "advertising": {
+    "putYourTourismBrand": "Pr'sentieren Sie Ihre Tourismusmarke vor verifizierten K'ufern",
+    "bannerPlacementPackages": "Banner & Platzierungspakete",
+    "demandIntelligenceReports": "Demand Intelligence & Berichte",
+    "howItWorks": "So funktioniert's",
+    "weConfigurePlacementsAnd": "Wir konfigurieren Placements und Intelligence-Feeds auf dem Guide Validator-Marktplatz.",
+    "receiveMonthlyReportsWith": "Erhalten Sie monatliche Berichte mit Metriken zu Impressionen, Klicks und gespeicherten Profilen.",
+    "readyToLaunchAn": "Sind Sie bereit, eine Werbekampagne zu starten?"
+  },
+  "chat": {
+    "selectAConversationTo": "W'hlen Sie eine Konversation aus, um die Nachricht zu starten",
+    "loading": "Laden...",
+    "newMessage": "Neue Nachricht",
+    "searchConversations": "Unterhaltungen durchsuchen...",
+    "attachment": "Anhang",
+    "attachFile": "Datei anh'ngen",
+    "typeAMessage": "Geben Sie eine Nachricht ein...",
+    "sendMessage": "Nachricht senden",
+    "opening": "'ffnung...",
+    "newMessage2": "Neue Nachricht",
+    "typeNameOrEmail": "Geben Sie den Namen oder die E-Mail-Adresse ein...",
+    "reportAbuse": "Missbrauch melden",
+    "provideAnyAdditionalContext": "Geben Sie zus'tzlichen Kontext an, der unserer Bewertung helfen k'nnte..."
+  },
+  "claim-profile": {
+    "profileFor": "Profil f'r:",
+    "licenseNumber": "Lizenznummer:"
+  },
+  "legal": {
+    "weMayCollectUse": "Wir k'nnen verschiedene Arten von personenbezogenen Daten 'ber Sie sammeln, verwenden, speichern und 'bertragen:",
+    "identityData": "Identit'tsdaten:",
+    "contactData": "Kontaktdaten:",
+    "profileData": "Profildaten:",
+    "technicalData": "Technische Daten:",
+    "usageData": "Nutzungsdaten:",
+    "toRegisterYouAs": "Um Sie als neuen Kunden zu registrieren",
+    "toProvideAndManage": "Um Ihr Konto bereitzustellen und zu verwalten",
+    "toProcessAndDeliver": "Um unsere Dienstleistungen zu verarbeiten und zu erbringen",
+    "toManageOurRelationship": "Um unsere Beziehung zu Ihnen zu verwalten",
+    "requestAccessToYour": "Fordern Sie den Zugriff auf Ihre personenbezogenen Daten an",
+    "requestCorrectionOfYour": "Fordern Sie die Berichtigung Ihrer personenbezogenen Daten an",
+    "requestErasureOfYour": "Fordern Sie die L'schung Ihrer personenbezogenen Daten an",
+    "objectToProcessingOf": "Widerspruch gegen die Verarbeitung Ihrer personenbezogenen Daten",
+    "requestRestrictionOfProcessing": "Einschr'nkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen",
+    "requestTransferOfYour": "Fordern Sie die 'bertragung Ihrer personenbezogenen Daten an",
+    "rightToWithdrawConsent": "Recht auf Widerruf der Einwilligung",
+    "modifyOrCopyThe": "'ndern oder Kopieren der Materialien",
+    "useTheMaterialsFor": "Verwenden Sie die Materialien f'r kommerzielle Zwecke oder f'r 'ffentliche Darstellungen",
+    "attemptToReverseEngineer": "Versuchen Sie, Software, die auf der Website von Guide Validator enthalten ist, zur'ckzuentwickeln",
+    "transferTheMaterialsTo": "'bertragen Sie die Materialien an eine andere Person oder spiegeln Sie die Materialien auf einem anderen Server",
+    "youMayNotUse": "Sie d'rfen unseren Service nicht nutzen:",
+    "forAnyUnlawfulPurpose": "Zu rechtswidrigen Zwecken oder um andere dazu aufzufordern, rechtswidrige Handlungen vorzunehmen oder daran teilzunehmen",
+    "toHarassAbuseInsult": "Bel'stigung, Beleidigung, Sch'digung, Verleumdung, Verleumdung, Verunglimpfung, Einsch'chterung oder Diskriminierung",
+    "toSubmitFalseOr": "Falsche oder irref'hrende Informationen zu 'bermitteln",
+    "toUploadOrTransmit": "Um Viren oder andere Arten von b'sartigem Code hochzuladen oder zu 'bertragen",
+    "toSpamPhishPharm": "Spam, Phishing, Pharm, Vorwand, Spider, Crawl oder Scrape",
+    "forAnyObsceneOr": "Zu obsz'nen oder unmoralischen Zwecken",
+    "toInterfereWithOr": "Um die Sicherheitsfunktionen des Dienstes zu beeintr'chtigen oder zu umgehen",
+    "dataProcessingAgreementGuide": "Vereinbarung zur Auftragsverarbeitung - Guide Validator",
+    "dataProcessingAgreement": "VEREINBARUNG ZUR DATENVERARBEITUNG",
+    "guideValidatorPlatform": "Leitfaden Validator-Plattform",
+    "encryptionOfPersonalData": "Verschl'sselung personenbezogener Daten w'hrend der 'bertragung und im Ruhezustand",
+    "regularSecurityAssessmentsAnd": "Regelm''ige Sicherheitsbewertungen und Penetrationstests",
+    "accessControlsAndAuthentication": "Zugriffskontrollen und Authentifizierungsmechanismen",
+    "regularBackupAndDisaster": "Regelm''ige Backup- und Disaster-Recovery-Verfahren",
+    "securityIncidentResponseProcedures": "Verfahren zur Reaktion auf Sicherheitsvorf'lle",
+    "rightOfAccess": "Recht auf Auskunft",
+    "rightToRectification": "Recht auf Berichtigung",
+    "rightToRestrictionOf": "Recht auf Einschr'nkung der Verarbeitung",
+    "rightToDataPortability": "Recht auf Daten'bertragbarkeit",
+    "rightToObject": "Widerspruchsrecht",
+    "standardContractualClausesApproved": "Von der Europ'ischen Kommission genehmigte Standardvertragsklauseln",
+    "bindingCorporateRules": "Verbindliche interne Datenschutzvorschriften",
+    "adequacyDecisionsByThe": "Angemessenheitsbeschl'sse der Europ'ischen Kommission",
+    "annexADetailsOf": "ANHANG A: EINZELHEITEN DER VERARBEITUNG",
+    "subjectMatter": "Stoff",
+    "duration": "Dauer",
+    "natureAndPurpose": "Natur und Zweck",
+    "userAuthenticationAndAccount": "Benutzerauthentifizierung und Kontoverwaltung",
+    "facilitatingConnectionsBetweenGuides": "Erleichterung der Verbindungen zwischen Guides, Transportanbietern, Agenturen und DMCs",
+    "processingBookingsAndAvailability": "Bearbeitung von Buchungen und Verf'gbarkeitsanfragen",
+    "communicationBetweenPlatformUsers": "Kommunikation zwischen den Nutzern der Plattform",
+    "platformAnalyticsAndImprovement": "Analyse und Verbesserung der Plattform",
+    "categoriesOfPersonalData": "Kategorien personenbezogener Daten",
+    "identityDataNameUsername": "Identit'tsdaten: Name, Benutzername, E-Mail-Adresse",
+    "contactDataEmailAddress": "Kontaktdaten: E-Mail-Adresse, Telefonnummer, Adresse",
+    "profileDataProfessionalInformation": "Profildaten: berufliche Informationen, Fachgebiete, Sprachen, Zertifizierungen",
+    "usageDataInteractionWith": "Nutzungsdaten: Interaktion mit Plattformfunktionen, Buchungshistorie",
+    "technicalDataIpAddress": "Technische Daten: IP-Adresse, Browsertyp, Ger'teinformationen",
+    "marketingDataPreferencesFor": "Marketingdaten: Pr'ferenzen f'r den Erhalt von Mitteilungen",
+    "categoriesOfDataSubjects": "Kategorien betroffener Personen",
+    "tourGuides": "Reiseleiter",
+    "transportProviders": "Transportunternehmen",
+    "travelAgencies": "Reiseb'ros",
+    "platformAdministrators": "Plattform-Administratoren",
+    "contactInformation": "KONTAKTINFORMATIONEN",
+    "dataProtectionOfficer": "Datenschutzbeauftragter:",
+    "controllerSignature": "Controller-Signatur:",
+    "processorRepresentative": "Vertreter des Auftragsverarbeiters:"
+  },
+  "onboarding": {
+    "invalidLink": "Ung'ltiger Link",
+    "linkNotFound": "Link nicht gefunden",
+    "profileUpdated": "Profil aktualisiert!"
+  },
+  "pricing": {
+    "findTheRightPlan": "Finden Sie den richtigen Plan f'r Ihr Tourismusunternehmen",
+    "lookingToAdvertiseOr": "M'chten Sie Werbung machen oder die Nachfrage analysieren?",
+    "whyChooseGuideValidator": "Warum sollten Sie sich f'r Guide Validator entscheiden?",
+    "readyToProtectEvery": "Sind Sie bereit, jede Reiseroute zu sch'tzen?",
+    "selectAPlan": "W'hlen Sie einen Plan aus"
+  },
+  "supabase-test": {
+    "supabaseConnectionTest": "Test der Supabase-Verbindung",
+    "failedToQueryThe": "Fehler beim Abfragen der Profiltabelle.",
+    "successfullyContactedSupabase": "Supabase erfolgreich kontaktiert.",
+    "showingUpToFive": "Unten werden bis zu f'nf aktuelle Profile angezeigt.",
+    "fullName": "Vollst'ndiger Name",
+    "updatedAt": "Aktualisiert am"
+  },
+  "support": {
+    "howCanWeHelp": "Wie k'nnen wir Ihnen helfen?",
+    "frequentlyAskedQuestions": "H'ufig gestellte Fragen",
+    "howDoICreate": "Wie erstelle ich ein Konto?",
+    "howDoIGet": "Wie kann ich mich verifizieren lassen?",
+    "howDoesTheBooking": "Wie funktioniert das Buchungssystem?",
+    "whatPaymentMethodsDo": "Welche Zahlungsmethoden akzeptieren Sie?",
+    "canICancelOr": "Kann ich mein Abonnement k'ndigen oder 'ndern?",
+    "howDoIReport": "Wie melde ich ein Problem oder eine Frage?",
+    "contactSupport": "Support kontaktieren",
+    "emailSupport": "E-Mail-Unterst'tzung",
+    "contactForm": "Kontaktformular",
+    "businessHours": "'ffnungszeit",
+    "saturdaySundayClosed": "Samstag - Sonntag: Geschlossen",
+    "additionalResources": "Zus'tzliche Ressourcen",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "termsOfService": "Nutzungsbedingungen",
+    "dataProcessingAgreement": "Vereinbarung zur Auftragsverarbeitung",
+    "pricing": "Auszeichnung"
+  },
+  "ads": {
+    "sponsoredContent": "Gesponserte Inhalte"
+  },
+  "agencies": {
+    "filters": "Filter",
+    "searchAgencies": "Personalvermittlungsagenturen...",
+    "searching": "Suche..."
+  },
+  "availability": {
+    "allProviders": "Alle Anbieter",
+    "createBookingRequest": "Buchungsanfrage erstellen",
+    "addAnyAdditionalDetails": "F'gen Sie weitere Details hinzu...",
+    "today": "Heute",
+    "notAvailableDuringThis": "In dieser Zeit nicht verf'gbar",
+    "availableAllDay": "Ganzt'gig verf'gbar",
+    "noBlockedTimesFor": "Keine Blockzeiten f'r dieses Datum",
+    "requestAvailabilityHold": "Verf'gbarkeitssperre anfordern",
+    "requestingHoldFrom": "Anfordern einer Zur'ckstellung von:",
+    "egTour12345Event": "z.B. Tour #12345, Event ABC",
+    "addAnyAdditionalDetails2": "F'gen Sie weitere Details zur Buchung hinzu...",
+    "error": "Fehler:"
+  },
+  "bookings": {
+    "yourBookingRequests": "Ihre Buchungsanfragen",
+    "createNewBookingRequest": "Neue Buchungsanfrage erstellen",
+    "selectAProvider": "W'hlen Sie einen Anbieter aus...",
+    "addAnyAdditionalDetails": "F'gen Sie zus'tzliche Details oder Anforderungen hinzu...",
+    "time": "Zeit:",
+    "requested": "Angefordert:",
+    "message": "Nachricht:"
+  },
+  "dmcs": {
+    "searchDmcs": "DMCs durchsuchen..."
+  },
+  "form": {
+    "egCatalanBasqueEtc": "z.B. Katalanisch, Baskisch, etc.",
+    "accountLoginCredentials": "Anmeldedaten f'r das Konto",
+    "createAStrongPassword": "Erstellen Sie ein sicheres Passwort",
+    "reenterYourPassword": "Geben Sie Ihr Passwort erneut ein",
+    "note": "Anmerkung:",
+    "loadingCountries": "L'nder werden geladen...",
+    "pleaseSelectAtLeast": "Bitte w'hlen Sie mindestens ein Land aus",
+    "regionsProvinces": "Regionen / Provinzen",
+    "selectARegion": "-- W'hlen Sie eine Region aus --",
+    "nationalParksOptional": "Nationalparks (fakultativ)",
+    "selectAPark": "-- W'hlen Sie einen Park --",
+    "remove": "Entfernen",
+    "searchAndSelectCountries": "L'nder suchen und ausw'hlen...",
+    "enterRegionNameAnd": "Geben Sie den Regionsnamen ein und dr'cken Sie die Eingabetaste",
+    "enterCityNameAnd": "Geben Sie den Namen der Stadt ein und dr'cken Sie die Eingabetaste",
+    "enterParkNameAnd": "Geben Sie den Namen des Parks ein und dr'cken Sie die Eingabetaste",
+    "typeRegionNameAnd": "Geben Sie den Namen der Region ein und dr'cken Sie die Eingabetaste oder klicken Sie auf +",
+    "typeCityNameAnd": "Geben Sie den Namen der Stadt ein und dr'cken Sie die Eingabetaste oder klicken Sie auf +",
+    "typeParkNameAnd": "Geben Sie den Parknamen ein und dr'cken Sie die Eingabetaste oder klicken Sie auf +",
+    "loadingParks": "Parks werden geladen...",
+    "searchParks": "Parks suchen...",
+    "enterprisePartnership": "Unternehmenspartnerschaft:",
+    "nextStepCompletePayment": "N'chster Schritt: Zahlung abschlie'en",
+    "selectTimezone": "Zeitzone ausw'hlen..."
+  },
+  "gdpr": {
+    "accountDeleted": "Konto gel'scht",
+    "cookiePreferences": "Cookie-Einstellungen",
+    "noConsentPreferencesSet": "Es wurden noch keine Einwilligungseinstellungen festgelegt.",
+    "exportYourData": "Exportieren Sie Ihre Daten",
+    "requestHistory": "Verlauf der Anfrage",
+    "deleteAccount": "Konto l'schen",
+    "yourProfileAndAll": "Ihr Profil und alle pers'nlichen Informationen",
+    "allReviewsYouveWritten": "Alle Bewertungen, die Sie geschrieben haben",
+    "allBookingsAndAvailability": "Alle Buchungs- und Verf'gbarkeitsdaten",
+    "allMessagesAndCommunications": "Alle Nachrichten und Mitteilungen",
+    "helpUsImproveBy": "Helfen Sie uns, uns zu verbessern, indem Sie uns sagen, warum Sie"
+  },
+  "guides-v2": {
+    "searchByName": "Suche nach Namen...",
+    "allRegions": "Alle Regionen",
+    "allCities": "Alle St'dte",
+    "verifiedOnly": "Nur verifiziert",
+    "licensedOnly": "Nur lizenziert",
+    "searchByNameOr": "Suchen Sie nach Name oder Lizenznummer...",
+    "highestRated": "Am besten bewertet",
+    "lowestPrice": "Niedrigster Preis",
+    "updatingResults": "Ergebnisse werden aktualisiert..."
+  },
+  "transport": {
+    "searchTransportProviders": "Transportanbieter suchen..."
+  },
+  "common": {
+    "signIn": "Anmelden",
+    "openYourProfileDashboard": "'ffnen Sie Ihr Profil-Dashboard",
+    "thankYouForSubmitting": "Vielen Dank, dass Sie Ihre Bewerbung bei Guide Validator eingereicht haben!",
+    "theGuideValidatorTeam": "Das Guide-Validator-Team",
+    "applicant": "Antragsteller:",
+    "applicationId": "Anwendungs-ID:",
+    "reviewApplication": "Antrag pr'fen",
+    "greatNewsYourApplication": "Tolle Neuigkeiten! Ihr Antrag wurde genehmigt.",
+    "signInNow": "Jetzt anmelden",
+    "welcomeToTheGuide": "Willkommen in der Guide Validator-Community!",
+    "ifYouHaveQuestions": "Wenn Sie Fragen haben oder sich in Zukunft erneut bewerben m'chten, k'nnen Sie sich gerne an uns wenden.",
+    "newContactFormSubmission": "Neue Einreichung des Kontaktformulars",
+    "name": "Name:",
+    "subject": "Betreff:",
+    "greatNewsYourCredentials": "Tolle Neuigkeiten! Ihre Anmeldeinformationen wurden 'berpr'ft und genehmigt.",
+    "adminNotes": "Anmerkungen des Administrators:",
+    "newReviewReceived": "Neue Bewertung erhalten",
+    "theReviewIsCurrently": "Die 'berpr'fung muss derzeit von unserem Moderationsteam genehmigt werden.",
+    "viewDashboard": "Dashboard anzeigen",
+    "reviewNotApproved": "'berpr'fung nicht genehmigt",
+    "yourReviewFor": "Ihre Bewertung f'r",
+    "newAvailabilityHoldRequest": "Neue Anforderung zur Verf'gbarkeitssperre",
+    "startDate": "Startdatum:",
+    "endDate": "Enddatum:",
+    "expires": "Abl'uft:",
+    "reviewRespond": "'berpr'fen & antworten",
+    "greatNews": "Tolle Neuigkeiten!",
+    "youCanNowProceed": "Sie k'nnen nun mit Ihren Buchungspl'nen f'r diese Daten fortfahren.",
+    "holdDeclined": "Hold abgelehnt",
+    "start": "Anfangen:",
+    "end": "Ende:",
+    "jobReference": "Arbeitszeugnis:",
+    "holdAccepted": "Merken Akzeptiert!",
+    "hello": "Hallo",
+    "thisMayMeanTheyre": "Dies kann bedeuten, dass sie f'r diese Daten nicht verf'gbar sind oder sich bereits f'r eine andere Buchung entschieden haben.",
+    "holdExpired": "Hold abgelaufen",
+    "yourAvailabilityHoldRequest": "Ihre Verf'gbarkeitssperranforderung an",
+    "expired": "Abgelaufen:",
+    "theHoldHasBeen": "Die Vormerkung wurde automatisch aufgehoben. Sie k'nnen:",
+    "sendANewHold": "Senden einer neuen Aufbewahrungsanforderung mit unterschiedlichen Daten",
+    "browseOtherAvailableGuides": "Durchsuchen Sie andere verf'gbare Leitf'den"
+  }
 }

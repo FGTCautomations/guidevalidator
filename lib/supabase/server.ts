@@ -58,3 +58,20 @@ export const getSupabaseServerClient = cache(() => {
     }
   );
 });
+
+export function getSupabaseServiceRoleClient() {
+  return createServerClient(
+    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    {
+      cookies: {
+        get() { return undefined; },
+        set() {},
+        remove() {},
+      },
+    }
+  );
+}
+
+// Alias for backwards compatibility and cleaner API
+export const createClient = getSupabaseServerClient;

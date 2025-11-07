@@ -27,20 +27,32 @@ export default async function PrivacyPage({ params }: PageProps) {
     redirect(`/${locale}/auth/sign-in`);
   }
 
-  // Fetch user consents
-  const { data: consents } = await supabase
-    .from("user_consents")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  // Fetch user consents (handle if table doesn't exist)
+  let consents = [];
+  try {
+    const { data } = await supabase
+      .from("user_consents")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    consents = data || [];
+  } catch (error) {
+    console.warn("user_consents table not available", error);
+  }
 
-  // Fetch DSAR requests
-  const { data: dsarRequests } = await supabase
-    .from("dsar_requests")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("requested_at", { ascending: false })
-    .limit(10);
+  // Fetch DSAR requests (handle if table doesn't exist)
+  let dsarRequests = [];
+  try {
+    const { data } = await supabase
+      .from("dsar_requests")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("requested_at", { ascending: false })
+      .limit(10);
+    dsarRequests = data || [];
+  } catch (error) {
+    console.warn("dsar_requests table not available", error);
+  }
 
   // Check if account is marked for deletion
   const { data: profile } = await supabase
@@ -72,8 +84,8 @@ export default async function PrivacyPage({ params }: PageProps) {
           locale={locale}
           userId={user.id}
           userEmail={user.email || ""}
-          consents={consents || []}
-          dsarRequests={dsarRequests || []}
+          consents={consents}
+          dsarRequests={dsarRequests}
           deletionInfo={deletionInfo}
         />
       </div>

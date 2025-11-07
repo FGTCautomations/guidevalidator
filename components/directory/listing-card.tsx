@@ -62,6 +62,11 @@ export function ListingCard({ listing, actionLabel }: ListingCardProps) {
               Verified
             </span>
           ) : null}
+          {!listing.profileCompleted && listing.profileCompletionPercentage && listing.profileCompletionPercentage < 100 ? (
+            <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-orange-700">
+              Incomplete Profile ({listing.profileCompletionPercentage}%)
+            </span>
+          ) : null}
           {listing.licenseRequired ? (
             listing.licenseAuthorityUrl ? (
               <a
@@ -107,9 +112,9 @@ export function ListingCard({ listing, actionLabel }: ListingCardProps) {
       </div>
       {languages.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
-          {languages.map((language) => (
+          {languages.map((language, index) => (
             <span
-              key={language}
+              key={`${language}-${index}`}
               className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
             >
               {language}

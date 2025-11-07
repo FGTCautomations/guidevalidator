@@ -256,8 +256,17 @@ export async function submitAgencyApplicationAction(
 
   const userId = authData.user?.id;
 
-  const { data: application, error } = await service.from("agency_applications").insert({
-    user_id: userId || null,
+  if (!userId) {
+    console.error("[Agency Application] No user ID returned from auth.createUser");
+    return { status: "error", message: "Account creation failed - no user ID returned." };
+  }
+
+  console.log("[Agency Application] Auth account created successfully:", userId);
+
+  // NEW CONSOLIDATED APPROACH: Insert into agencies table with pending status
+  // Prepare application data to preserve original submission
+  const applicationData = {
+    user_id: userId,
     locale,
     legal_company_name: legalCompanyName,
     registration_number: registrationNumber || null,
@@ -305,36 +314,71 @@ export async function submitAgencyApplicationAction(
     availability_timezone: availabilityTimezone,
     working_hours: workingHours,
     avatar_url: logoUrl || null,
-  }).select("id").single();
+  };
 
-  if (error) {
-    console.error("submitAgencyApplicationAction", error);
-    return { status: "error", message: error.message ?? "Unable to submit your application." };
+  // Insert into agencies table with pending status
+  const { error: agencyError } = await service.from("agencies").insert({
+    id: userId, // Use userId as agency ID for consistency
+    type: "agency",
+    name: legalCompanyName,
+    slug: legalCompanyName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    registration_country: registrationCountry || null,
+    description: companyDescription || null,
+    website_url: websiteUrl || null,
+    contact_email: contactEmail,
+    contact_phone: contactPhone || null,
+    logo_url: logoUrl || null,
+    services_offered: servicesOffered,
+    languages_supported: languagesSpoken,
+    certifications,
+    timezone,
+    availability_timezone: availabilityTimezone,
+    working_hours: workingHours,
+    availability_notes: availabilityNotes || null,
+    location_data: locationData,
+    application_data: applicationData, // Preserve original application
+    application_status: "pending",
+    application_submitted_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+
+  if (agencyError) {
+    console.error("[Agency Application] Insert error:", agencyError);
+
+    // Clean up auth account
+    try {
+      await service.auth.admin.deleteUser(userId);
+    } catch (deleteError) {
+      console.error("[Agency Application] Failed to delete auth account:", deleteError);
+    }
+
+    return { status: "error", message: agencyError.message ?? "Unable to submit your application." };
   }
 
+  console.log("[Agency Application] Application saved successfully:", userId);
+
   // Send email notifications
-  if (application) {
-    try {
-      await Promise.all([
-        sendApplicationReceivedEmail({
-          applicantEmail: contactEmail,
-          applicantName: legalCompanyName,
-          applicationType: "agency",
-          applicationId: application.id,
-          locale,
-        }),
-        sendAdminNewApplicationEmail({
-          applicantEmail: contactEmail,
-          applicantName: legalCompanyName,
-          applicationType: "agency",
-          applicationId: application.id,
-          locale,
-        }),
-      ]);
-    } catch (emailError) {
-      console.error("Failed to send application emails", emailError);
-      // Don't fail the application if emails fail
-    }
+  try {
+    await Promise.all([
+      sendApplicationReceivedEmail({
+        applicantEmail: contactEmail,
+        applicantName: legalCompanyName,
+        applicationType: "agency",
+        applicationId: userId, // Use userId as application ID
+        locale,
+      }),
+      sendAdminNewApplicationEmail({
+        applicantEmail: contactEmail,
+        applicantName: legalCompanyName,
+        applicationType: "agency",
+        applicationId: userId,
+        locale,
+      }),
+    ]);
+  } catch (emailError) {
+    console.error("Failed to send application emails", emailError);
+    // Don't fail the application if emails fail
   }
 
   redirect(`/${locale}/auth/sign-up/thanks?role=agency`);

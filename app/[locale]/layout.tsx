@@ -2,11 +2,14 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { CookieBanner } from "@/components/gdpr/cookie-banner";
+import { FooterAd } from "@/components/ads/FooterAd";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupportedLocale, locales, type SupportedLocale } from "@/i18n/config";
+import { getStaticGenLocales } from "@/i18n/build-config";
 
 export const runtime = "nodejs";
 
@@ -15,8 +18,51 @@ type LocaleLayoutProps = {
   params: { locale: string };
 };
 
+// Optimize build by only pre-generating priority locales
+// Other locales will be generated on-demand
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
+  const staticLocales = getStaticGenLocales();
+  return staticLocales.map((locale) => ({ locale }));
+}
+
+// Enable dynamic rendering for non-priority locales
+export const dynamicParams = true;
+
+// Generate metadata with hreflang tags for SEO
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const { locale: requestedLocale } = params;
+
+  if (!isSupportedLocale(requestedLocale)) {
+    return {};
+  }
+
+  const locale = requestedLocale as SupportedLocale;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://guidevalidator.com";
+
+  // Map locale codes to hreflang values
+  const hreflangMap: Record<SupportedLocale, string> = {
+    en: "en",
+  };
+
+  // Generate alternate language links
+  const languages: Record<string, string> = {};
+  locales.forEach((loc) => {
+    languages[hreflangMap[loc]] = `${baseUrl}/${loc}`;
+  });
+
+  // Add x-default
+  languages["x-default"] = `${baseUrl}/en`;
+
+  return {
+    alternates: {
+      canonical: `${baseUrl}/${locale}`,
+      languages,
+    },
+  };
 }
 
 export default async function LocaleLayout({
@@ -43,17 +89,19 @@ export default async function LocaleLayout({
 
   const authUser = sessionResult.data.session?.user ?? null;
   let profileRole: string | null = null;
+  let userName: string | null = null;
+  let userId: string | null = null;
 
   if (authUser) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, full_name, id")
       .eq("id", authUser.id)
       .maybeSingle();
     profileRole = profile?.role ?? null;
+    userName = profile?.full_name ?? null;
+    userId = profile?.id ?? null;
   }
-
-  const userEmail = authUser?.email ?? null;
   const localePrefix = `/${locale}`;
 
   const navItems = [
@@ -96,10 +144,15 @@ export default async function LocaleLayout({
           signinLabel={navTranslations("signin")}
           signinHref={`${localePrefix}/auth/sign-in`}
           signOutLabel={navTranslations("signout")}
-          userEmail={userEmail}
+          userName={userName}
+          userProfileHref={userName ? `${localePrefix}/account/profile` : undefined}
           locale={locale}
         />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          {children}
+        </main>
+        {/* Footer Ad Slot - Conditionally rendered above footer */}
+        <FooterAd />
         <SiteFooter
           description={footerTranslations("tagline")}
           links={footerLinks}

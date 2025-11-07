@@ -41,6 +41,7 @@ type GuideFilterControlsProps = {
     childFriendly: string;
     price: string;
     priceReset: string;
+    rating: string;
   };
 };
 
@@ -79,6 +80,18 @@ export function GuideFilterControls({
   const currentRegion = searchParams?.get("region") ?? "";
   const currentCity = searchParams?.get("city") ?? "";
 
+  // Local state for pending filter selections (before Apply button clicked)
+  const [pendingLanguages, setPendingLanguages] = useState<Set<string>>(() =>
+    new Set(toList(searchParams?.get("languages") ?? "").map((value) => value.toLowerCase()))
+  );
+  const [pendingSpecialties, setPendingSpecialties] = useState<Set<string>>(() =>
+    new Set(toList(searchParams?.get("specialties") ?? "").map((value) => value.toLowerCase()))
+  );
+  const [pendingGenders, setPendingGenders] = useState<Set<string>>(() =>
+    new Set(toList(searchParams?.get("gender") ?? "").map((value) => value.toLowerCase()))
+  );
+
+  // Applied filters from URL
   const currentLanguages = useMemo(
     () => new Set(toList(searchParams?.get("languages") ?? "").map((value) => value.toLowerCase())),
     [searchParams]
@@ -94,10 +107,16 @@ export function GuideFilterControls({
     [searchParams]
   );
 
+  // Sync pending state when URL changes (e.g., from Clear All Filters)
+  useEffect(() => {
+    setPendingLanguages(new Set(currentLanguages));
+    setPendingSpecialties(new Set(currentSpecialties));
+    setPendingGenders(new Set(currentGenders));
+  }, [currentLanguages, currentSpecialties, currentGenders]);
+
   const verifiedOnly = searchParams?.get("verified") === "true";
   const licenseOnly = searchParams?.get("license") === "true";
-  const insuranceOnly = searchParams?.get("insurance") === "true";
-  const childFriendlyOnly = searchParams?.get("child") === "true";
+  const minRating = searchParams?.get("minRating") ?? "";
 
   const minRateParam = searchParams?.get("minRate");
   const maxRateParam = searchParams?.get("maxRate");
@@ -141,14 +160,43 @@ export function GuideFilterControls({
     });
   };
 
-  const toggleCommaSeparated = (key: string, candidate: string, checked: boolean) => {
-    const currentValues = new Set(toList(searchParams?.get(key) ?? "").map((value) => value.toLowerCase()));
-    if (checked) {
-      currentValues.add(candidate.toLowerCase());
-    } else {
-      currentValues.delete(candidate.toLowerCase());
+  // Toggle checkbox in local state (doesn't update URL yet)
+  const toggleLocalFilter = (filterType: 'languages' | 'specialties' | 'genders', value: string, checked: boolean) => {
+    if (filterType === 'languages') {
+      const updated = new Set(pendingLanguages);
+      if (checked) {
+        updated.add(value.toLowerCase());
+      } else {
+        updated.delete(value.toLowerCase());
+      }
+      setPendingLanguages(updated);
+    } else if (filterType === 'specialties') {
+      const updated = new Set(pendingSpecialties);
+      if (checked) {
+        updated.add(value.toLowerCase());
+      } else {
+        updated.delete(value.toLowerCase());
+      }
+      setPendingSpecialties(updated);
+    } else if (filterType === 'genders') {
+      const updated = new Set(pendingGenders);
+      if (checked) {
+        updated.add(value.toLowerCase());
+      } else {
+        updated.delete(value.toLowerCase());
+      }
+      setPendingGenders(updated);
     }
-    updateParams({ [key]: currentValues.size > 0 ? Array.from(currentValues).join(",") : null });
+  };
+
+  // Apply all pending filters to URL (triggers data fetch)
+  const handleApplyFilters = () => {
+    const updates: Record<string, string | null> = {
+      languages: pendingLanguages.size > 0 ? Array.from(pendingLanguages).join(",") : null,
+      specialties: pendingSpecialties.size > 0 ? Array.from(pendingSpecialties).join(",") : null,
+      gender: pendingGenders.size > 0 ? Array.from(pendingGenders).join(",") : null,
+    };
+    updateParams(updates);
   };
 
   const commitPriceRange = (nextMin: number, nextMax: number) => {
@@ -179,7 +227,6 @@ export function GuideFilterControls({
   };
 
   const handlePriceReset = () => {
-    setMinValue(minBound);
     setMaxValue(maxBound);
     updateParams({ minRate: null, maxRate: null });
   };
@@ -190,12 +237,68 @@ export function GuideFilterControls({
   const regionOptions = regions.length > 0 ? regions : [];
   const cityOptions = cities.length > 0 ? cities : [];
 
-  const selectedLanguageIds = useMemo(() => new Set(currentLanguages), [currentLanguages]);
-  const selectedSpecialtyIds = useMemo(() => new Set(currentSpecialties), [currentSpecialties]);
-  const selectedGenderIds = useMemo(() => new Set(currentGenders), [currentGenders]);
+  // Use pending selections for UI (show checked immediately)
+  const selectedLanguageIds = useMemo(() => pendingLanguages, [pendingLanguages]);
+  const selectedSpecialtyIds = useMemo(() => pendingSpecialties, [pendingSpecialties]);
+  const selectedGenderIds = useMemo(() => pendingGenders, [pendingGenders]);
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    currentLanguages.size > 0 ||
+    currentSpecialties.size > 0 ||
+    currentGenders.size > 0 ||
+    verifiedOnly ||
+    licenseOnly ||
+    minRating ||
+    maxRateParam !== null;
+
+  const handleClearAllFilters = () => {
+    const params = new URLSearchParams(searchParams?.toString() || "");
+
+    // Keep country, region, city - clear everything else
+    const country = params.get("country");
+    const region = params.get("region");
+    const city = params.get("city");
+
+    // Clear all filter params
+    params.delete("languages");
+    params.delete("specialties");
+    params.delete("gender");
+    params.delete("verified");
+    params.delete("license");
+    params.delete("insurance");
+    params.delete("child");
+    params.delete("minRate");
+    params.delete("maxRate");
+    params.delete("minRating");
+    params.delete("availableFrom");
+    params.delete("availableTo");
+    params.delete("search");
+
+    const query = params.toString();
+    const nextUrl = query ? `${pathname}?${query}` : pathname;
+
+    startTransition(() => {
+      router.replace(nextUrl as Route, { scroll: false });
+    });
+  };
 
   return (
     <div className="grid gap-6">
+      {/* Clear All Filters Button */}
+      {hasActiveFilters && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleClearAllFilters}
+            disabled={isPending}
+            className="rounded-lg border-2 border-red-500 bg-white px-4 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50 disabled:opacity-50"
+          >
+            Clear All Filters
+          </button>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm text-foreground">
           <span className="font-medium">{labels.country}</span>
@@ -261,7 +364,7 @@ export function GuideFilterControls({
                   type="checkbox"
                   value={value}
                   checked={checked}
-                  onChange={(event) => toggleCommaSeparated("languages", value, event.target.checked)}
+                  onChange={(event) => toggleLocalFilter("languages", value, event.target.checked)}
                   className="h-4 w-4 rounded border-foreground/20 text-primary focus:ring-primary/30"
                 />
                 {option.label}
@@ -283,7 +386,7 @@ export function GuideFilterControls({
                   type="checkbox"
                   value={value}
                   checked={checked}
-                  onChange={(event) => toggleCommaSeparated("specialties", value, event.target.checked)}
+                  onChange={(event) => toggleLocalFilter("specialties", value, event.target.checked)}
                   className="h-4 w-4 rounded border-foreground/20 text-primary focus:ring-primary/30"
                 />
                 {option.label}
@@ -306,7 +409,7 @@ export function GuideFilterControls({
                     type="checkbox"
                     value={value}
                     checked={checked}
-                    onChange={(event) => toggleCommaSeparated("gender", value, event.target.checked)}
+                    onChange={(event) => toggleLocalFilter("genders", value, event.target.checked)}
                     className="h-4 w-4 rounded border-foreground/20 text-primary focus:ring-primary/30"
                   />
                   {option.label}
@@ -336,59 +439,51 @@ export function GuideFilterControls({
           />
           {labels.license}
         </label>
-        <label className="inline-flex items-center gap-2 text-sm text-foreground/70">
-          <input
-            type="checkbox"
-            checked={insuranceOnly}
-            onChange={(event) => updateParams({ insurance: event.target.checked ? "true" : null })}
-            className="h-4 w-4 rounded border-foreground/20 text-primary focus:ring-primary/30"
-          />
-          {labels.insurance}
-        </label>
-        <label className="inline-flex items-center gap-2 text-sm text-foreground/70">
-          <input
-            type="checkbox"
-            checked={childFriendlyOnly}
-            onChange={(event) => updateParams({ child: event.target.checked ? "true" : null })}
-            className="h-4 w-4 rounded border-foreground/20 text-primary focus:ring-primary/30"
-          />
-          {labels.childFriendly}
-        </label>
       </div>
+
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-foreground">{labels.rating}</legend>
+        <div className="flex flex-wrap gap-3">
+          {[5, 4, 3].map((rating) => (
+            <label key={rating} className="inline-flex items-center gap-2 text-sm text-foreground/70 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={minRating === String(rating)}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    updateParams({ minRating: String(rating) });
+                  } else {
+                    updateParams({ minRating: null });
+                  }
+                }}
+                className="h-4 w-4 rounded border-foreground/20 text-primary focus:ring-primary/30"
+              />
+              <span className="flex items-center gap-1">
+                {rating}+ ⭐
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-foreground">{labels.price}</p>
             <p className="text-xs text-foreground/60">
-              {Math.round(minValue)} – {Math.round(maxValue)}
+              Up to {Math.round(maxValue)}
             </p>
           </div>
           <button
             type="button"
             onClick={handlePriceReset}
             className="text-xs font-medium text-secondary transition hover:text-secondary/80"
-            disabled={minRateParam === null && maxRateParam === null}
+            disabled={maxRateParam === null}
           >
             {labels.priceReset}
           </button>
         </div>
-        <div className="flex flex-col gap-2">
-          <input
-            type="range"
-            min={minBound}
-            max={maxBound}
-            step={step}
-            value={minValue}
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              if (!Number.isFinite(value)) return;
-              setMinValue((prev) => clamp(value, minBound, Math.min(maxValue, maxBound)));
-            }}
-            onMouseUp={() => commitPriceRange(minValue, maxValue)}
-            onTouchEnd={() => commitPriceRange(minValue, maxValue)}
-            className="w-full"
-          />
+        <div className="space-y-2">
           <input
             type="range"
             min={minBound}
@@ -398,33 +493,14 @@ export function GuideFilterControls({
             onChange={(event) => {
               const value = Number(event.target.value);
               if (!Number.isFinite(value)) return;
-              setMaxValue((prev) => clamp(value, Math.max(minValue, minBound), maxBound));
+              setMaxValue(clamp(value, minBound, maxBound));
             }}
-            onMouseUp={() => commitPriceRange(minValue, maxValue)}
-            onTouchEnd={() => commitPriceRange(minValue, maxValue)}
+            onMouseUp={() => commitPriceRange(minBound, maxValue)}
+            onTouchEnd={() => commitPriceRange(minBound, maxValue)}
             className="w-full"
           />
-        </div>
-        <div className="flex items-center gap-3 text-xs text-foreground/60">
-          <label className="flex items-center gap-2">
-            <span>Min</span>
-            <input
-              type="number"
-              value={Math.round(minValue)}
-              min={minBound}
-              max={maxBound}
-              step={step}
-              onChange={(event) => {
-                const value = Number(event.target.value);
-                if (!Number.isFinite(value)) return;
-                setMinValue((prev) => clamp(value, minBound, Math.min(maxValue, maxBound)));
-              }}
-              onBlur={() => commitPriceRange(minValue, maxValue)}
-              className="w-20 rounded-md border border-foreground/20 bg-background px-2 py-1"
-            />
-          </label>
-          <label className="flex items-center gap-2">
-            <span>Max</span>
+          <div className="flex items-center gap-2 text-xs text-foreground/60">
+            <span>Max Price:</span>
             <input
               type="number"
               value={Math.round(maxValue)}
@@ -434,13 +510,25 @@ export function GuideFilterControls({
               onChange={(event) => {
                 const value = Number(event.target.value);
                 if (!Number.isFinite(value)) return;
-                setMaxValue((prev) => clamp(value, Math.max(minValue, minBound), maxBound));
+                setMaxValue(clamp(value, minBound, maxBound));
               }}
-              onBlur={() => commitPriceRange(minValue, maxValue)}
-              className="w-20 rounded-md border border-foreground/20 bg-background px-2 py-1"
+              onBlur={() => commitPriceRange(minBound, maxValue)}
+              className="w-24 rounded-md border border-foreground/20 bg-background px-2 py-1"
             />
-          </label>
+          </div>
         </div>
+      </div>
+
+      {/* Apply Filters Button */}
+      <div className="mt-6 flex justify-end gap-3 border-t border-foreground/10 pt-6">
+        <button
+          type="button"
+          onClick={handleApplyFilters}
+          disabled={isPending}
+          className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+        >
+          {isPending ? "Applying..." : "Apply Filters"}
+        </button>
       </div>
     </div>
   );

@@ -217,7 +217,7 @@ export function AgencySignUpForm({ locale, countries, preselectedPlan }: AgencyS
   );
 
   return (
-    <form action={formAction} className="space-y-6" encType="multipart/form-data">
+    <form action={formAction} className="space-y-6">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="email" value={email} />
       <input type="hidden" name="password" value={password} />

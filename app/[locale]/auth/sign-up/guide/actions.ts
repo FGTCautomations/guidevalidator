@@ -272,96 +272,127 @@ export async function submitGuideApplicationAction(
 
   console.log("[Guide Application] Auth account created successfully:", userId);
 
-  const { data: application, error } = await service.from("guide_applications").insert({
-    user_id: userId || null,
-    locale,
+  // NEW CONSOLIDATED APPROACH: Insert into profiles + guides tables with pending status
+  // Step 1: Create profile with application_status='pending'
+  const { error: profileError } = await service.from("profiles").insert({
+    id: userId,
+    role: "guide",
     full_name: fullName,
-    date_of_birth: dateOfBirth ? dateOfBirth : null,
-    nationality: nationality || null,
-    contact_email: contactEmail,
-    contact_phone: contactPhone || null,
-    city_of_residence: cityOfResidence || null,
-    profile_photo_url: profilePhotoReference,
-    avatar_url: profilePhotoReference, // Use profile photo as avatar
-    license_number: licenseNumber || null,
-    license_authority: licenseAuthority || null,
-    license_proof_url: licenseReference,
-    specializations,
-    languages_spoken: languagesSpoken,
-    expertise_areas: expertiseAreas,
-    id_document_url: idDocumentReference,
-    subscription_plan: subscriptionPlan || null,
-    billing_details: { notes: billingNotes || null },
-    operating_regions: operatingRegions,
-    professional_intro: professionalIntro || null,
-    experience_years: experienceYears,
-    experience_summary: experienceSummary || null,
-    sample_itineraries: { entries: sampleItineraries },
-    media_gallery: { entries: mediaGallery },
-    availability: {
-      notes: availabilityNotes || null,
-      time_zone: timeZone || null,
-      availability_timezone: availabilityTimezone || null,
-      working_hours: workingHours || null,
-    },
-    contact_methods: contactMethods,
-    login_email: loginEmailRaw,
-    login_password_ciphertext: encryptedPassword.ciphertext,
-    login_password_iv: encryptedPassword.iv,
-    login_password_tag: encryptedPassword.tag,
+    locale,
+    country_code: nationality || null,
     timezone,
-    availability_timezone: availabilityTimezone,
-    working_hours: workingHours,
-  }).select("id").single();
+    avatar_url: profilePhotoReference,
+    application_status: "pending",
+    application_submitted_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
 
-  if (error) {
-    console.error("[Guide Application] Database insert error:", error);
-    console.error("[Guide Application] Error details:", {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-    });
+  if (profileError) {
+    console.error("[Guide Application] Profile insert error:", profileError);
 
-    // If auth account was created but DB insert failed, we should clean up
+    // Clean up auth account
     if (userId) {
-      console.error("[Guide Application] Cleaning up auth account:", userId);
       try {
         await service.auth.admin.deleteUser(userId);
-        console.log("[Guide Application] Auth account deleted");
       } catch (deleteError) {
         console.error("[Guide Application] Failed to delete auth account:", deleteError);
       }
     }
 
-    return { status: "error", message: error.message ?? "Unable to submit your guide application." };
+    return { status: "error", message: profileError.message ?? "Unable to create profile." };
   }
 
-  console.log("[Guide Application] Application saved successfully:", application.id);
+  // Step 2: Create guide record with application data
+  const applicationData = {
+    user_id: userId,
+    locale,
+    full_name: fullName,
+    date_of_birth: dateOfBirth || null,
+    nationality: nationality || null,
+    contact_email: contactEmail,
+    contact_phone: contactPhone || null,
+    city_of_residence: cityOfResidence || null,
+    specializations,
+    languages_spoken: languagesSpoken,
+    expertise_areas: expertiseAreas,
+    subscription_plan: subscriptionPlan || null,
+    billing_details: { notes: billingNotes || null },
+    operating_regions: operatingRegions,
+    contact_methods: contactMethods,
+    login_email: loginEmailRaw,
+    login_password_ciphertext: encryptedPassword.ciphertext,
+    login_password_iv: encryptedPassword.iv,
+    login_password_tag: encryptedPassword.tag,
+  };
+
+  const { error: guideError } = await service.from("guides").insert({
+    profile_id: userId,
+    headline: professionalIntro || null,
+    bio: null,
+    professional_intro: professionalIntro || null,
+    specialties: specializations,
+    expertise_areas: expertiseAreas,
+    spoken_languages: languagesSpoken.map(l => l.language),
+    years_experience: experienceYears,
+    experience_summary: experienceSummary || null,
+    license_number: licenseNumber || null,
+    license_authority: licenseAuthority || null,
+    license_proof_url: licenseReference,
+    id_document_url: idDocumentReference,
+    avatar_url: profilePhotoReference,
+    profile_photo_url: profilePhotoReference,
+    sample_itineraries: JSON.stringify({ entries: sampleItineraries }),
+    media_gallery: JSON.stringify({ entries: mediaGallery }),
+    timezone,
+    availability_timezone: availabilityTimezone,
+    working_hours: workingHours,
+    availability_notes: availabilityNotes || null,
+    location_data: locationData,
+    application_data: applicationData, // Preserve original application data
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+
+  if (guideError) {
+    console.error("[Guide Application] Guide insert error:", guideError);
+
+    // Clean up profile and auth account
+    if (userId) {
+      try {
+        await service.from("profiles").delete().eq("id", userId);
+        await service.auth.admin.deleteUser(userId);
+      } catch (deleteError) {
+        console.error("[Guide Application] Failed to clean up:", deleteError);
+      }
+    }
+
+    return { status: "error", message: guideError.message ?? "Unable to submit your guide application." };
+  }
+
+  console.log("[Guide Application] Application saved successfully to profiles + guides tables:", userId);
 
   // Send email notifications
-  if (application) {
-    try {
-      await Promise.all([
-        sendApplicationReceivedEmail({
-          applicantEmail: contactEmail,
-          applicantName: fullName,
-          applicationType: "guide",
-          applicationId: application.id,
-          locale,
-        }),
-        sendAdminNewApplicationEmail({
-          applicantEmail: contactEmail,
-          applicantName: fullName,
-          applicationType: "guide",
-          applicationId: application.id,
-          locale,
-        }),
-      ]);
-    } catch (emailError) {
-      console.error("Failed to send application emails", emailError);
-      // Don't fail the application if emails fail
-    }
+  try {
+    await Promise.all([
+      sendApplicationReceivedEmail({
+        applicantEmail: contactEmail,
+        applicantName: fullName,
+        applicationType: "guide",
+        applicationId: userId, // Use userId as application ID
+        locale,
+      }),
+      sendAdminNewApplicationEmail({
+        applicantEmail: contactEmail,
+        applicantName: fullName,
+        applicationType: "guide",
+        applicationId: userId,
+        locale,
+      }),
+    ]);
+  } catch (emailError) {
+    console.error("Failed to send application emails", emailError);
+    // Don't fail the application if emails fail
   }
 
   redirect(`/${locale}/auth/sign-up/thanks?role=guide`);

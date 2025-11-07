@@ -1,32 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
-import { isSupportedLocale, type SupportedLocale, localeLabels } from "@/i18n/config";
+import { isSupportedLocale, type SupportedLocale } from "@/i18n/config";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { fetchAdminUserDetail, ADMIN_ALLOWED_ROLES } from "@/lib/admin/queries";
-import { AdminUpdateUserForm } from "@/components/admin/update-user-form";
+import { fetchAdminUserDetail } from "@/lib/admin/queries";
+import { fetchUserStatistics } from "@/lib/admin/user-statistics";
+import { UserAvatarSection } from "@/components/admin/user-avatar-section";
+import { EditableApplicationData } from "@/components/admin/editable-application-data";
+import { UserStatisticsDashboard } from "@/components/admin/user-statistics-dashboard";
+import { FreezeUserForm } from "@/components/admin/freeze-user-form";
+import { UnfreezeUserForm } from "@/components/admin/unfreeze-user-form";
 import { AdminDeleteUserForm } from "@/components/admin/delete-user-form";
-import { AdminGuideSegmentsForm } from "@/components/admin/guide-segments-form";
-import { AdminOrganizationSegmentsForm } from "@/components/admin/organization-segments-form";
-import {
-  loadCoverageOptions,
-  loadGuideSegments,
-  loadOrganizationSegments,
-  type SegmentSelection,
-} from "@/lib/profile/segments";
-import { GUIDE_SPECIALTY_OPTIONS, ORGANIZATION_SPECIALTY_OPTIONS } from "@/lib/constants/profile";
-
-function formatCurrency(amountCents: number, currency: string | null, locale: string) {
-  if (typeof amountCents !== "number") {
-    return "--";
-  }
-  const amount = amountCents / 100;
-  const currencyCode = currency ?? "EUR";
-  try {
-    return new Intl.NumberFormat(locale, { style: "currency", currency: currencyCode }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currencyCode}`;
-  }
-}
 
 export default async function AdminUserDetailPage({
   params,
@@ -41,7 +24,6 @@ export default async function AdminUserDetailPage({
 
   const locale = requestedLocale as SupportedLocale;
   const t = await getTranslations({ locale, namespace: "admin.detail" });
-  const tRoles = await getTranslations({ locale, namespace: "admin.roles" });
 
   const supabase = getSupabaseServerClient();
   const {
@@ -67,214 +49,204 @@ export default async function AdminUserDetailPage({
     notFound();
   }
 
-  const coverageOptions = await loadCoverageOptions(locale, supabase);
+  // Fetch user statistics
+  const statistics = await fetchUserStatistics(id, detail.profile.organizationId);
 
-  const countryOptions = coverageOptions.countries;
-  const regionOptions = coverageOptions.regions;
-  const cityOptions = coverageOptions.cities;
-  const languageOptions = coverageOptions.languages;
+  // Get avatar URL from profile
+  const { data: profileWithAvatar } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", id)
+    .single();
 
-  const countryNameMap = new Map(countryOptions.map((option) => [option.value, option.label]));
-
-  const localeOptions = Object.entries(localeLabels).map(([value, label]) => ({
-    value,
-    label,
-  }));
-
-  const profileLocaleLabel =
-    detail.profile.locale && isSupportedLocale(detail.profile.locale)
-      ? localeLabels[detail.profile.locale]
-      : detail.profile.locale ?? t("unknown");
-
-  const profileCountryLabel = detail.profile.countryCode
-    ? countryNameMap.get(detail.profile.countryCode) ?? detail.profile.countryCode
-    : t("unknown");
-
-  const profileTimezoneLabel = detail.profile.timezone ?? t("unknown");
-
-  const roleOptions = ADMIN_ALLOWED_ROLES.map((value) => ({
-    value,
-    label: tRoles(value),
-  }));
-
-  const joinedLabel = new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
-    new Date(detail.profile.createdAt)
-  );
-
-  const totalIncomeFormatted = formatCurrency(detail.totalIncomeCents, detail.payments[0]?.currency ?? "EUR", locale);
-  const shouldShowGuideSegments = detail.profile.role === "guide";
-  const shouldShowOrganizationSegments =
-    Boolean(detail.profile.organizationId) && ["agency", "dmc", "transport"].includes(detail.profile.role);
-
-  const guideSegments: SegmentSelection | null = shouldShowGuideSegments
-    ? await loadGuideSegments(detail.id, supabase)
-    : null;
-
-  let organizationSegments: SegmentSelection | null = null;
-  let organizationType: "agency" | "dmc" | "transport" | null = null;
-
-  if (shouldShowOrganizationSegments && detail.profile.organizationId) {
-    organizationType =
-      detail.profile.role === "transport"
-        ? "transport"
-        : detail.profile.role === "dmc"
-          ? "dmc"
-          : "agency";
-    organizationSegments = await loadOrganizationSegments(detail.profile.organizationId, organizationType, supabase);
-  }
+  const avatarUrl = profileWithAvatar?.avatar_url || null;
 
   return (
-    <div className="flex flex-col gap-8 bg-background px-6 py-12 text-foreground sm:px-12 lg:px-24">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">{t("title")}</h1>
-            <p className="text-sm text-foreground/70 sm:text-base">{detail.email ?? t("unknownEmail")}</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="container mx-auto px-4 py-8 max-w-[1800px]">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 text-sm text-foreground/60 mb-2">
+            <a href={`/${locale}/admin`} className="hover:text-foreground transition-colors">
+              Admin Dashboard
+            </a>
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+            <span>User Profile</span>
           </div>
-          <AdminDeleteUserForm
-            userId={detail.id}
-            locale={locale}
-            redirectTo={`/${locale}/admin`}
-            translations={{
-              heading: t("actions.delete.heading"),
-              confirm: t("actions.delete.confirm"),
-              cancel: t("actions.delete.cancel"),
-              submit: t("actions.delete.submit"),
-              success: t("actions.delete.success"),
-              error: t("actions.delete.error"),
-            }}
-          />
+          <h1 className="text-3xl font-bold text-foreground">User Management</h1>
+          <p className="text-foreground/70 mt-1">
+            View and manage all user information, statistics, and account settings
+          </p>
         </div>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2 rounded-[var(--radius-xl)] border border-foreground/10 bg-white/80 p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-foreground/60">{t("cards.joined")}</p>
-            <p className="text-lg font-semibold text-foreground">{joinedLabel}</p>
-          </div>
-          <div className="space-y-2 rounded-[var(--radius-xl)] border border-foreground/10 bg-white/80 p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-foreground/60">{t("cards.role")}</p>
-            <p className="text-lg font-semibold text-foreground">{tRoles(detail.profile.role)}</p>
-          </div>
-          <div className="space-y-2 rounded-[var(--radius-xl)] border border-foreground/10 bg-white/80 p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-foreground/60">{t("cards.verified")}</p>
-            <p className="text-lg font-semibold text-foreground">
-              {detail.profile.verified ? t("labels.yes") : t("labels.no")}
-            </p>
-          </div>
-          <div className="space-y-2 rounded-[var(--radius-xl)] border border-foreground/10 bg-white/80 p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-foreground/60">{t("cards.totalIncome")}</p>
-            <p className="text-lg font-semibold text-foreground">{totalIncomeFormatted}</p>
-          </div>
-        </section>
-
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.6fr]">
-          <section className="space-y-4 rounded-[var(--radius-xl)] border border-foreground/10 bg-white/80 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-foreground">{t("sections.profile")}</h2>
-            <div className="grid gap-4 text-sm text-foreground/80 sm:grid-cols-2">
-              <div>
-                <p className="font-semibold text-foreground/70">{t("fields.fullName")}</p>
-                <p>{detail.profile.fullName ?? t("unknown")}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground/70">{t("fields.role")}</p>
-                <p>{tRoles(detail.profile.role)}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground/70">{t("fields.verified")}</p>
-                <p>{detail.profile.verified ? t("labels.yes") : t("labels.no")}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground/70">{t("fields.licenseVerified")}</p>
-                <p>{detail.profile.licenseVerified ? t("labels.yes") : t("labels.no")}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground/70">{t("fields.locale")}</p>
-                <p>{profileLocaleLabel}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground/70">{t("fields.country")}</p>
-                <p>{profileCountryLabel}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground/70">{t("fields.timezone")}</p>
-                <p>{profileTimezoneLabel}</p>
-              </div>
-              {detail.profile.organizationName ? (
-                <div>
-                  <p className="font-semibold text-foreground/70">{t("fields.organization")}</p>
-                  <p>
-                    {detail.profile.organizationName}
-                    {detail.profile.organizationType ? ` - ${tRoles(detail.profile.organizationType as any)}` : ""}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-
-            <AdminUpdateUserForm
+        {/* Main Layout - 3 Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column - Avatar & Quick Actions */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Avatar Section */}
+            <UserAvatarSection
               userId={detail.id}
-              locale={locale}
-              initial={{
-                fullName: detail.profile.fullName,
-                role: detail.profile.role,
-                verified: detail.profile.verified,
-                licenseVerified: detail.profile.licenseVerified,
-                locale: detail.profile.locale,
-                countryCode: detail.profile.countryCode,
-                timezone: detail.profile.timezone,
-              }}
-              roles={roleOptions}
-              localeOptions={localeOptions}
-              countryOptions={countryOptions}
-              translations={{
-                heading: t("forms.update.heading"),
-                fullName: t("fields.fullName"),
-                role: t("fields.role"),
-                verified: t("fields.verified"),
-                licenseVerified: t("fields.licenseVerified"),
-                localeLabel: t("fields.locale"),
-                country: t("fields.country"),
-                timezone: t("fields.timezone"),
-                submit: t("forms.update.submit"),
-                success: t("forms.update.success"),
-                error: t("forms.update.error"),
-              }}
+              userName={detail.profile.fullName}
+              userEmail={detail.email}
+              avatarUrl={avatarUrl}
+              role={detail.profile.role}
+              verified={detail.profile.verified}
+              isFrozen={detail.isFrozen}
             />
 
-            {guideSegments ? (
-              <AdminGuideSegmentsForm
-                locale={locale}
-                profileId={detail.id}
-                initial={guideSegments}
-                options={{
-                  languages: languageOptions,
-                  specialtySuggestions: [...GUIDE_SPECIALTY_OPTIONS],
-                  countries: countryOptions,
-                  regions: regionOptions,
-                  cities: cityOptions,
-                }}
-              />
-            ) : null}
+            {/* Quick Stats */}
+            <div className="rounded-xl border border-foreground/10 bg-white p-6 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wide">
+                Quick Stats
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-foreground/60">Messages</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {statistics.totalMessages}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-foreground/60">Conversations</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {statistics.totalConversations}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-foreground/60">Payments</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {statistics.totalPayments}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-foreground/60">Account Age</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {statistics.accountAge} days
+                  </span>
+                </div>
+              </div>
+            </div>
 
-            {organizationType && organizationSegments ? (
-              <AdminOrganizationSegmentsForm
-                locale={locale}
-                agencyId={detail.profile.organizationId!}
-                organizationType={organizationType}
-                initial={organizationSegments}
-                options={{
-                  languages: languageOptions,
-                  specialtySuggestions: [...ORGANIZATION_SPECIALTY_OPTIONS],
-                  countries: countryOptions,
-                  regions: regionOptions,
-                  cities: cityOptions,
-                }}
-              />
-            ) : null}
+            {/* Account Actions */}
+            <div className="rounded-xl border border-foreground/10 bg-white p-6 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wide">
+                Account Actions
+              </h3>
 
-            <section className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">{t("sections.subscriptions")}</h3>
+              {/* Status Display */}
+              <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium text-foreground/70">Status:</span>
+                  <span
+                    className={`font-semibold px-2 py-1 rounded ${
+                      detail.isFrozen
+                        ? "bg-orange-100 text-orange-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
+                    {detail.isFrozen ? "❄️ Frozen" : "✅ Active"}
+                  </span>
+                </div>
+                {detail.profile.applicationStatus && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-foreground/70">Application:</span>
+                    <span
+                      className={`font-semibold capitalize px-2 py-1 rounded ${
+                        detail.profile.applicationStatus === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : detail.profile.applicationStatus === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {detail.profile.applicationStatus}
+                    </span>
+                  </div>
+                )}
+                {detail.profile.rejectionReason && (
+                  <div className="text-xs text-red-700 mt-2 p-2 bg-red-50 rounded">
+                    <strong>Reason:</strong> {detail.profile.rejectionReason}
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                {detail.isFrozen || detail.profile.rejectionReason?.startsWith("FROZEN:") ? (
+                  <UnfreezeUserForm
+                    userId={detail.id}
+                    userType={detail.profile.role as any}
+                    userName={detail.profile.fullName || detail.email || "Unknown"}
+                    locale={locale}
+                  />
+                ) : (
+                  <FreezeUserForm
+                    userId={detail.id}
+                    userType={detail.profile.role as any}
+                    userName={detail.profile.fullName || detail.email || "Unknown"}
+                    locale={locale}
+                  />
+                )}
+
+                <AdminDeleteUserForm
+                  userId={detail.id}
+                  locale={locale}
+                  redirectTo={`/${locale}/admin`}
+                  translations={{
+                    heading: "Delete Account",
+                    confirm: "Are you sure you want to permanently delete this account? This action cannot be undone.",
+                    cancel: "Cancel",
+                    submit: "Delete Account",
+                    success: "Account deleted successfully",
+                    error: "Failed to delete account",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Subscriptions Summary */}
+            {detail.subscriptions.length > 0 && (
+              <div className="rounded-xl border border-foreground/10 bg-white p-6 space-y-3">
+                <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wide">
+                  Active Subscriptions
+                </h3>
+                {detail.subscriptions
+                  .filter((sub) => ["active", "trialing"].includes(sub.status))
+                  .map((sub) => (
+                    <div
+                      key={sub.id}
+                      className="p-3 bg-green-50 border border-green-200 rounded-lg"
+                    >
+                      <div className="text-sm font-semibold text-green-800">
+                        {sub.planCode || "Unknown Plan"}
+                      </div>
+                      <div className="text-xs text-green-600 mt-1">
+                        {sub.status.toUpperCase()}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Middle Column - Application Data & Details */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Application Data */}
+            <EditableApplicationData
+              userId={detail.id}
+              userRole={detail.profile.role}
+              applicationData={detail.applicationData}
+              guideData={detail.guideData}
+              agencyData={detail.agencyData}
+            />
+
+            {/* All Subscriptions */}
+            <div className="rounded-xl border border-foreground/10 bg-white p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">All Subscriptions</h3>
               {detail.subscriptions.length === 0 ? (
-                <p className="text-sm text-foreground/60">{t("subscriptions.none")}</p>
+                <p className="text-sm text-foreground/60">No subscriptions found</p>
               ) : (
                 <div className="space-y-2">
                   {detail.subscriptions.map((subscription) => {
@@ -286,89 +258,106 @@ export default async function AdminUserDetailPage({
                     return (
                       <div
                         key={subscription.id}
-                        className="rounded-[var(--radius-lg)] border border-foreground/10 bg-white/60 px-4 py-3 text-sm"
+                        className="rounded-lg border border-foreground/10 bg-gray-50 p-4"
                       >
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <span className="font-medium text-foreground">
-                            {subscription.planCode ?? t("subscriptions.unknownPlan")}
-                          </span>
-                          <span className="text-xs uppercase tracking-wide text-foreground/60">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {subscription.planCode || "Unknown Plan"}
+                            </p>
+                            <p className="text-xs text-foreground/60 mt-1">
+                              Next renewal: {nextRenewal}
+                            </p>
+                          </div>
+                          <span
+                            className={`text-xs uppercase tracking-wide px-2 py-1 rounded ${
+                              ["active", "trialing"].includes(subscription.status)
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-200 text-gray-700"
+                            }`}
+                          >
                             {subscription.status}
                           </span>
                         </div>
-                        <p className="text-xs text-foreground/60">{t("subscriptions.nextRenewal", { date: nextRenewal })}</p>
                       </div>
                     );
                   })}
                 </div>
               )}
-            </section>
+            </div>
 
-            <section className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">{t("sections.payments")}</h3>
+            {/* Payment History */}
+            <div className="rounded-xl border border-foreground/10 bg-white p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">Payment History</h3>
               {detail.payments.length === 0 ? (
-                <p className="text-sm text-foreground/60">{t("payments.none")}</p>
+                <p className="text-sm text-foreground/60">No payments found</p>
               ) : (
                 <div className="space-y-2">
-                  {detail.payments.map((payment) => {
+                  {detail.payments.slice(0, 10).map((payment) => {
                     const paidAt = payment.paidAt
-                      ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(payment.paidAt))
+                      ? new Intl.DateTimeFormat(locale, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(payment.paidAt))
                       : "--";
+
+                    const amount = payment.amountCents
+                      ? new Intl.NumberFormat(locale, {
+                          style: "currency",
+                          currency: payment.currency || "EUR",
+                        }).format(payment.amountCents / 100)
+                      : "--";
+
                     return (
                       <div
                         key={payment.id}
-                        className="rounded-[var(--radius-lg)] border border-foreground/10 bg-white/60 px-4 py-3 text-sm"
+                        className="rounded-lg border border-foreground/10 bg-gray-50 p-4"
                       >
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <span className="font-medium text-foreground">
-                            {payment.planCode ?? t("payments.unknownPlan")}
-                          </span>
-                          <span className="text-xs uppercase tracking-wide text-foreground/60">
-                            {payment.status}
-                          </span>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {payment.planCode || "Unknown Plan"}
+                            </p>
+                            <p className="text-xs text-foreground/60 mt-1">{paidAt}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-foreground">{amount}</p>
+                            <span
+                              className={`text-xs uppercase tracking-wide ${
+                                payment.status === "paid" || payment.status === "succeeded"
+                                  ? "text-green-600"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {payment.status}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-xs text-foreground/60">
-                          {t("payments.paidAt", { date: paidAt })}
-                        </p>
                       </div>
                     );
                   })}
+                  {detail.payments.length > 10 && (
+                    <p className="text-xs text-foreground/50 text-center pt-2">
+                      Showing 10 of {detail.payments.length} payments
+                    </p>
+                  )}
                 </div>
               )}
-            </section>
-          </section>
+            </div>
+          </div>
 
-          <section className="space-y-4 rounded-[var(--radius-xl)] border border-foreground/10 bg-white/80 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-foreground">{t("sections.actions")}</h2>
-            <p className="text-sm text-foreground/70">{t("actions.description")}</p>
-            <AdminDeleteUserForm
-              userId={detail.id}
-              locale={locale}
-              redirectTo={`/${locale}/admin`}
-              translations={{
-                heading: t("actions.delete.heading"),
-                confirm: t("actions.delete.confirm"),
-                cancel: t("actions.delete.cancel"),
-                submit: t("actions.delete.submit"),
-                success: t("actions.delete.success"),
-                error: t("actions.delete.error"),
-              }}
-            />
-          </section>
+          {/* Right Column - Statistics */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="rounded-xl border border-foreground/10 bg-white p-6">
+              <UserStatisticsDashboard
+                statistics={statistics}
+                userRole={detail.profile.role}
+                locale={locale}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-

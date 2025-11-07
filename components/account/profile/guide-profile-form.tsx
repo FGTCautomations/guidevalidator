@@ -41,19 +41,6 @@ type GuideProfileFormProps = {
 
 const INITIAL_STATE: ProfileActionState = { ok: true };
 
-const GUIDE_EXPERTISE_OPTIONS = [
-  "History & heritage",
-  "Art & architecture",
-  "Food & gastronomy",
-  "Nature & outdoors",
-  "Nightlife & entertainment",
-  "Wellness & retreats",
-  "Family experiences",
-  "Adventure & adrenaline",
-  "Shopping & markets",
-  "Education & workshops",
-] as const;
-
 function Section({
   title,
   description,
@@ -311,16 +298,10 @@ export function GuideProfileForm({ locale, initial, options }: GuideProfileFormP
           <CustomLanguageInput value={languages} onChange={setLanguages} />
         </div>
         <CheckboxGroup
-          label="Tour types / specializations"
+          label="Tour specializations"
           name="guideSpecialties"
           options={GUIDE_SPECIALTY_OPTIONS}
           defaultChecked={initial.specialties || []}
-        />
-        <CheckboxGroup
-          label="Areas of expertise or themes"
-          name="expertiseAreas"
-          options={GUIDE_EXPERTISE_OPTIONS}
-          defaultChecked={[]}
         />
         <TextArea
           label="Regions / destinations licensed to operate"

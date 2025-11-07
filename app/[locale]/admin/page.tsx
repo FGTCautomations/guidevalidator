@@ -5,6 +5,7 @@ import { isSupportedLocale, type SupportedLocale, localeLabels } from "@/i18n/co
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchAdminDashboardData, ADMIN_ALLOWED_ROLES } from "@/lib/admin/queries";
 import { AdminCreateUserForm } from "@/components/admin/create-user-form";
+import { ExportDatabaseButton } from "@/components/admin/export-database-button";
 
 export const runtime = "nodejs";
 
@@ -103,8 +104,29 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Link
+                href={`/${locale}/admin/bulk-upload`}
+                className="relative inline-flex items-center gap-2 rounded-full bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>Bulk Upload</span>
+              </Link>
+              <ExportDatabaseButton />
+              <Link
                 href={`/${locale}/admin/verification`}
-                className="relative inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
+                className="relative inline-flex items-center gap-2 rounded-full bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300"
               >
                 <svg
                   aria-hidden="true"
@@ -124,7 +146,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/reviews`}
-                className="relative inline-flex items-center gap-2 rounded-full bg-purple-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-700"
+                className="relative inline-flex items-center gap-2 rounded-full bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300"
               >
                 <svg
                   aria-hidden="true"
@@ -144,7 +166,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/reviews/stats`}
-                className="relative inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                className="relative inline-flex items-center gap-2 rounded-full bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300"
               >
                 <svg
                   aria-hidden="true"
@@ -163,8 +185,28 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
                 <span>Review Stats</span>
               </Link>
               <Link
+                href={`/${locale}/admin/ads`}
+                className="relative inline-flex items-center gap-2 rounded-full bg-brand-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-primary/90"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>Ads Management</span>
+              </Link>
+              <Link
                 href={`/${locale}/admin/applications`}
-                className="relative inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                className="relative inline-flex items-center gap-2 rounded-full bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300"
                 aria-label={
                   pendingApplicationsCount > 0
                     ? `View applications (${pendingApplicationsCount} pending)`
@@ -189,7 +231,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
                 {pendingApplicationsCount > 0 ? (
                   <span
                     aria-hidden="true"
-                    className="ml-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-white px-2 text-xs font-semibold text-blue-700"
+                    className="ml-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-2 text-xs font-semibold text-white"
                   >
                     {pendingApplicationsCount > 99 ? "99+" : pendingApplicationsCount}
                   </span>
@@ -197,7 +239,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/settings/anti-scraping`}
-                className="inline-flex items-center gap-2 rounded-full border border-blue-600 px-5 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
+                className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-300"
               >
                 <svg
                   aria-hidden="true"
@@ -258,7 +300,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
                     <th className="px-3 py-2">{adminTranslations("users.columns.email")}</th>
                     <th className="px-3 py-2">{adminTranslations("users.columns.role")}</th>
                     <th className="px-3 py-2">{adminTranslations("users.columns.created")}</th>
-                    <th className="px-3 py-2">{adminTranslations("users.columns.verified")}</th>
+                    <th className="px-3 py-2">Status</th>
                     <th className="px-3 py-2 text-right">{adminTranslations("users.columns.actions")}</th>
                   </tr>
                 </thead>
@@ -288,8 +330,22 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
                           <td className="px-3 py-3 text-foreground/70">{user.email ?? "--"}</td>
                           <td className="px-3 py-3 text-foreground/70">{roleLabel}</td>
                           <td className="px-3 py-3 text-foreground/70">{createdLabel}</td>
-                          <td className="px-3 py-3 text-foreground/70">
-                            {user.verified ? adminTranslations("users.verified") : adminTranslations("users.notVerified")}
+                          <td className="px-3 py-3">
+                            <div className="flex gap-2">
+                              {user.isFrozen ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
+                                  ❄️ Frozen
+                                </span>
+                              ) : user.verified ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                                  ✅ Active
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
+                                  Unverified
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-3 py-3 text-right">
                             <Link
