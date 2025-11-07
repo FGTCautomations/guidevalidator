@@ -13,26 +13,32 @@ export async function AdSlot({
   listContext,
   className,
 }: AdSlotProps) {
-  // Select ad using weighted rotation
-  const ad = await selectAd({ placement, country, listContext });
+  try {
+    // Select ad using weighted rotation
+    const ad = await selectAd({ placement, country, listContext });
 
-  // Debug logging
-  console.log(`[AdSlot] placement=${placement}, country=${country}, ad=`, ad ? `Found: ${ad.advertiser_name}` : 'No ad found');
+    // Debug logging
+    console.log(`[AdSlot] placement=${placement}, country=${country}, ad=`, ad ? `Found: ${ad.advertiser_name}` : 'No ad found');
 
-  // If no ad matches criteria, render nothing (no empty space)
-  if (!ad) {
-    return null;
-  }
-
-  // Render appropriate component based on ad type
-  switch (ad.ad_type) {
-    case "banner":
-      return <BannerAd ad={ad} className={className} placement={placement} />;
-    case "native_card":
-      return <NativeCardAd ad={ad} className={className} />;
-    case "partner_tile":
-      return <PartnerTiles ads={[ad]} className={className} />;
-    default:
+    // If no ad matches criteria, render nothing (no empty space)
+    if (!ad) {
       return null;
+    }
+
+    // Render appropriate component based on ad type
+    switch (ad.ad_type) {
+      case "banner":
+        return <BannerAd ad={ad} className={className} placement={placement} />;
+      case "native_card":
+        return <NativeCardAd ad={ad} className={className} />;
+      case "partner_tile":
+        return <PartnerTiles ads={[ad]} className={className} />;
+      default:
+        return null;
+    }
+  } catch (error) {
+    // Fail gracefully during build or if database is unavailable
+    console.error('[AdSlot] Error loading ad:', error);
+    return null;
   }
 }
