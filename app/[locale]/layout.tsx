@@ -12,58 +12,61 @@ import { isSupportedLocale, locales, type SupportedLocale } from "@/i18n/config"
 import { getStaticGenLocales } from "@/i18n/build-config";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type LocaleLayoutProps = {
   children: ReactNode;
   params: { locale: string };
 };
 
-// Optimize build by only pre-generating priority locales
-// Other locales will be generated on-demand
-export function generateStaticParams() {
-  const staticLocales = getStaticGenLocales();
-  return staticLocales.map((locale) => ({ locale }));
-}
+// Static generation disabled - all pages render dynamically
+// This is required because pages use cookies for auth
+// export function generateStaticParams() {
+//   const staticLocales = getStaticGenLocales();
+//   return staticLocales.map((locale) => ({ locale }));
+// }
 
-// Enable dynamic rendering for non-priority locales
+// Enable dynamic rendering for all locales
 export const dynamicParams = true;
 
 // Generate metadata with hreflang tags for SEO
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
-  const { locale: requestedLocale } = params;
+// Temporarily disabled for build troubleshooting
+// export async function generateMetadata({
+//   params,
+// }: {
+//   params: { locale: string };
+// }): Promise<Metadata> {
+//   const { locale: requestedLocale } = params;
 
-  if (!isSupportedLocale(requestedLocale)) {
-    return {};
-  }
+//   if (!isSupportedLocale(requestedLocale)) {
+//     return {};
+//   }
 
-  const locale = requestedLocale as SupportedLocale;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://guidevalidator.com";
+//   const locale = requestedLocale as SupportedLocale;
+//   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://guidevalidator.com";
 
-  // Map locale codes to hreflang values
-  const hreflangMap: Record<SupportedLocale, string> = {
-    en: "en",
-  };
+//   // Map locale codes to hreflang values
+//   const hreflangMap: Record<SupportedLocale, string> = {
+//     en: "en",
+//   };
 
-  // Generate alternate language links
-  const languages: Record<string, string> = {};
-  locales.forEach((loc) => {
-    languages[hreflangMap[loc]] = `${baseUrl}/${loc}`;
-  });
+//   // Generate alternate language links
+//   const languages: Record<string, string> = {};
+//   locales.forEach((loc) => {
+//     languages[hreflangMap[loc]] = `${baseUrl}/${loc}`;
+//   });
 
-  // Add x-default
-  languages["x-default"] = `${baseUrl}/en`;
+//   // Add x-default
+//   languages["x-default"] = `${baseUrl}/en`;
 
-  return {
-    alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages,
-    },
-  };
-}
+//   return {
+//     alternates: {
+//       canonical: `${baseUrl}/${locale}`,
+//       languages,
+//     },
+//   };
+// }
 
 export default async function LocaleLayout({
   children,
@@ -185,7 +188,8 @@ export default async function LocaleLayout({
           {children}
         </main>
         {/* Footer Ad Slot - Conditionally rendered above footer */}
-        <FooterAd />
+        {/* Temporarily disabled for build - needs fix for static generation */}
+        {/* <FooterAd /> */}
         <SiteFooter
           description={footerTranslations("tagline")}
           links={footerLinks}

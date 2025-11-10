@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 
 import { AgencySignUpForm } from "@/components/auth/applications/agency-sign-up-form";

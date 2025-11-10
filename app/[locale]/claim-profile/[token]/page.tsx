@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound, redirect } from "next/navigation";
 import { getSupabaseServerClient, getSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import { ClaimProfileForm } from "@/components/auth/claim-profile-form";

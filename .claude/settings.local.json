@@ -38,7 +38,12 @@
       "Bash(npm run i18n:fill:*)",
       "Bash(nul)",
       "Bash(then echo \"Build completed - .next directory exists\")",
-      "Bash(else echo \".next directory not found - build failed\")"
+      "Bash(else echo \".next directory not found - build failed\")",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File add-dynamic-export.ps1)"
     ],
     "deny": [],
     "ask": []

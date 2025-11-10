@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AntiScrapingSettingsForm } from "@/components/admin/anti-scraping-settings-form";

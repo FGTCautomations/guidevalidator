@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 
 import { GuideSignUpForm } from "@/components/auth/applications/guide-sign-up-form";

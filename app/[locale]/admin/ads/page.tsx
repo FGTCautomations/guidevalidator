@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // Admin Ads Management Page
 // Full CRUD interface for managing ads with preview, scheduling, and targeting
 

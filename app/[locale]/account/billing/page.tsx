@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { BILLING_PLAN_CODES } from "@/lib/payments/plans";

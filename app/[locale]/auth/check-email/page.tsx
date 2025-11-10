@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { AuthCard, AuthCardFooterLink } from "@/components/auth/auth-card";

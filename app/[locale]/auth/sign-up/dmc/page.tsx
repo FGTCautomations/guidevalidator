@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 
 import { DmcSignUpForm } from "@/components/auth/applications/dmc-sign-up-form";

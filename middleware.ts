@@ -114,8 +114,8 @@ export async function middleware(request: NextRequest) {
     : defaultLocale;
   const pathWithoutLocale = pathname.replace(`/${locale}`, "") || "/";
 
-  // Allow public paths
-  if (PUBLIC_PATHS.some((path) => pathWithoutLocale.startsWith(path))) {
+  // Allow homepage and public paths
+  if (pathWithoutLocale === "/" || PUBLIC_PATHS.some((path) => pathWithoutLocale.startsWith(path))) {
     return intlResponse;
   }
 

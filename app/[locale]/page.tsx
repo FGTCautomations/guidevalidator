@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const revalidate = 0;
 
 import type { Metadata } from "next";
 import { HeroVideo } from "@/components/landing/hero-video";
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     "Discover verified tour guides, travel agencies, DMCs, and transportation partners — all in one place. Join the world's trusted marketplace for verified travel professionals.",
 };
 
-export default async function LocaleHomePage() {
+export default function LocaleHomePage() {
   return (
     <main className="flex flex-col bg-background text-foreground">
       {/* Hero Section - Navy background with white text */}
@@ -37,9 +38,10 @@ export default async function LocaleHomePage() {
       <HowItWorks />
 
       {/* Ad Slot - Homepage Mid (conditionally rendered) */}
-      <section className="mx-auto w-full max-w-6xl px-6 py-8 sm:px-12 lg:px-24">
+      {/* Temporarily disabled for build - needs fix for static generation */}
+      {/* <section className="mx-auto w-full max-w-6xl px-6 py-8 sm:px-12 lg:px-24">
         <AdSlot placement="homepage_mid" />
-      </section>
+      </section> */}
 
       {/* Global CTA - 4 buttons */}
       <GlobalCTA />

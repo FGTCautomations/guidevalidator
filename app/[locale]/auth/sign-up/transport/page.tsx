@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 
 import { TransportSignUpForm } from "@/components/auth/applications/transport-sign-up-form";

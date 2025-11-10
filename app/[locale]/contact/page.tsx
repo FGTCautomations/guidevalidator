@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { isSupportedLocale, type SupportedLocale } from "@/i18n/config";
