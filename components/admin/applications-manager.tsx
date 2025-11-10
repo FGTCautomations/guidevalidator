@@ -155,18 +155,52 @@ export function ApplicationsManager({ locale, applications }: ApplicationsManage
     }
   };
 
+  const formatTimezone = (tz: string) => {
+    if (!tz) return "Not provided";
+    // Convert timezone like "Australia/Darwin" to "Australia - Darwin (UTC+9:30)"
+    const parts = tz.split('/');
+    if (parts.length === 2) {
+      return `${parts[0]} - ${parts[1].replace(/_/g, ' ')}`;
+    }
+    return tz;
+  };
+
+  const renderWorkingHours = (hours: any) => {
+    if (!hours) return <span className="text-gray-500">Not provided</span>;
+
+    const daysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const enabledDays = daysOrder.filter(day => hours[day]?.enabled);
+
+    if (enabledDays.length === 0) {
+      return <span className="text-gray-500">No working hours set</span>;
+    }
+
+    return (
+      <div className="space-y-1 mt-2">
+        {enabledDays.map(day => (
+          <div key={day} className="flex items-center gap-2 text-xs bg-white p-2 rounded">
+            <span className="font-semibold capitalize w-24">{day}:</span>
+            <span className="text-green-700">
+              {hours[day].startTime} - {hours[day].endTime}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderFieldWithValidation = (label: string, value: any, isRequired: boolean = false) => {
     const isEmpty = !value || (Array.isArray(value) && value.length === 0);
     const showWarning = isRequired && isEmpty;
 
     return (
-      <div className="flex items-start gap-2">
-        {showWarning && <span className="text-red-500 font-bold text-base" title="Required field missing">⚠</span>}
+      <div className="flex items-start gap-2 py-2 border-b border-gray-200 last:border-0">
+        {showWarning && <span className="text-red-500 font-bold text-lg" title="Required field missing">⚠</span>}
         <div className="flex-1">
-          <strong className="text-foreground/80">{label}:</strong>
-          <span className={`ml-2 ${showWarning ? 'text-red-600 font-medium' : ''}`}>
-            {isEmpty ? "Not provided" : (typeof value === 'string' ? value : JSON.stringify(value))}
-          </span>
+          <div className="font-semibold text-sm text-gray-700 mb-1">{label}</div>
+          <div className={`text-sm ${showWarning ? 'text-red-600 font-medium' : 'text-gray-900'}`}>
+            {isEmpty ? <span className="text-gray-400 italic">Not provided</span> : (typeof value === 'string' ? value : JSON.stringify(value))}
+          </div>
         </div>
       </div>
     );
@@ -221,97 +255,132 @@ export function ApplicationsManager({ locale, applications }: ApplicationsManage
             <div className="mt-4 pt-4 border-t space-y-4 text-sm">
               {type === "agency" && (
                 <>
-                  <div className="bg-blue-50 p-4 rounded-lg space-y-2">
-                    <h4 className="font-semibold text-base mb-3 text-blue-900">Business Information</h4>
-                    {renderFieldWithValidation("Legal Company Name", app.name || app.legal_company_name, true)}
-                    {renderFieldWithValidation("Website URL", app.website_url, false)}
-                    {renderFieldWithValidation("Description", app.description, false)}
-                    {renderFieldWithValidation("Slug", app.slug, false)}
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <h4 className="font-semibold text-base mb-3">Registration & Legal</h4>
-                    {renderFieldWithValidation("Registration Country", app.registration_country, true)}
-                    {renderFieldWithValidation("Registration Number", app.registration_number, true)}
-                    {renderFieldWithValidation("VAT ID", app.vat_id, false)}
-                    {renderFieldWithValidation("Country Code", app.country_code, true)}
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <h4 className="font-semibold text-base mb-3">Contact Information</h4>
-                    {renderFieldWithValidation("Contact Email", app.contact_email, true)}
-                    {renderFieldWithValidation("Contact Phone", app.contact_phone, true)}
-                  </div>
-
-                  <div className="bg-green-50 p-4 rounded-lg space-y-2">
-                    <h4 className="font-semibold text-base mb-3 text-green-900">Services & Capabilities</h4>
-                    <div className="flex items-start gap-2">
-                      {(!app.services_offered || app.services_offered.length === 0) && (
-                        <span className="text-red-500 font-bold text-base" title="Required field missing">⚠</span>
-                      )}
-                      <div className="flex-1">
-                        <strong className="text-foreground/80">Services Offered:</strong>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {app.services_offered && app.services_offered.length > 0 ? (
-                            app.services_offered.map((service: string, idx: number) => (
-                              <span key={idx} className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs">
-                                {service}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-red-600">Not provided</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {renderFieldWithValidation("Coverage Summary", app.coverage_summary, false)}
-                  </div>
-
-                  <div className="bg-purple-50 p-4 rounded-lg space-y-2">
-                    <h4 className="font-semibold text-base mb-3 text-purple-900">Languages & Certifications</h4>
-                    <div className="flex items-start gap-2">
-                      {(!app.languages_supported || app.languages_supported.length === 0) && (
-                        <span className="text-red-500 font-bold text-base" title="Required field missing">⚠</span>
-                      )}
-                      <div className="flex-1">
-                        <strong className="text-foreground/80">Languages Supported:</strong>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {app.languages_supported && app.languages_supported.length > 0 ? (
-                            app.languages_supported.map((lang: string, idx: number) => (
-                              <span key={idx} className="px-2 py-1 bg-purple-200 text-purple-800 rounded-full text-xs">
-                                {lang}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-red-600">Not provided</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <strong className="text-foreground/80">Certifications:</strong>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {app.certifications && app.certifications.length > 0 ? (
-                            app.certifications.map((cert: string, idx: number) => (
-                              <span key={idx} className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs">
-                                {cert}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-500">None</span>
-                          )}
-                        </div>
-                      </div>
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-xl shadow-sm border-2 border-blue-200">
+                    <h4 className="font-bold text-lg mb-4 text-blue-900 flex items-center gap-2">
+                      <span className="text-2xl">🏢</span> Business Information
+                    </h4>
+                    <div className="bg-white p-4 rounded-lg">
+                      {renderFieldWithValidation("Legal Company Name", app.name || app.legal_company_name, true)}
+                      {renderFieldWithValidation("Website URL", app.website_url, false)}
+                      {renderFieldWithValidation("Business Description", app.description || (app.application_data?.description), false)}
+                      {renderFieldWithValidation("Profile Slug", app.slug, false)}
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <h4 className="font-semibold text-base mb-3">Location & Availability</h4>
-                    {renderFieldWithValidation("Timezone", app.timezone || app.availability_timezone, false)}
-                    {renderFieldWithValidation("Working Hours", app.working_hours ? JSON.stringify(app.working_hours) : null, false)}
-                    {renderFieldWithValidation("Availability Notes", app.availability_notes, false)}
-                    {renderFieldWithValidation("Location Data", app.location_data ? JSON.stringify(app.location_data) : null, false)}
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-xl shadow-sm border-2 border-gray-300">
+                    <h4 className="font-bold text-lg mb-4 text-gray-900 flex items-center gap-2">
+                      <span className="text-2xl">📋</span> Registration & Legal
+                    </h4>
+                    <div className="bg-white p-4 rounded-lg">
+                      {renderFieldWithValidation("Registration Country", app.registration_country, true)}
+                      {renderFieldWithValidation("Registration Number", app.registration_number, true)}
+                      {renderFieldWithValidation("VAT ID", app.vat_id, false)}
+                      {renderFieldWithValidation("Country Code", app.country_code, true)}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-5 rounded-xl shadow-sm border-2 border-indigo-200">
+                    <h4 className="font-bold text-lg mb-4 text-indigo-900 flex items-center gap-2">
+                      <span className="text-2xl">📞</span> Contact Information
+                    </h4>
+                    <div className="bg-white p-4 rounded-lg">
+                      {renderFieldWithValidation("Contact Email", app.contact_email, true)}
+                      {renderFieldWithValidation("Contact Phone", app.contact_phone, true)}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 p-5 rounded-xl shadow-sm border-2 border-green-200">
+                    <h4 className="font-bold text-lg mb-4 text-green-900 flex items-center gap-2">
+                      <span className="text-2xl">⚙️</span> Services & Capabilities
+                    </h4>
+                    <div className="bg-white p-4 rounded-lg space-y-3">
+                      <div className="py-3 border-b border-gray-200">
+                        <div className="flex items-start gap-2">
+                          {(!app.services_offered || app.services_offered.length === 0) && (
+                            <span className="text-red-500 font-bold text-lg" title="Required field missing">⚠</span>
+                          )}
+                          <div className="flex-1">
+                            <div className="font-semibold text-sm text-gray-700 mb-2">Services Offered</div>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {app.services_offered && app.services_offered.length > 0 ? (
+                                app.services_offered.map((service: string, idx: number) => (
+                                  <span key={idx} className="px-3 py-2 bg-green-200 text-green-900 rounded-lg text-sm font-medium shadow-sm">
+                                    {service}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-red-600 italic">Not provided</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {renderFieldWithValidation("Coverage Summary", app.coverage_summary, false)}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-5 rounded-xl shadow-sm border-2 border-purple-200">
+                    <h4 className="font-bold text-lg mb-4 text-purple-900 flex items-center gap-2">
+                      <span className="text-2xl">🌐</span> Languages & Certifications
+                    </h4>
+                    <div className="bg-white p-4 rounded-lg space-y-3">
+                      <div className="py-3 border-b border-gray-200">
+                        <div className="flex items-start gap-2">
+                          {(!app.languages_supported || app.languages_supported.length === 0) && (
+                            <span className="text-red-500 font-bold text-lg" title="Required field missing">⚠</span>
+                          )}
+                          <div className="flex-1">
+                            <div className="font-semibold text-sm text-gray-700 mb-2">Languages Supported</div>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {app.languages_supported && app.languages_supported.length > 0 ? (
+                                app.languages_supported.map((lang: string, idx: number) => (
+                                  <span key={idx} className="px-3 py-2 bg-purple-200 text-purple-900 rounded-lg text-sm font-medium shadow-sm">
+                                    {lang}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-red-600 italic">Not provided</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="py-3">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <div className="font-semibold text-sm text-gray-700 mb-2">Certifications</div>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {app.certifications && app.certifications.length > 0 ? (
+                                app.certifications.map((cert: string, idx: number) => (
+                                  <span key={idx} className="px-3 py-2 bg-yellow-200 text-yellow-900 rounded-lg text-sm font-medium shadow-sm">
+                                    {cert}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-gray-500 italic">None provided</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-teal-50 to-teal-100 p-5 rounded-xl shadow-sm border-2 border-teal-200">
+                    <h4 className="font-bold text-lg mb-4 text-teal-900 flex items-center gap-2">
+                      <span className="text-2xl">🕐</span> Location & Availability
+                    </h4>
+                    <div className="bg-white p-4 rounded-lg space-y-3">
+                      <div className="py-2 border-b border-gray-200">
+                        <div className="font-semibold text-sm text-gray-700 mb-1">Timezone</div>
+                        <div className="text-sm text-gray-900">{formatTimezone(app.timezone || app.availability_timezone)}</div>
+                      </div>
+                      <div className="py-2 border-b border-gray-200">
+                        <div className="font-semibold text-sm text-gray-700 mb-1">Working Hours</div>
+                        {renderWorkingHours(app.working_hours)}
+                      </div>
+                      {renderFieldWithValidation("Availability Notes", app.availability_notes, false)}
+                    </div>
                   </div>
 
                   {app.application_data && (

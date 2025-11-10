@@ -123,10 +123,22 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
         "id, full_name, role, verified, license_verified, created_at, organization_id, rejection_reason, agencies!organization_id (id, name, type, verified)"
       )
       .order("created_at", { ascending: false }),
-    supabase.from("guide_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("agency_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("dmc_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("transport_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    // Check profiles with pending application status and role=guide
+    supabase.from("profiles").select("id", { count: "exact", head: true })
+      .eq("application_status", "pending")
+      .eq("role", "guide"),
+    // Check agencies with pending status and type=agency
+    supabase.from("agencies").select("id", { count: "exact", head: true })
+      .eq("application_status", "pending")
+      .eq("type", "agency"),
+    // Check agencies with pending status and type=dmc
+    supabase.from("agencies").select("id", { count: "exact", head: true })
+      .eq("application_status", "pending")
+      .eq("type", "dmc"),
+    // Check agencies with pending status and type=transport
+    supabase.from("agencies").select("id", { count: "exact", head: true })
+      .eq("application_status", "pending")
+      .eq("type", "transport"),
   ]);
 
   const totalUsers = totalUsersQuery.count ?? 0;
