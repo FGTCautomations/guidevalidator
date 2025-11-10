@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // Admin API route to toggle ad active status
 // POST /api/admin/ads/:id/toggle
 // Updated to use service role client for RLS bypass

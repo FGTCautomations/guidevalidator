@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // API route for ad click tracking
 // POST /api/ads/click
 

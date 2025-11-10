@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import { checkAdminAccess } from "@/lib/admin/queries";

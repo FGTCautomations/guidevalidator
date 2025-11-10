@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // Admin API routes for individual ad management
 // GET /api/admin/ads/:id - Get single ad
 // PUT /api/admin/ads/:id - Update ad
