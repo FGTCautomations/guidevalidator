@@ -70,6 +70,7 @@ export default function SignUpThanksPage({ params, searchParams }: ThanksPagePro
             Need assistance? <a href="mailto:hello@guidevalidator.com" className="text-primary underline">Contact support</a>
           </p>
         </div>
+        </div>
       </div>
     </>
   );
