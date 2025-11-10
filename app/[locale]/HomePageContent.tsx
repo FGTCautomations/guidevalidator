@@ -26,9 +26,6 @@ export function HomePageContent() {
 
       {/* How It Works - 3 steps */}
       <HowItWorks />
-
-      {/* Global CTA - 4 buttons */}
-      <GlobalCTA />
     </main>
   );
 }
