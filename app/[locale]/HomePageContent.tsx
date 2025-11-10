@@ -27,12 +27,6 @@ export function HomePageContent() {
       {/* How It Works - 3 steps */}
       <HowItWorks />
 
-      {/* Ad Slot - Homepage Mid (conditionally rendered) */}
-      {/* Temporarily disabled for build - needs fix for static generation */}
-      {/* <section className="mx-auto w-full max-w-6xl px-6 py-8 sm:px-12 lg:px-24">
-        <AdSlot placement="homepage_mid" />
-      </section> */}
-
       {/* Global CTA - 4 buttons */}
       <GlobalCTA />
     </main>

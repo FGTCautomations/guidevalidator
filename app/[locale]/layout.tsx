@@ -188,8 +188,7 @@ export default async function LocaleLayout({
           {children}
         </main>
         {/* Footer Ad Slot - Conditionally rendered above footer */}
-        {/* Temporarily disabled for build - needs fix for static generation */}
-        {/* <FooterAd /> */}
+        <FooterAd />
         <SiteFooter
           description={footerTranslations("tagline")}
           links={footerLinks}

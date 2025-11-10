@@ -43,7 +43,18 @@
       "Bash(git remote set-url:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(powershell.exe -ExecutionPolicy Bypass -File add-dynamic-export.ps1)"
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File add-dynamic-export.ps1)",
+      "Bash(vercel --version:*)",
+      "Bash(npm install:*)",
+      "Bash(vercel login)",
+      "Bash(vercel link:*)",
+      "Bash(vercel env add:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel --prod:*)",
+      "Bash(vercel inspect:*)",
+      "Bash(vercel project ls:*)",
+      "Bash(vercel domains:*)",
+      "Bash(nslookup:*)"
     ],
     "deny": [],
     "ask": []
