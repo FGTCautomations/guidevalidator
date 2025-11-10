@@ -102,11 +102,11 @@ CREATE TABLE IF NOT EXISTS archived_tables.transport_fleet AS SELECT * FROM tran
 
 SELECT
   schemaname,
-  tablename,
+  relname as table_name,
   n_live_tup as row_count
 FROM pg_stat_user_tables
 WHERE schemaname = 'archived_tables'
-ORDER BY tablename;
+ORDER BY relname;
 
 -- ============================================================================
 -- SUCCESS MESSAGE
