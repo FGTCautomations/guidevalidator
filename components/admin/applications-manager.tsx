@@ -30,6 +30,14 @@ interface AgencyApplication extends BaseApplication {
   contact_phone: string | null;
   registration_number: string | null;
   services_offered: string[];
+  application_data?: any; // Full application form data
+  name?: string;
+  website_url?: string;
+  registration_country?: string;
+  vat_id?: string;
+  country_code?: string;
+  certifications?: string[];
+  languages_supported?: string[];
 }
 
 interface DmcApplication extends BaseApplication {
@@ -38,6 +46,7 @@ interface DmcApplication extends BaseApplication {
   contact_phone: string | null;
   registration_number: string | null;
   services_offered: string[];
+  application_data?: any;
 }
 
 interface TransportApplication extends BaseApplication {
@@ -46,6 +55,7 @@ interface TransportApplication extends BaseApplication {
   contact_phone: string | null;
   registration_number: string | null;
   service_types: string[];
+  application_data?: any;
 }
 
 interface ApplicationsManagerProps {
@@ -156,15 +166,99 @@ export function ApplicationsManager({ locale, applications }: ApplicationsManage
           </button>
 
           {isExpanded && (
-            <div className="mt-4 pt-4 border-t space-y-2 text-sm">
+            <div className="mt-4 pt-4 border-t space-y-4 text-sm">
               {type === "guide" && (
                 <>
                   <div><strong>License Number:</strong> {app.license_number || "Not provided"}</div>
-                  <div><strong>Specializations:</strong> {app.specializations.join(", ") || "None"}</div>
+                  <div><strong>Specializations:</strong> {app.specializations?.join(", ") || "None"}</div>
                   <div><strong>Languages:</strong> {JSON.stringify(app.languages_spoken)}</div>
                 </>
               )}
-              {(type === "agency" || type === "dmc" || type === "transport") && (
+              {type === "agency" && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 bg-blue-50 p-3 rounded">
+                      <h4 className="font-semibold text-sm mb-2 text-blue-900">Business Information</h4>
+                      <div className="space-y-1 text-xs">
+                        <div><strong>Legal Name:</strong> {app.legal_company_name || app.name || "Not provided"}</div>
+                        <div><strong>Website:</strong> {app.website_url ? <a href={app.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{app.website_url}</a> : "Not provided"}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-3 rounded">
+                      <h4 className="font-semibold text-sm mb-2">Registration Details</h4>
+                      <div className="space-y-1 text-xs">
+                        <div><strong>Registration Country:</strong> {app.registration_country || "Not provided"}</div>
+                        <div><strong>Registration Number:</strong> {app.registration_number || "Not provided"}</div>
+                        <div><strong>VAT ID:</strong> {app.vat_id || "Not provided"}</div>
+                        <div><strong>Country Code:</strong> {app.country_code || "Not provided"}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-3 rounded">
+                      <h4 className="font-semibold text-sm mb-2">Contact Information</h4>
+                      <div className="space-y-1 text-xs">
+                        <div><strong>Email:</strong> {app.contact_email || "Not provided"}</div>
+                        <div><strong>Phone:</strong> {app.contact_phone || "Not provided"}</div>
+                      </div>
+                    </div>
+
+                    {app.services_offered && app.services_offered.length > 0 && (
+                      <div className="col-span-2 bg-green-50 p-3 rounded">
+                        <h4 className="font-semibold text-sm mb-2 text-green-900">Services Offered</h4>
+                        <div className="flex flex-wrap gap-1 text-xs">
+                          {app.services_offered.map((service: string, idx: number) => (
+                            <span key={idx} className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
+                              {service}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {app.languages_supported && app.languages_supported.length > 0 && (
+                      <div className="col-span-2 bg-purple-50 p-3 rounded">
+                        <h4 className="font-semibold text-sm mb-2 text-purple-900">Languages Supported</h4>
+                        <div className="flex flex-wrap gap-1 text-xs">
+                          {app.languages_supported.map((lang: string, idx: number) => (
+                            <span key={idx} className="px-2 py-1 bg-purple-200 text-purple-800 rounded-full">
+                              {lang}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {app.certifications && app.certifications.length > 0 && (
+                      <div className="col-span-2 bg-yellow-50 p-3 rounded">
+                        <h4 className="font-semibold text-sm mb-2 text-yellow-900">Certifications</h4>
+                        <div className="flex flex-wrap gap-1 text-xs">
+                          {app.certifications.map((cert: string, idx: number) => (
+                            <span key={idx} className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
+                              {cert}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {app.application_data && (
+                      <div className="col-span-2 bg-gray-50 p-3 rounded">
+                        <h4 className="font-semibold text-sm mb-2">Additional Application Data</h4>
+                        <details className="text-xs">
+                          <summary className="cursor-pointer text-blue-600 hover:text-blue-800 mb-2">
+                            View raw application data
+                          </summary>
+                          <pre className="bg-white p-2 rounded border overflow-x-auto text-[10px] leading-relaxed">
+                            {JSON.stringify(app.application_data, null, 2)}
+                          </pre>
+                        </details>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+              {(type === "dmc" || type === "transport") && (
                 <>
                   <div><strong>Registration Number:</strong> {app.registration_number || "Not provided"}</div>
                   <div><strong>Services/Types:</strong> {

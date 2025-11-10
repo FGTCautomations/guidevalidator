@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { isSupportedLocale, type SupportedLocale } from "@/i18n/config";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 type ThanksPageProps = {
   params: { locale: string };
@@ -20,7 +21,7 @@ function getRoleCopy(role?: string) {
     case 'agency':
       return {
         title: 'Travel agency application submitted',
-        body: 'Thank you for sharing your company details. We will verify your documents and notify you once your account is activated.',
+        body: 'Thank you for applying! Your application is now under review by our team. We will verify your business registration, licensing documents, and credentials. You will receive an email notification once your account has been approved and activated. This typically takes 1-3 business days.',
       };
     case 'dmc':
       return {
@@ -50,8 +51,10 @@ export default function SignUpThanksPage({ params, searchParams }: ThanksPagePro
   const { title, body } = getRoleCopy(searchParams?.role);
 
   return (
-    <div className="flex min-h-[calc(100vh-6rem)] flex-col items-center justify-center bg-background px-6 py-16 text-foreground sm:px-12 lg:px-24">
-      <div className="w-full max-w-xl space-y-6 text-center">
+    <>
+      <ScrollToTop />
+      <div className="flex min-h-[calc(100vh-6rem)] flex-col items-center justify-center bg-background px-6 py-16 text-foreground sm:px-12 lg:px-24">
+        <div className="w-full max-w-xl space-y-6 text-center">
         <div className="space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
           <p className="text-base text-foreground/70 sm:text-lg">{body}</p>
@@ -68,6 +71,6 @@ export default function SignUpThanksPage({ params, searchParams }: ThanksPagePro
           </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
