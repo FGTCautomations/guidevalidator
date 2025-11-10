@@ -6,6 +6,8 @@ const nextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  // Disable static optimization to fix build errors
+  staticPageGenerationTimeout: 0,
   images: {
     remotePatterns: [
       {
