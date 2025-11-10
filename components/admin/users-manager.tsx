@@ -91,6 +91,7 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all");
+  const [verifiedFilter, setVerifiedFilter] = useState<"all" | "verified" | "unverified">("all");
 
   const handleFreezeAccount = async (userId: string, userType: UserType) => {
     const reason = prompt("Enter reason for freezing this account:");
@@ -530,16 +531,22 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
   const filteredUsers = currentUsers.filter((user: any) => {
     const matchesSearch = selectedTab === "guides"
       ? (user.profiles.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         user.profiles.email?.toLowerCase().includes(searchQuery.toLowerCase()))
+         user.profiles.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         user.license_number?.toLowerCase().includes(searchQuery.toLowerCase()))
       : (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         user.contact_email?.toLowerCase().includes(searchQuery.toLowerCase()));
+         user.contact_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         user.registration_number?.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesStatus = statusFilter === "all" ||
       (selectedTab === "guides"
         ? user.profiles.application_status === statusFilter
         : user.application_status === statusFilter);
 
-    return matchesSearch && matchesStatus;
+    const matchesVerified = verifiedFilter === "all" ||
+      (verifiedFilter === "verified" && (selectedTab === "guides" ? user.profiles.verified : user.verified)) ||
+      (verifiedFilter === "unverified" && !(selectedTab === "guides" ? user.profiles.verified : user.verified));
+
+    return matchesSearch && matchesStatus && matchesVerified;
   });
 
   const stats = {
@@ -605,27 +612,71 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-lg">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+      {/* Enhanced Search & Filters */}
+      <div className="bg-blue-50 border-2 border-blue-200 p-6 rounded-lg shadow-sm">
+        <h3 className="text-lg font-semibold text-blue-900 mb-4">🔍 Search & Filter Accounts</h3>
+        <div className="flex flex-col gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-foreground/70 mb-2">
+              Search by name, email, license, or registration number
+            </label>
+            <input
+              type="text"
+              placeholder="Type to search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+            />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-foreground/70 mb-2">
+                Application Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-foreground/70 mb-2">
+                Verification Status
+              </label>
+              <select
+                value={verifiedFilter}
+                onChange={(e) => setVerifiedFilter(e.target.value as typeof verifiedFilter)}
+                className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              >
+                <option value="all">All</option>
+                <option value="verified">Verified Only</option>
+                <option value="unverified">Unverified Only</option>
+              </select>
+            </div>
+          </div>
+          {(searchQuery || statusFilter !== "all" || verifiedFilter !== "all") && (
+            <div className="flex items-center justify-between bg-white p-3 rounded">
+              <span className="text-sm text-foreground/70">
+                Showing {filteredUsers.length} of {currentUsers.length} {selectedTab}
+              </span>
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                  setVerifiedFilter("all");
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-          className="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
       </div>
 
       {/* Users List */}
