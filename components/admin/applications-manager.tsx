@@ -22,6 +22,10 @@ interface GuideApplication extends BaseApplication {
   license_number: string | null;
   specializations: string[];
   languages_spoken: any;
+  application_status?: ApplicationStatus;
+  application_submitted_at?: string;
+  stripe_customer_id?: string;
+  subscription_status?: string;
 }
 
 interface AgencyApplication extends BaseApplication {
@@ -38,6 +42,18 @@ interface AgencyApplication extends BaseApplication {
   country_code?: string;
   certifications?: string[];
   languages_supported?: string[];
+  application_status?: ApplicationStatus;
+  application_submitted_at?: string;
+  description?: string;
+  slug?: string;
+  timezone?: string;
+  availability_timezone?: string;
+  working_hours?: any;
+  availability_notes?: string;
+  location_data?: any;
+  coverage_summary?: string;
+  stripe_customer_id?: string;
+  subscription_status?: string;
 }
 
 interface DmcApplication extends BaseApplication {
@@ -47,6 +63,10 @@ interface DmcApplication extends BaseApplication {
   registration_number: string | null;
   services_offered: string[];
   application_data?: any;
+  application_status?: ApplicationStatus;
+  application_submitted_at?: string;
+  stripe_customer_id?: string;
+  subscription_status?: string;
 }
 
 interface TransportApplication extends BaseApplication {
@@ -56,6 +76,10 @@ interface TransportApplication extends BaseApplication {
   registration_number: string | null;
   service_types: string[];
   application_data?: any;
+  application_status?: ApplicationStatus;
+  application_submitted_at?: string;
+  stripe_customer_id?: string;
+  subscription_status?: string;
 }
 
 interface ApplicationsManagerProps {
