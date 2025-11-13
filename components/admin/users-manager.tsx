@@ -231,9 +231,9 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                {(profile.avatar_url || guide.avatar_url) ? (
+                {profile.avatar_url ? (
                   <img
-                    src={profile.avatar_url || guide.avatar_url}
+                    src={profile.avatar_url}
                     alt={profile.full_name || "Guide"}
                     className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                   />
