@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import type { SupportedLocale } from "@/i18n/config";
+import { DeleteUserModal } from "./delete-user-modal";
+import { ToastNotification } from "./toast-notification";
 
 type ApplicationStatus = "pending" | "approved" | "rejected";
 
 interface UserProfile {
   id: string;
   full_name: string | null;
-  email: string | null;
   role: string;
   country_code: string | null;
   timezone: string | null;
@@ -51,12 +52,16 @@ interface Agency {
   name: string;
   slug: string;
   registration_country: string | null;
+  registration_number: string | null;
+  vat_id: string | null;
+  country_code: string | null;
   description: string | null;
   website_url: string | null;
   contact_email: string;
   contact_phone: string | null;
   logo_url: string | null;
   services_offered: string[];
+  service_types: string[];
   languages_supported: string[];
   certifications: string[];
   verified: boolean;
@@ -68,6 +73,11 @@ interface Agency {
   application_data: any;
   location_data: any;
   fleet_data: any;
+  coverage_summary: string | null;
+  timezone: string | null;
+  availability_timezone: string | null;
+  working_hours: any;
+  availability_notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -92,6 +102,8 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all");
   const [verifiedFilter, setVerifiedFilter] = useState<"all" | "verified" | "unverified">("all");
+  const [deleteModal, setDeleteModal] = useState<{ userId: string; userName: string; userType: UserType } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
   const handleFreezeAccount = async (userId: string, userType: UserType) => {
     const reason = prompt("Enter reason for freezing this account:");
@@ -157,19 +169,10 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
   };
 
   const handleDeleteAccount = async (userId: string, userType: UserType, userName: string) => {
-    const confirmed1 = confirm(
-      `⚠️ WARNING: You are about to PERMANENTLY DELETE this account!\n\nUser: ${userName}\n\nThis action CANNOT be undone. All user data will be deleted.\n\nAre you absolutely sure?`
-    );
-    if (!confirmed1) return;
+    setDeleteModal({ userId, userName, userType });
+  };
 
-    const confirmed2 = prompt(
-      `Type "DELETE ${userName}" to confirm permanent deletion:`
-    );
-    if (confirmed2 !== `DELETE ${userName}`) {
-      alert("Deletion cancelled - confirmation text did not match.");
-      return;
-    }
-
+  const confirmDeleteAccount = async (userId: string, userType: string) => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/admin/users/delete", {
@@ -184,11 +187,21 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
         throw new Error(data.error || "Failed to delete account");
       }
 
-      alert("Account deleted successfully!");
-      window.location.reload();
+      setToast({
+        message: "Account deleted successfully! Directory has been updated.",
+        type: "success",
+      });
+
+      // Reload the page to refresh the user list
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error("Error deleting account:", error);
-      alert(error instanceof Error ? error.message : "Failed to delete account");
+      setToast({
+        message: error instanceof Error ? error.message : "Failed to delete account",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -218,12 +231,16 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                {profile.avatar_url && (
+                {(profile.avatar_url || guide.avatar_url) ? (
                   <img
-                    src={profile.avatar_url}
+                    src={profile.avatar_url || guide.avatar_url}
                     alt={profile.full_name || "Guide"}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                   />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-sm">
+                    {profile.full_name?.slice(0, 2).toUpperCase() || "??"}
+                  </div>
                 )}
                 <div>
                   <h3 className="font-semibold text-lg text-foreground">{profile.full_name}</h3>
@@ -234,6 +251,11 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
                 <span className={`px-2 py-1 text-xs rounded border ${getStatusColor(profile.application_status)}`}>
                   {profile.application_status}
                 </span>
+                {!profile.verified && !profile.license_verified && (
+                  <span className="px-2 py-1 text-xs rounded bg-amber-50 text-amber-700 border border-amber-300">
+                    ⚠ Profile Not Claimed
+                  </span>
+                )}
                 {profile.verified && (
                   <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800 border border-blue-300">
                     ✓ Verified
@@ -251,10 +273,6 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-3 text-sm mb-4">
             <div>
-              <span className="text-foreground/60">Email:</span>
-              <span className="ml-2 font-medium">{profile.email || "N/A"}</span>
-            </div>
-            <div>
               <span className="text-foreground/60">Country:</span>
               <span className="ml-2 font-medium">{profile.country_code || "N/A"}</span>
             </div>
@@ -265,6 +283,10 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
             <div>
               <span className="text-foreground/60">Experience:</span>
               <span className="ml-2 font-medium">{guide.years_experience || 0} years</span>
+            </div>
+            <div>
+              <span className="text-foreground/60">Profile ID:</span>
+              <span className="ml-2 font-medium text-xs">{guide.profile_id.slice(0, 8)}...</span>
             </div>
           </div>
 
@@ -277,37 +299,7 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
 
           {/* Expanded Details */}
           {isExpanded && (
-            <div className="mt-4 pt-4 border-t space-y-3 text-sm">
-              <div>
-                <strong className="text-foreground/80">Specialties:</strong>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {guide.specialties?.map((spec, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                      {spec}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <strong className="text-foreground/80">Languages:</strong>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {guide.spoken_languages?.map((lang, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                      {lang}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <strong className="text-foreground/80">Bio:</strong>
-                <p className="text-foreground/70 mt-1">{guide.bio || guide.professional_intro || "No bio provided"}</p>
-              </div>
-              {guide.hourly_rate_cents && (
-                <div>
-                  <strong className="text-foreground/80">Hourly Rate:</strong>
-                  <span className="ml-2">{(guide.hourly_rate_cents / 100).toFixed(2)} {guide.currency || "USD"}</span>
-                </div>
-              )}
+            <div className="mt-4 pt-4 border-t space-y-4 text-sm">
               <div>
                 <strong className="text-foreground/80">Created:</strong>
                 <span className="ml-2">{format(parseISO(guide.created_at), "PPP")}</span>
@@ -389,6 +381,11 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
                 <span className={`px-2 py-1 text-xs rounded border ${getStatusColor(agency.application_status)}`}>
                   {agency.application_status}
                 </span>
+                {!agency.verified && (
+                  <span className="px-2 py-1 text-xs rounded bg-amber-50 text-amber-700 border border-amber-300">
+                    ⚠ Profile Not Claimed
+                  </span>
+                )}
                 {agency.verified && (
                   <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800 border border-blue-300">
                     ✓ Verified
@@ -433,53 +430,211 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
 
           {/* Expanded Details */}
           {isExpanded && (
-            <div className="mt-4 pt-4 border-t space-y-3 text-sm">
-              <div>
-                <strong className="text-foreground/80">Description:</strong>
-                <p className="text-foreground/70 mt-1">{agency.description || "No description provided"}</p>
-              </div>
-              <div>
-                <strong className="text-foreground/80">Services:</strong>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {agency.services_offered?.map((service, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                      {service}
-                    </span>
-                  ))}
+            <div className="mt-4 pt-4 border-t space-y-4 text-sm">
+              {/* Registration & Legal */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">📋 Registration & Legal</h4>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-foreground/80">Registration Number:</strong>
+                    <span className="ml-2">{agency.registration_number || "N/A"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-foreground/80">VAT ID:</strong>
+                    <span className="ml-2">{agency.vat_id || "N/A"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-foreground/80">Country Code:</strong>
+                    <span className="ml-2">{agency.country_code || "N/A"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-foreground/80">Slug:</strong>
+                    <span className="ml-2">{agency.slug || "N/A"}</span>
+                  </div>
                 </div>
               </div>
-              <div>
-                <strong className="text-foreground/80">Languages:</strong>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {agency.languages_supported?.map((lang, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                      {lang}
-                    </span>
-                  ))}
+
+              {/* Business Information */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">🏢 Business Information</h4>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-foreground/80">Description:</strong>
+                    <p className="text-foreground/70 mt-1">{agency.description || "No description provided"}</p>
+                  </div>
+                  {agency.coverage_summary && (
+                    <div>
+                      <strong className="text-foreground/80">Coverage Summary:</strong>
+                      <p className="text-foreground/70 mt-1">{agency.coverage_summary}</p>
+                    </div>
+                  )}
                 </div>
               </div>
-              {agency.certifications && agency.certifications.length > 0 && (
-                <div>
-                  <strong className="text-foreground/80">Certifications:</strong>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {agency.certifications.map((cert, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                        {cert}
-                      </span>
-                    ))}
+
+              {/* Services & Capabilities */}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">⚙️ Services & Capabilities</h4>
+                <div className="space-y-3">
+                  <div>
+                    <strong className="text-foreground/80">Services Offered:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {(agency.services_offered || agency.service_types || []).length > 0 ? (
+                        (agency.services_offered || agency.service_types || []).map((service: string, idx: number) => (
+                          <span key={idx} className="px-2 py-1 bg-green-200 text-green-900 rounded text-xs">
+                            {service}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 italic">No services listed</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Languages & Certifications */}
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">🌐 Languages & Certifications</h4>
+                <div className="space-y-3">
+                  <div>
+                    <strong className="text-foreground/80">Languages Supported:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {agency.languages_supported?.length > 0 ? (
+                        agency.languages_supported.map((lang, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-purple-200 text-purple-900 rounded text-xs">
+                            {lang}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 italic">No languages listed</span>
+                      )}
+                    </div>
+                  </div>
+                  {agency.certifications && agency.certifications.length > 0 && (
+                    <div>
+                      <strong className="text-foreground/80">Certifications:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {agency.certifications.map((cert, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-purple-200 text-purple-900 rounded text-xs">
+                            {cert}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Availability & Location */}
+              {(agency.timezone || agency.availability_timezone || agency.availability_notes || agency.location_data) && (
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-base mb-3">📍 Availability & Location</h4>
+                  <div className="space-y-2">
+                    {agency.timezone && (
+                      <div>
+                        <strong className="text-foreground/80">Timezone:</strong>
+                        <span className="ml-2">{agency.timezone}</span>
+                      </div>
+                    )}
+                    {agency.availability_timezone && (
+                      <div>
+                        <strong className="text-foreground/80">Availability Timezone:</strong>
+                        <span className="ml-2">{agency.availability_timezone}</span>
+                      </div>
+                    )}
+                    {agency.availability_notes && (
+                      <div>
+                        <strong className="text-foreground/80">Availability Notes:</strong>
+                        <p className="text-foreground/70 mt-1">{agency.availability_notes}</p>
+                      </div>
+                    )}
+                    {agency.working_hours && (
+                      <div>
+                        <strong className="text-foreground/80">Working Hours:</strong>
+                        <pre className="text-xs mt-1 bg-white p-2 rounded overflow-auto">{JSON.stringify(agency.working_hours, null, 2)}</pre>
+                      </div>
+                    )}
+                    {agency.location_data?.headquarters_address && (
+                      <div>
+                        <strong className="text-foreground/80">Headquarters Address:</strong>
+                        <p className="text-foreground/70 mt-1">{agency.location_data.headquarters_address}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-              <div>
-                <strong className="text-foreground/80">Created:</strong>
-                <span className="ml-2">{format(parseISO(agency.created_at), "PPP")}</span>
-              </div>
-              {agency.application_submitted_at && (
-                <div>
-                  <strong className="text-foreground/80">Applied:</strong>
-                  <span className="ml-2">{format(parseISO(agency.application_submitted_at), "PPP")}</span>
+
+              {/* Fleet Data (for transport) */}
+              {agency.type === "transport" && agency.fleet_data && (
+                <div className="bg-indigo-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-base mb-3">🚗 Fleet Information</h4>
+                  <pre className="text-xs mt-1 bg-white p-2 rounded overflow-auto">{JSON.stringify(agency.fleet_data, null, 2)}</pre>
                 </div>
               )}
+
+              {/* Import & Application Data */}
+              {agency.application_data && Object.keys(agency.application_data).length > 0 && (
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-base mb-3">📄 Import & Application Data</h4>
+                  <div className="space-y-2">
+                    {agency.application_data.english_name && (
+                      <div>
+                        <strong className="text-foreground/80">English Name:</strong>
+                        <span className="ml-2">{agency.application_data.english_name}</span>
+                      </div>
+                    )}
+                    {agency.application_data.license_issue_date && (
+                      <div>
+                        <strong className="text-foreground/80">License Issue Date:</strong>
+                        <span className="ml-2">{agency.application_data.license_issue_date}</span>
+                      </div>
+                    )}
+                    {agency.application_data.fax && (
+                      <div>
+                        <strong className="text-foreground/80">Fax:</strong>
+                        <span className="ml-2">{agency.application_data.fax}</span>
+                      </div>
+                    )}
+                    {agency.application_data.import_source && (
+                      <div>
+                        <strong className="text-foreground/80">Import Source:</strong>
+                        <span className="ml-2 text-xs text-gray-500">{agency.application_data.import_source}</span>
+                      </div>
+                    )}
+                    {agency.application_data.imported_at && (
+                      <div>
+                        <strong className="text-foreground/80">Imported:</strong>
+                        <span className="ml-2 text-xs text-gray-500">{new Date(agency.application_data.imported_at).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Dates */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">📅 Important Dates</h4>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-foreground/80">Created:</strong>
+                    <span className="ml-2">{format(parseISO(agency.created_at), "PPP")}</span>
+                  </div>
+                  {agency.application_submitted_at && (
+                    <div>
+                      <strong className="text-foreground/80">Applied:</strong>
+                      <span className="ml-2">{format(parseISO(agency.application_submitted_at), "PPP")}</span>
+                    </div>
+                  )}
+                  {agency.application_reviewed_at && (
+                    <div>
+                      <strong className="text-foreground/80">Reviewed:</strong>
+                      <span className="ml-2">{format(parseISO(agency.application_reviewed_at), "PPP")}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Rejection Reason */}
               {agency.rejection_reason && (
                 <div className="bg-red-50 border border-red-200 rounded p-3">
                   <strong className="text-red-800">Rejection Reason:</strong>
@@ -488,6 +643,7 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
               )}
             </div>
           )}
+
 
           {/* Actions */}
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
@@ -531,8 +687,8 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
   const filteredUsers = currentUsers.filter((user: any) => {
     const matchesSearch = selectedTab === "guides"
       ? (user.profiles.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         user.profiles.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         user.license_number?.toLowerCase().includes(searchQuery.toLowerCase()))
+         user.license_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         user.profile_id?.toLowerCase().includes(searchQuery.toLowerCase()))
       : (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
          user.contact_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
          user.registration_number?.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -618,7 +774,9 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
         <div className="flex flex-col gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-foreground/70 mb-2">
-              Search by name, email, license, or registration number
+              {selectedTab === "guides"
+                ? "Search by name, license number, or profile ID"
+                : "Search by name, email, or registration number"}
             </label>
             <input
               type="text"
@@ -681,7 +839,32 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
 
       {/* Users List */}
       <div className="space-y-4">
-        {filteredUsers.length === 0 ? (
+        {!searchQuery && statusFilter === "all" && verifiedFilter === "all" ? (
+          <div className="rounded-xl border border-foreground/10 bg-white p-12 text-center shadow-sm">
+            <div className="mx-auto max-w-md space-y-3">
+              <svg
+                className="mx-auto h-16 w-16 text-foreground/20"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <h3 className="text-lg font-semibold text-foreground">
+                Use Filters to Search
+              </h3>
+              <p className="text-sm text-foreground/70">
+                Please use the search box or filters above to find specific {selectedTab}.
+                This helps manage the {currentUsers.length.toLocaleString()} total {selectedTab} more efficiently.
+              </p>
+            </div>
+          </div>
+        ) : filteredUsers.length === 0 ? (
           <div className="text-center py-12 text-foreground/50">
             No {selectedTab} found matching your filters.
           </div>
@@ -693,6 +876,26 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
           )
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <DeleteUserModal
+          userId={deleteModal.userId}
+          userName={deleteModal.userName}
+          userType={deleteModal.userType}
+          onClose={() => setDeleteModal(null)}
+          onConfirm={confirmDeleteAccount}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <ToastNotification
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

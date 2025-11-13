@@ -303,6 +303,31 @@ export function AdsManager() {
             </div>
           </div>
 
+          {/* List Context - Which directory to show ad in */}
+          {formData.placement?.includes("listings") && (
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Show in Directory * (for listings placement)
+              </label>
+              <select
+                required
+                value={(formData as any).list_context || "guides"}
+                onChange={(e) =>
+                  setFormData({ ...formData, list_context: e.target.value } as any)
+                }
+                className="mt-1 w-full rounded-xl border border-foreground/20 px-4 py-2 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+              >
+                <option value="guides">Guides Directory</option>
+                <option value="agencies">Agencies Directory</option>
+                <option value="dmcs">DMCs Directory</option>
+                <option value="transport">Transport Directory</option>
+              </select>
+              <p className="mt-1 text-xs text-foreground/60">
+                Select which directory this ad should appear in when placement is "listings"
+              </p>
+            </div>
+          )}
+
           {/* Image URL / Upload */}
           <div>
             <label className="block text-sm font-medium text-foreground">
