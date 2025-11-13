@@ -706,9 +706,9 @@ export async function fetchDirectoryListings(
 
   let query = supabase
     .from("agencies")
-    .select("id, name, coverage_summary, country_code, verified, featured, languages, specialties, application_status, rejection_reason")
+    .select("id, name, coverage_summary, country_code, verified, featured, languages, specialties, application_status, rejection_reason, active")
     .eq("type", agencyType)
-    .eq("application_status", "approved")  // Only show approved agencies/DMCs/transport
+    .eq("active", true)  // Only show active agencies/DMCs/transport
     .order("featured", { ascending: false })
     .order("verified", { ascending: false })
     .order("name", { ascending: true })
@@ -1016,13 +1016,13 @@ export async function fetchAvailableCountries(segment: DirectorySegment): Promis
 
     console.log(`[fetchAvailableCountries] Counted guides across ${countryCountMap.size} countries`);
   } else {
-    // Get country codes from approved, non-frozen agencies/DMCs/transport
+    // Get country codes from active, non-frozen agencies/DMCs/transport
     const agencyType = segment === "agencies" ? "agency" : segment === "dmcs" ? "dmc" : "transport";
     const { data, error } = await supabase
       .from("agencies")
-      .select("country_code, rejection_reason")
+      .select("country_code, rejection_reason, active")
       .eq("type", agencyType)
-      .eq("application_status", "approved")
+      .eq("active", true)
       .range(0, 100000);  // Fetch all (removes default 1000 limit)
 
     if (error) {
