@@ -38,15 +38,23 @@ export async function POST(request: NextRequest) {
     console.log(`[Admin] Freezing account: ${userId} (${userType}) by ${user.id}`);
     console.log(`[Admin] Reason: ${reason}`);
 
-    // Ban the user account in Supabase Auth
-    // Use a very long ban duration (876000 hours = 100 years)
-    const { error: banError } = await serviceClient.auth.admin.updateUserById(userId, {
-      ban_duration: "876000h", // ~100 years
-    });
+    // Check if this profile has an auth account
+    const { data: authUser, error: authCheckError } = await serviceClient.auth.admin.getUserById(userId);
 
-    if (banError) {
-      console.error("[Admin] Error banning user:", banError);
-      return NextResponse.json({ error: "Failed to freeze account in auth system" }, { status: 500 });
+    if (!authCheckError && authUser?.user) {
+      // Ban the user account in Supabase Auth (only if auth account exists)
+      // Use a very long ban duration (876000 hours = 100 years)
+      const { error: banError } = await serviceClient.auth.admin.updateUserById(userId, {
+        ban_duration: "876000h", // ~100 years
+      });
+
+      if (banError) {
+        console.error("[Admin] Error banning user:", banError);
+        return NextResponse.json({ error: "Failed to freeze account in auth system" }, { status: 500 });
+      }
+      console.log(`[Admin] Auth account banned: ${userId}`);
+    } else {
+      console.log(`[Admin] No auth account found for ${userId}, skipping auth ban (profile-only account)`);
     }
 
     // Update the profile/agency status to indicate frozen
@@ -64,10 +72,12 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error("[Admin] Error updating profile:", updateError);
-        // Rollback the ban
-        await serviceClient.auth.admin.updateUserById(userId, {
-          ban_duration: "none",
-        });
+        // Rollback the ban (only if auth account exists)
+        if (!authCheckError && authUser?.user) {
+          await serviceClient.auth.admin.updateUserById(userId, {
+            ban_duration: "none",
+          });
+        }
         return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
       }
     } else {
@@ -81,10 +91,12 @@ export async function POST(request: NextRequest) {
 
       if (!profileData?.organization_id) {
         console.error("[Admin] User does not have an organization_id");
-        // Rollback the ban
-        await serviceClient.auth.admin.updateUserById(userId, {
-          ban_duration: "none",
-        });
+        // Rollback the ban (only if auth account exists)
+        if (!authCheckError && authUser?.user) {
+          await serviceClient.auth.admin.updateUserById(userId, {
+            ban_duration: "none",
+          });
+        }
         return NextResponse.json({ error: "User does not have an organization" }, { status: 400 });
       }
 
@@ -98,10 +110,12 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error("[Admin] Error updating agency:", updateError);
-        // Rollback the ban
-        await serviceClient.auth.admin.updateUserById(userId, {
-          ban_duration: "none",
-        });
+        // Rollback the ban (only if auth account exists)
+        if (!authCheckError && authUser?.user) {
+          await serviceClient.auth.admin.updateUserById(userId, {
+            ban_duration: "none",
+          });
+        }
         return NextResponse.json({ error: "Failed to update agency" }, { status: 500 });
       }
     }

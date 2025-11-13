@@ -323,18 +323,26 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
           {/* Actions */}
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
             <button
-              onClick={() => window.location.href = `/${locale}/admin/users/${guide.profile_id}/edit`}
+              onClick={() => alert("Guide profile editing coming soon. For now, use the guide's profile page.")}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
               disabled={isLoading}
             >
               ✏️ Edit
             </button>
             <button
-              onClick={() => handleFreezeAccount(guide.profile_id, "guides")}
-              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 text-sm"
+              onClick={() => {
+                if (profile.rejection_reason?.startsWith("FROZEN:")) {
+                  handleUnfreezeAccount(guide.profile_id, "guides");
+                } else {
+                  handleFreezeAccount(guide.profile_id, "guides");
+                }
+              }}
+              className={`px-4 py-2 text-white rounded hover:opacity-90 disabled:opacity-50 text-sm ${
+                profile.rejection_reason?.startsWith("FROZEN:") ? "bg-green-600" : "bg-orange-600"
+              }`}
               disabled={isLoading}
             >
-              ❄️ Freeze
+              {profile.rejection_reason?.startsWith("FROZEN:") ? "🔥 Unfreeze" : "❄️ Freeze"}
             </button>
             <button
               onClick={() => handleDeleteAccount(guide.profile_id, "guides", profile.full_name || "Unknown")}
@@ -649,18 +657,26 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
           {/* Actions */}
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
             <button
-              onClick={() => window.location.href = `/${locale}/admin/users/${agency.id}/edit`}
+              onClick={() => alert("Agency profile editing coming soon. For now, use the agency's profile page.")}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
               disabled={isLoading}
             >
               ✏️ Edit
             </button>
             <button
-              onClick={() => handleFreezeAccount(agency.id, selectedTab)}
-              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 text-sm"
+              onClick={() => {
+                if (agency.rejection_reason?.startsWith("FROZEN:")) {
+                  handleUnfreezeAccount(agency.id, selectedTab);
+                } else {
+                  handleFreezeAccount(agency.id, selectedTab);
+                }
+              }}
+              className={`px-4 py-2 text-white rounded hover:opacity-90 disabled:opacity-50 text-sm ${
+                agency.rejection_reason?.startsWith("FROZEN:") ? "bg-green-600" : "bg-orange-600"
+              }`}
               disabled={isLoading}
             >
-              ❄️ Freeze
+              {agency.rejection_reason?.startsWith("FROZEN:") ? "🔥 Unfreeze" : "❄️ Freeze"}
             </button>
             <button
               onClick={() => handleDeleteAccount(agency.id, selectedTab, agency.name)}
@@ -670,7 +686,14 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
               🗑️ Delete
             </button>
             <button
-              onClick={() => window.open(`/${locale}/${agency.type === "agency" ? "agencies" : agency.type === "dmc" ? "dmcs" : "transport"}/${agency.slug}`, "_blank")}
+              onClick={() => {
+                const typeSegment = agency.type === "agency" ? "agencies" : agency.type === "dmc" ? "dmcs" : "transport";
+                if (agency.slug) {
+                  window.open(`/${locale}/${typeSegment}/${agency.slug}`, "_blank");
+                } else {
+                  alert("This profile doesn't have a public URL yet. It needs a slug to be viewable.");
+                }
+              }}
               className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 text-sm"
               disabled={isLoading}
             >

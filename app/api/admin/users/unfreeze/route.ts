@@ -37,14 +37,22 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Admin] Unfreezing account: ${userId} (${userType}) by ${user.id}`);
 
-    // Unban the user account in Supabase Auth
-    const { error: unbanError } = await serviceClient.auth.admin.updateUserById(userId, {
-      ban_duration: "none",
-    });
+    // Check if this profile has an auth account
+    const { data: authUser, error: authCheckError } = await serviceClient.auth.admin.getUserById(userId);
 
-    if (unbanError) {
-      console.error("[Admin] Error unbanning user:", unbanError);
-      return NextResponse.json({ error: "Failed to unfreeze account in auth system" }, { status: 500 });
+    if (!authCheckError && authUser?.user) {
+      // Unban the user account in Supabase Auth (only if auth account exists)
+      const { error: unbanError } = await serviceClient.auth.admin.updateUserById(userId, {
+        ban_duration: "none",
+      });
+
+      if (unbanError) {
+        console.error("[Admin] Error unbanning user:", unbanError);
+        return NextResponse.json({ error: "Failed to unfreeze account in auth system" }, { status: 500 });
+      }
+      console.log(`[Admin] Auth account unbanned: ${userId}`);
+    } else {
+      console.log(`[Admin] No auth account found for ${userId}, skipping auth unban (profile-only account)`);
     }
 
     // Clear the freeze status from profile/agency
