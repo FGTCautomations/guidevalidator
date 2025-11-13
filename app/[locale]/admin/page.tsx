@@ -8,7 +8,6 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchAdminDashboardData, ADMIN_ALLOWED_ROLES } from "@/lib/admin/queries";
 import { AdminCreateUserForm } from "@/components/admin/create-user-form";
 import { ExportDatabaseButton } from "@/components/admin/export-database-button";
-import { DashboardUsersTable } from "@/components/admin/dashboard-users-table";
 
 export const runtime = "nodejs";
 
@@ -31,7 +30,6 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
   const locale = requestedLocale as SupportedLocale;
   const adminTranslations = await getTranslations({ locale, namespace: "admin.dashboard" });
   const roleTranslations = await getTranslations({ locale, namespace: "admin.roles" });
-  const navTranslations = await getTranslations({ locale, namespace: "nav" });
 
   const supabase = getSupabaseServerClient();
   const {
@@ -301,69 +299,26 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
           ))}
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.6fr]">
-          <section className="space-y-4 rounded-[var(--radius-xl)] border border-foreground/10 bg-white/80 p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">{adminTranslations("users.heading")}</h2>
-                <p className="text-sm text-foreground/70">{adminTranslations("users.caption")}</p>
-              </div>
-              <Link
-                href={`/${locale}/directory`}
-                className="hidden rounded-full border border-secondary px-4 py-2 text-sm font-semibold text-secondary transition hover:bg-secondary hover:text-secondary-foreground md:inline-flex"
-              >
-                {navTranslations("directory")}
-              </Link>
-            </div>
-            <DashboardUsersTable
-              users={dashboard.users}
-              locale={locale}
-              roleLabels={Object.fromEntries(
-                ADMIN_ALLOWED_ROLES.map((role) => [role, roleTranslations(role)])
-              )}
-              translations={{
-                nameColumn: adminTranslations("users.columns.name"),
-                emailColumn: adminTranslations("users.columns.email"),
-                roleColumn: adminTranslations("users.columns.role"),
-                createdColumn: adminTranslations("users.columns.created"),
-                statusColumn: "Status",
-                actionsColumn: adminTranslations("users.columns.actions"),
-                viewAction: adminTranslations("users.view"),
-                fallbackName: adminTranslations("users.fallbackName"),
-                empty: adminTranslations("users.empty"),
-                searchPlaceholder: "Search by name or email...",
-                filterByRole: "Filter by role",
-                filterByStatus: "Filter by status",
-                allRoles: "All Roles",
-                allStatuses: "All Statuses",
-                active: "Active",
-                frozen: "Frozen",
-                unverified: "Unverified",
-              }}
-            />
-          </section>
-
-          <AdminCreateUserForm
-            locale={locale}
-            roles={roleOptions.map((option) => ({ value: option.value, label: option.label }))}
-            localeOptions={localeOptions}
-            countryOptions={countryOptions}
-            translations={{
-              title: adminTranslations("create.title"),
-              description: adminTranslations("create.description"),
-              email: adminTranslations("create.email"),
-              password: adminTranslations("create.password"),
-              fullName: adminTranslations("create.fullName"),
-              role: adminTranslations("create.role"),
-              localeLabel: adminTranslations("create.locale"),
-              country: adminTranslations("create.country"),
-              timezone: adminTranslations("create.timezone"),
-              submit: adminTranslations("create.submit"),
-              success: adminTranslations("create.success"),
-              error: adminTranslations("create.error"),
-            }}
-          />
-        </div>
+        <AdminCreateUserForm
+          locale={locale}
+          roles={roleOptions.map((option) => ({ value: option.value, label: option.label }))}
+          localeOptions={localeOptions}
+          countryOptions={countryOptions}
+          translations={{
+            title: adminTranslations("create.title"),
+            description: adminTranslations("create.description"),
+            email: adminTranslations("create.email"),
+            password: adminTranslations("create.password"),
+            fullName: adminTranslations("create.fullName"),
+            role: adminTranslations("create.role"),
+            localeLabel: adminTranslations("create.locale"),
+            country: adminTranslations("create.country"),
+            timezone: adminTranslations("create.timezone"),
+            submit: adminTranslations("create.submit"),
+            success: adminTranslations("create.success"),
+            error: adminTranslations("create.error"),
+          }}
+        />
       </div>
     </div>
   );

@@ -100,8 +100,9 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved">("all");
   const [verifiedFilter, setVerifiedFilter] = useState<"all" | "verified" | "unverified">("all");
+  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "frozen">("all");
   const [deleteModal, setDeleteModal] = useState<{ userId: string; userName: string; userType: UserType } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
@@ -702,7 +703,15 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
       (verifiedFilter === "verified" && (selectedTab === "guides" ? user.profiles.verified : user.verified)) ||
       (verifiedFilter === "unverified" && !(selectedTab === "guides" ? user.profiles.verified : user.verified));
 
-    return matchesSearch && matchesStatus && matchesVerified;
+    const isFrozen = selectedTab === "guides"
+      ? user.profiles.rejection_reason?.startsWith("FROZEN:")
+      : user.rejection_reason?.startsWith("FROZEN:");
+
+    const matchesActive = activeFilter === "all" ||
+      (activeFilter === "frozen" && isFrozen) ||
+      (activeFilter === "active" && !isFrozen);
+
+    return matchesSearch && matchesStatus && matchesVerified && matchesActive;
   });
 
   const stats = {
@@ -786,20 +795,19 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
               className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             />
           </div>
-          <div className="flex gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-foreground/70 mb-2">
-                Application Status
+                Account Status
               </label>
               <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                value={activeFilter}
+                onChange={(e) => setActiveFilter(e.target.value as typeof activeFilter)}
                 className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
               >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
+                <option value="all">All</option>
+                <option value="active">Active Only</option>
+                <option value="frozen">Frozen Only</option>
               </select>
             </div>
             <div className="flex-1">
@@ -816,8 +824,22 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
                 <option value="unverified">Unverified Only</option>
               </select>
             </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-foreground/70 mb-2">
+                Application Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+              </select>
+            </div>
           </div>
-          {(searchQuery || statusFilter !== "all" || verifiedFilter !== "all") && (
+          {(searchQuery || statusFilter !== "all" || verifiedFilter !== "all" || activeFilter !== "all") && (
             <div className="flex items-center justify-between bg-white p-3 rounded">
               <span className="text-sm text-foreground/70">
                 Showing {filteredUsers.length} of {currentUsers.length} {selectedTab}
@@ -827,6 +849,7 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
                   setSearchQuery("");
                   setStatusFilter("all");
                   setVerifiedFilter("all");
+                  setActiveFilter("all");
                 }}
                 className="text-sm text-blue-600 hover:text-blue-800 font-medium"
               >
@@ -839,7 +862,7 @@ export function UsersManager({ locale, users }: UsersManagerProps) {
 
       {/* Users List */}
       <div className="space-y-4">
-        {!searchQuery && statusFilter === "all" && verifiedFilter === "all" ? (
+        {!searchQuery && statusFilter === "all" && verifiedFilter === "all" && activeFilter === "all" ? (
           <div className="rounded-xl border border-foreground/10 bg-white p-12 text-center shadow-sm">
             <div className="mx-auto max-w-md space-y-3">
               <svg
