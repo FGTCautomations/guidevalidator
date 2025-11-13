@@ -79,11 +79,17 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid ad ID" }, { status: 400 });
     }
 
-    const body: Partial<UpdateAdInput> = await request.json();
+    const body: any = await request.json();
+
+    // Extract list_context if present (not part of ad table)
+    const list_context = body.list_context;
+
+    // Remove list_context from body as it's not in ads table
+    const { list_context: _, ...adData } = body;
 
     // Validate date range if both provided
-    if (body.start_at && body.end_at) {
-      if (new Date(body.end_at) <= new Date(body.start_at)) {
+    if (adData.start_at && adData.end_at) {
+      if (new Date(adData.end_at) <= new Date(adData.start_at)) {
         return NextResponse.json(
           { error: "end_at must be after start_at" },
           { status: 400 }
@@ -91,13 +97,40 @@ export async function PUT(
       }
     }
 
-    const ad = await updateAd({ ...body, id });
+    const ad = await updateAd({ ...adData, id } as UpdateAdInput);
 
     if (!ad) {
       return NextResponse.json(
         { error: "Failed to update ad" },
         { status: 500 }
       );
+    }
+
+    // Update sponsored_listings if list_context is provided and placement includes "listings"
+    if (list_context && adData.placement?.includes("listings")) {
+      const { getSupabaseServiceRoleClient } = await import("@/lib/supabase/server");
+      const supabase = getSupabaseServiceRoleClient();
+
+      // Delete existing sponsored_listings for this ad
+      await supabase.from("sponsored_listings").delete().eq("ad_id", id);
+
+      // Create new entries for positions 3 and 10
+      const { error: sponsoredError } = await supabase
+        .from("sponsored_listings")
+        .insert([
+          { ad_id: id, list_context, insert_after: 3 },
+          { ad_id: id, list_context, insert_after: 10 }
+        ]);
+
+      if (sponsoredError) {
+        console.error("Error updating sponsored listings:", sponsoredError);
+        // Don't fail the request, ad was updated successfully
+      }
+    } else if (!adData.placement?.includes("listings")) {
+      // If placement no longer includes "listings", remove sponsored_listings
+      const { getSupabaseServiceRoleClient } = await import("@/lib/supabase/server");
+      const supabase = getSupabaseServiceRoleClient();
+      await supabase.from("sponsored_listings").delete().eq("ad_id", id);
     }
 
     return NextResponse.json(ad);

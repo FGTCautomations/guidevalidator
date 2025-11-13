@@ -8,6 +8,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchAdminDashboardData, ADMIN_ALLOWED_ROLES } from "@/lib/admin/queries";
 import { AdminCreateUserForm } from "@/components/admin/create-user-form";
 import { ExportDatabaseButton } from "@/components/admin/export-database-button";
+import { DashboardUsersTable } from "@/components/admin/dashboard-users-table";
 
 export const runtime = "nodejs";
 
@@ -105,6 +106,26 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               <p className="text-sm text-foreground/70 sm:text-base">{adminTranslations("subtitle")}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href={`/${locale}/admin/users`}
+                className="relative inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>Search All Accounts</span>
+              </Link>
               <Link
                 href={`/${locale}/admin/bulk-upload`}
                 className="relative inline-flex items-center gap-2 rounded-full bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300"
@@ -294,76 +315,32 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
                 {navTranslations("directory")}
               </Link>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px] text-left text-sm">
-                <thead className="text-xs uppercase tracking-wider text-foreground/60">
-                  <tr>
-                    <th className="px-3 py-2">{adminTranslations("users.columns.name")}</th>
-                    <th className="px-3 py-2">{adminTranslations("users.columns.email")}</th>
-                    <th className="px-3 py-2">{adminTranslations("users.columns.role")}</th>
-                    <th className="px-3 py-2">{adminTranslations("users.columns.created")}</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2 text-right">{adminTranslations("users.columns.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-foreground/10">
-                  {dashboard.users.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-3 py-4 text-center text-sm text-foreground/60">
-                        {adminTranslations("users.empty")}
-                      </td>
-                    </tr>
-                  ) : (
-                    dashboard.users.map((user) => {
-                      const createdLabel = new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
-                        new Date(user.createdAt)
-                      );
-                      const roleLabel = roleTranslations(user.role as any);
-                      return (
-                        <tr key={user.id} className="bg-white/40">
-                          <td className="px-3 py-3 text-foreground">
-                            <div className="flex flex-col">
-                              <span className="font-medium">{user.name ?? adminTranslations("users.fallbackName")}</span>
-                              {user.organizationName ? (
-                                <span className="text-xs text-foreground/60">{user.organizationName}</span>
-                              ) : null}
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 text-foreground/70">{user.email ?? "--"}</td>
-                          <td className="px-3 py-3 text-foreground/70">{roleLabel}</td>
-                          <td className="px-3 py-3 text-foreground/70">{createdLabel}</td>
-                          <td className="px-3 py-3">
-                            <div className="flex gap-2">
-                              {user.isFrozen ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
-                                  ❄️ Frozen
-                                </span>
-                              ) : user.verified ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                                  ✅ Active
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
-                                  Unverified
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <Link
-                              href={`/${locale}/admin/users/${user.id}`}
-                              className="text-sm font-semibold text-secondary transition hover:text-secondary/80"
-                            >
-                              {adminTranslations("users.view")}
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DashboardUsersTable
+              users={dashboard.users}
+              locale={locale}
+              roleLabels={Object.fromEntries(
+                ADMIN_ALLOWED_ROLES.map((role) => [role, roleTranslations(role)])
+              )}
+              translations={{
+                nameColumn: adminTranslations("users.columns.name"),
+                emailColumn: adminTranslations("users.columns.email"),
+                roleColumn: adminTranslations("users.columns.role"),
+                createdColumn: adminTranslations("users.columns.created"),
+                statusColumn: "Status",
+                actionsColumn: adminTranslations("users.columns.actions"),
+                viewAction: adminTranslations("users.view"),
+                fallbackName: adminTranslations("users.fallbackName"),
+                empty: adminTranslations("users.empty"),
+                searchPlaceholder: "Search by name or email...",
+                filterByRole: "Filter by role",
+                filterByStatus: "Filter by status",
+                allRoles: "All Roles",
+                allStatuses: "All Statuses",
+                active: "Active",
+                frozen: "Frozen",
+                unverified: "Unverified",
+              }}
+            />
           </section>
 
           <AdminCreateUserForm
