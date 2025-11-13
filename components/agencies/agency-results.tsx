@@ -9,6 +9,7 @@ import {
 import { ListingCard } from "@/components/directory/listing-card";
 import { getLanguageName } from "@/lib/utils/locale";
 import type { SupportedLocale } from "@/i18n/config";
+import { ClientAdInjector } from "@/components/ads/ClientAdInjector";
 
 interface AgencyResultsProps {
   initialResults: AgencyResult[];
@@ -161,14 +162,34 @@ export function AgencyResults({
         )}
       </div>
 
-      {/* Listings grid */}
+      {/* Listings grid with ads */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {transformedResults.map((listing) => (
-          <ListingCard
-            key={listing.id}
-            listing={listing}
-            actionLabel="View Profile"
-          />
+        {transformedResults.map((listing, index) => (
+          <>
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              actionLabel="View Profile"
+            />
+
+            {/* Inject ad after 3rd item (index 2) */}
+            {index === 2 && (
+              <ClientAdInjector
+                position={3}
+                listContext="agencies"
+                country={currentFilters.country}
+              />
+            )}
+
+            {/* Inject ad after 10th item (index 9) */}
+            {index === 9 && (
+              <ClientAdInjector
+                position={10}
+                listContext="agencies"
+                country={currentFilters.country}
+              />
+            )}
+          </>
         ))}
       </div>
 

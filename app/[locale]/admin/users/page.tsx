@@ -37,9 +37,10 @@ export default async function AdminUsersPage({
     redirect(`/${locale}`);
   }
 
-  // Fetch all users with their complete information
+  // Fetch users with their complete information
+  // Note: Limited to 5000 per type for performance
   const [guides, agencies, dmcs, transport] = await Promise.all([
-    // Fetch all guides with profiles
+    // Fetch guides with profiles (limited to 5000)
     supabase
       .from("guides")
       .select(`
@@ -47,7 +48,6 @@ export default async function AdminUsersPage({
         profiles!inner(
           id,
           full_name,
-          email,
           role,
           country_code,
           timezone,
@@ -63,28 +63,32 @@ export default async function AdminUsersPage({
           updated_at
         )
       `)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(5000),
 
-    // Fetch all agencies
+    // Fetch agencies (limited to 5000)
     supabase
       .from("agencies")
       .select("*")
       .eq("type", "agency")
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(5000),
 
-    // Fetch all DMCs
+    // Fetch DMCs (limited to 5000)
     supabase
       .from("agencies")
       .select("*")
       .eq("type", "dmc")
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(5000),
 
-    // Fetch all transport companies
+    // Fetch transport companies (limited to 5000)
     supabase
       .from("agencies")
       .select("*")
       .eq("type", "transport")
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(5000),
   ]);
 
   const users = {
