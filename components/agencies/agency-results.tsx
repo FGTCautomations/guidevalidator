@@ -96,7 +96,7 @@ export function AgencyResults({
 
     return {
       id: agency.id,
-      name: agency.name,
+      name: agency.name_english || agency.name,
       headline: undefined,
       location: agency.country_code,
       countryCode: agency.country_code,

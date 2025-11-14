@@ -18,6 +18,7 @@ export interface AgencySearchParams {
 export interface AgencyResult {
   id: string;
   name: string;
+  name_english?: string | null;
   logo_url: string | null;
   website_url: string | null;
   country_code: string;
