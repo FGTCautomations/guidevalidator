@@ -11,164 +11,142 @@ export async function approveApplicationAction(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const supabase = getSupabaseServiceClient();
-    const table = `${applicationType}_applications`;
 
-    // Get application details
-    const { data: application, error: fetchError } = await supabase
-      .from(table)
-      .select("*")
-      .eq("id", applicationId)
-      .single();
+    let userId: string;
+    let email: string;
+    let applicantName: string;
+    let locale: string = "en";
 
-    if (fetchError || !application) {
-      return { ok: false, error: "Application not found" };
-    }
+    // Fetch application data from the appropriate table
+    if (applicationType === "guide") {
+      // For guides: check profiles table with application_status=pending
+      // Note: We don't check role='guide' here because the role might not be set until approval
+      console.log("[approveApplication] Looking for guide profile:", { applicationId, applicationType });
 
-    // Update application status
-    const { error: updateError } = await supabase
-      .from(table)
-      .update({ status: "approved" })
-      .eq("id", applicationId);
+      const { data: profile, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, locale, role, application_status")
+        .eq("id", applicationId)
+        .eq("application_status", "pending")
+        .single();
 
-    if (updateError) {
-      return { ok: false, error: updateError.message };
-    }
+      console.log("[approveApplication] Query result:", { profile, fetchError, applicationId });
 
-    let userId = application.user_id;
-    const email = application.login_email || application.contact_email;
+      if (fetchError || !profile) {
+        console.error("[approveApplication] Guide application not found:", { applicationId, fetchError, hasProfile: !!profile });
 
-    // Check if auth account was already created during application
-    if (userId) {
-      console.log("[approveApplication] Auth account already exists for user:", userId);
-      console.log("[approveApplication] Activating account by removing pending_approval flag and unbanning");
+        // Additional debug: Try finding the profile without status filter
+        const { data: anyProfile } = await supabase
+          .from("profiles")
+          .select("id, full_name, application_status, role")
+          .eq("id", applicationId)
+          .single();
 
-      // Remove pending_approval flag and unban user to activate account
-      const { error: activateError } = await supabase.auth.admin.updateUserById(userId, {
-        ban_duration: "none", // Unban the user (they were banned during application)
-        user_metadata: {
-          full_name: application.full_name || application.legal_company_name || application.legal_entity_name,
-          role: applicationType,
-          pending_approval: false, // Remove pending flag
-          timezone: application.timezone,
-          availability_timezone: application.availability_timezone,
-          working_hours: application.working_hours,
-          subscription_plan: application.subscription_plan,
-        },
-      });
+        console.error("[approveApplication] Profile exists with any status?", anyProfile);
 
-      if (activateError) {
-        console.error("[approveApplication] Error activating account:", activateError);
-        return { ok: false, error: `Failed to activate account: ${activateError.message}` };
+        return { ok: false, error: "Application not found" };
       }
 
-      console.log("[approveApplication] Account activated and unbanned successfully");
+      userId = profile.id;
+      email = profile.email;
+      applicantName = profile.full_name;
+      locale = profile.locale || "en";
+
+      // Update profile to approved status and ensure role is set to 'guide'
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          role: "guide",
+          application_status: "approved",
+          verified: true,
+          license_verified: true,
+          application_reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (updateError) {
+        console.error("[approveApplication] Error updating profile:", updateError);
+        return { ok: false, error: updateError.message };
+      }
+
+      console.log("[approveApplication] Guide profile approved successfully");
     } else {
-      // Legacy flow: create auth account if not already created
-      const password = generateTemporaryPassword();
+      // For agencies/DMCs/transport: check agencies table
+      // Note: agencies.id IS the user ID (not a separate profile_id column)
+      const { data: agency, error: fetchError} = await supabase
+        .from("agencies")
+        .select("id, name, contact_email")
+        .eq("id", applicationId)
+        .eq("type", applicationType)
+        .eq("application_status", "pending")
+        .single();
 
-      console.log("[approveApplication] Creating user with email:", email);
-      console.log("[approveApplication] User metadata:", {
-        full_name: application.full_name || application.legal_company_name || application.legal_entity_name,
-        role: applicationType,
-      });
-
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true, // Auto-confirm email
-        user_metadata: {
-          full_name: application.full_name || application.legal_company_name || application.legal_entity_name,
-          role: applicationType,
-          pending_approval: false,
-          timezone: application.timezone,
-          availability_timezone: application.availability_timezone,
-          working_hours: application.working_hours,
-          subscription_plan: application.subscription_plan,
-        },
-      });
-
-      if (authError || !authData.user) {
-        console.error("[approveApplication] Error creating auth user:", authError);
-        console.error("[approveApplication] Auth error details:", {
-          message: authError?.message,
-          status: authError?.status,
-          name: authError?.name,
-        });
-        const errorMsg = authError?.message || "Failed to create user account";
-        return { ok: false, error: `Failed to create user account: ${errorMsg}` };
+      if (fetchError || !agency) {
+        console.error("[approveApplication] Agency application not found:", fetchError);
+        return { ok: false, error: "Application not found" };
       }
 
-      console.log("[approveApplication] Auth user created successfully:", authData.user.id);
-      userId = authData.user.id;
-    }
+      userId = agency.id; // agencies.id IS the user/profile ID
+      email = agency.contact_email;
+      applicantName = agency.name;
 
-    // Wait a moment for the trigger to create the profile
-    console.log("[approveApplication] Waiting for trigger to create profile...");
-    await new Promise(resolve => setTimeout(resolve, 500));
+      // Update agency to approved status
+      const { error: updateError } = await supabase
+        .from("agencies")
+        .update({
+          application_status: "approved",
+          verified: true,
+          application_reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", applicationId);
 
-    // Verify profile was created by trigger
-    const { data: existingProfile, error: fetchProfileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-
-    console.log("[approveApplication] Profile after trigger:", existingProfile);
-    console.log("[approveApplication] Fetch profile error:", fetchProfileError);
-
-    // Update the profile (trigger already created it with default values)
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({
-        role: applicationType,
-        locale: application.locale || "en",
-        onboarding_completed: false,
-        avatar_url: application.avatar_url || null,
-      })
-      .eq("id", userId);
-
-    if (profileError) {
-      console.error("[approveApplication] Error updating profile:", profileError);
-      console.error("[approveApplication] Profile error details:", {
-        message: profileError?.message,
-        code: profileError?.code,
-        details: profileError?.details,
-      });
-      // Cleanup: delete auth user if profile update fails
-      await supabase.auth.admin.deleteUser(userId);
-      return { ok: false, error: `Failed to update profile: ${profileError.message}` };
-    }
-
-    console.log("[approveApplication] Profile updated successfully");
-
-    // Create role-specific records
-    try {
-      if (applicationType === "guide") {
-        await createGuideProfile(supabase, userId, application);
-      } else if (applicationType === "agency") {
-        await createOrganizationProfile(supabase, userId, application, "agency");
-      } else if (applicationType === "dmc") {
-        await createOrganizationProfile(supabase, userId, application, "dmc");
-      } else if (applicationType === "transport") {
-        await createOrganizationProfile(supabase, userId, application, "transport");
+      if (updateError) {
+        console.error("[approveApplication] Error updating agency:", updateError);
+        return { ok: false, error: updateError.message };
       }
-    } catch (roleError) {
-      console.error("[approveApplication] Error creating role-specific profile:", roleError);
-      // Cleanup: delete auth user and profile
-      await supabase.auth.admin.deleteUser(userId);
-      const errorMsg = roleError instanceof Error ? roleError.message : "Unknown error";
-      return { ok: false, error: `Failed to create ${applicationType} profile: ${errorMsg}` };
+
+      // Also update the profile status
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({
+          application_status: "approved",
+          verified: true,
+          application_reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (profileUpdateError) {
+        console.error("[approveApplication] Error updating profile:", profileUpdateError);
+        // Continue anyway - agency was approved
+      }
+
+      console.log("[approveApplication] Agency approved successfully");
     }
 
-    // Send approval email with credentials
-    const applicantName = application.full_name || application.legal_company_name || application.legal_entity_name;
+    // Unban the user in auth.users
+    console.log("[approveApplication] Unbanning user:", userId);
+    const { error: unbanError } = await supabase.auth.admin.updateUserById(userId, {
+      ban_duration: "none",
+      user_metadata: {
+        pending_approval: false,
+      },
+    });
+
+    if (unbanError) {
+      console.error("[approveApplication] Error unbanning user:", unbanError);
+      return { ok: false, error: `Failed to activate account: ${unbanError.message}` };
+    }
+
+    console.log("[approveApplication] User unbanned successfully");
+
+    // Send approval email
     try {
       const emailResult = await sendApplicationApprovedEmail({
         applicantEmail: email,
         applicantName,
         applicationType,
         applicationId,
-        locale: application.locale,
+        locale,
       });
 
       if (!emailResult.ok) {
@@ -178,21 +156,6 @@ export async function approveApplicationAction(
     } catch (emailError) {
       console.error("Error sending approval email:", emailError);
       // Continue anyway - email failure shouldn't block approval
-    }
-
-    // TODO: Send credentials email separately (for security, should be sent via reset password flow)
-
-    // Delete the application record after successful approval (only keep pending applications)
-    const { error: deleteError } = await supabase
-      .from(table)
-      .delete()
-      .eq("id", applicationId);
-
-    if (deleteError) {
-      console.error("[approveApplication] Warning: Failed to delete application record:", deleteError);
-      // Don't fail the approval if delete fails - the approval was successful
-    } else {
-      console.log("[approveApplication] Application record deleted successfully");
     }
 
     return { ok: true };
@@ -211,49 +174,120 @@ export async function declineApplicationAction(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const supabase = getSupabaseServiceClient();
-    const table = `${applicationType}_applications`;
 
-    // Get application details
-    const { data: application, error: fetchError } = await supabase
-      .from(table)
-      .select("*")
-      .eq("id", applicationId)
-      .single();
+    let userId: string;
+    let email: string;
+    let applicantName: string;
+    let locale: string = "en";
 
-    if (fetchError || !application) {
-      return { ok: false, error: "Application not found" };
-    }
+    // Fetch application data from the appropriate table
+    if (applicationType === "guide") {
+      // For guides: check profiles table with application_status=pending
+      // Note: We don't check role='guide' here because the role might not be set until approval
+      const { data: profile, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, locale, role")
+        .eq("id", applicationId)
+        .eq("application_status", "pending")
+        .single();
 
-    // Update application status
-    const { error: updateError } = await supabase
-      .from(table)
-      .update({ status: "declined" })
-      .eq("id", applicationId);
-
-    if (updateError) {
-      return { ok: false, error: updateError.message };
-    }
-
-    // Delete auth user if one was created during application
-    if (application.user_id) {
-      console.log("[declineApplication] Deleting auth user:", application.user_id);
-      const { error: deleteUserError } = await supabase.auth.admin.deleteUser(application.user_id);
-      if (deleteUserError) {
-        console.error("[declineApplication] Warning: Failed to delete auth user:", deleteUserError);
-      } else {
-        console.log("[declineApplication] Auth user deleted successfully");
+      if (fetchError || !profile) {
+        console.error("[declineApplication] Guide application not found:", fetchError);
+        return { ok: false, error: "Application not found" };
       }
+
+      userId = profile.id;
+      email = profile.email;
+      applicantName = profile.full_name;
+      locale = profile.locale || "en";
+
+      // Update profile to declined status
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          application_status: "declined",
+          rejection_reason: reason,
+          application_reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (updateError) {
+        console.error("[declineApplication] Error updating profile:", updateError);
+        return { ok: false, error: updateError.message };
+      }
+
+      console.log("[declineApplication] Guide profile declined successfully");
+    } else {
+      // For agencies/DMCs/transport: check agencies table
+      // Note: agencies.id IS the user ID (not a separate profile_id column)
+      const { data: agency, error: fetchError } = await supabase
+        .from("agencies")
+        .select("id, name, contact_email")
+        .eq("id", applicationId)
+        .eq("type", applicationType)
+        .eq("application_status", "pending")
+        .single();
+
+      if (fetchError || !agency) {
+        console.error("[declineApplication] Agency application not found:", fetchError);
+        return { ok: false, error: "Application not found" };
+      }
+
+      userId = agency.id; // agencies.id IS the user/profile ID
+      email = agency.contact_email;
+      applicantName = agency.name;
+
+      // Update agency to declined status
+      const { error: updateError } = await supabase
+        .from("agencies")
+        .update({
+          application_status: "declined",
+          rejection_reason: reason,
+          application_reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", applicationId);
+
+      if (updateError) {
+        console.error("[declineApplication] Error updating agency:", updateError);
+        return { ok: false, error: updateError.message };
+      }
+
+      // Also update the profile status
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({
+          application_status: "declined",
+          rejection_reason: reason,
+          application_reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (profileUpdateError) {
+        console.error("[declineApplication] Error updating profile:", profileUpdateError);
+        // Continue anyway - agency was declined
+      }
+
+      console.log("[declineApplication] Agency declined successfully");
+    }
+
+    // Delete the auth user account
+    console.log("[declineApplication] Deleting auth user:", userId);
+    const { error: deleteUserError } = await supabase.auth.admin.deleteUser(userId);
+    if (deleteUserError) {
+      console.error("[declineApplication] Warning: Failed to delete auth user:", deleteUserError);
+      // Continue anyway - application was declined
+    } else {
+      console.log("[declineApplication] Auth user deleted successfully");
     }
 
     // Send decline email
-    const applicantName = application.full_name || application.legal_company_name || application.legal_entity_name;
     try {
       const emailResult = await sendApplicationDeclinedEmail({
-        applicantEmail: application.contact_email,
+        applicantEmail: email,
         applicantName,
         applicationType,
         applicationId,
-        locale: application.locale,
+        locale,
         reason,
       });
 
@@ -261,24 +295,11 @@ export async function declineApplicationAction(
         console.error("Failed to send decline email:", emailResult.error);
         // Continue anyway - email failure shouldn't block decline
       } else {
-        console.log("Decline email sent successfully to:", application.contact_email);
+        console.log("Decline email sent successfully to:", email);
       }
     } catch (emailError) {
       console.error("Error sending decline email:", emailError);
       // Continue anyway - email failure shouldn't block decline
-    }
-
-    // Delete the application record after decline (only keep pending applications)
-    const { error: deleteError } = await supabase
-      .from(table)
-      .delete()
-      .eq("id", applicationId);
-
-    if (deleteError) {
-      console.error("[declineApplication] Warning: Failed to delete application record:", deleteError);
-      // Don't fail the decline if delete fails - the decline was successful
-    } else {
-      console.log("[declineApplication] Application record deleted successfully");
     }
 
     return { ok: true };
@@ -290,215 +311,3 @@ export async function declineApplicationAction(
   }
 }
 
-// Helper functions
-
-function generateTemporaryPassword(): string {
-  // Generate a secure random password (16 characters)
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-  let password = "";
-  for (let i = 0; i < 16; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-}
-
-async function createGuideProfile(supabase: any, userId: string, application: any) {
-  console.log("[createGuideProfile] Creating or updating guide record for user:", userId);
-  console.log("[createGuideProfile] Application data:", {
-    full_name: application.full_name,
-    professional_intro: application.professional_intro,
-    experience_years: application.experience_years,
-    timezone: application.timezone,
-    availability_timezone: application.availability_timezone,
-    working_hours: application.working_hours,
-  });
-
-  // Extract language codes from languages_spoken array
-  const spokenLanguages = Array.isArray(application.languages_spoken)
-    ? application.languages_spoken.map((lang: any) =>
-        typeof lang === 'object' && lang.language ? lang.language : String(lang)
-      ).filter(Boolean)
-    : [];
-
-  // Extract specializations array
-  const specialties = Array.isArray(application.specializations)
-    ? application.specializations.filter(Boolean)
-    : [];
-
-  // Extract expertise areas array
-  const expertiseAreas = Array.isArray(application.expertise_areas)
-    ? application.expertise_areas.filter(Boolean)
-    : [];
-
-  const payload = {
-    profile_id: userId,
-    business_name: application.full_name ?? null,
-    bio: application.professional_intro ?? null,
-    years_experience: application.experience_years ?? null,
-    hourly_rate_cents: null,
-    currency: "USD",
-    response_time_minutes: null,
-    avatar_url: application.avatar_url ?? null,
-    timezone: application.timezone ?? null,
-    availability_timezone: application.availability_timezone ?? null,
-    working_hours: application.working_hours ?? null,
-    spoken_languages: spokenLanguages,
-    specialties: specialties,
-    expertise_areas: expertiseAreas,
-    license_number: application.license_number ?? null,
-    license_authority: application.license_authority ?? null,
-    license_proof_url: application.license_proof_url ?? null,
-    id_document_url: application.id_document_url ?? null,
-    experience_summary: application.experience_summary ?? null,
-    sample_itineraries: application.sample_itineraries ?? null,
-    media_gallery: application.media_gallery ?? null,
-    availability_notes: application.availability_notes ?? null,
-  };
-
-  const { data: existing, error: fetchError } = await supabase
-    .from("guides")
-    .select("profile_id")
-    .eq("profile_id", userId)
-    .maybeSingle();
-
-  if (fetchError) {
-    console.error("[createGuideProfile] Error checking existing guide record:", fetchError);
-    throw fetchError;
-  }
-
-  if (existing) {
-    console.log("[createGuideProfile] Guide record already exists. Updating profile:", existing);
-    const { error: updateError } = await supabase
-      .from("guides")
-      .update({
-        business_name: payload.business_name,
-        bio: payload.bio,
-        years_experience: payload.years_experience,
-        hourly_rate_cents: payload.hourly_rate_cents,
-        currency: payload.currency,
-        response_time_minutes: payload.response_time_minutes,
-        avatar_url: payload.avatar_url,
-        timezone: payload.timezone,
-        availability_timezone: payload.availability_timezone,
-        working_hours: payload.working_hours,
-        spoken_languages: payload.spoken_languages,
-        specialties: payload.specialties,
-        expertise_areas: payload.expertise_areas,
-        license_number: payload.license_number,
-        license_authority: payload.license_authority,
-        license_proof_url: payload.license_proof_url,
-        id_document_url: payload.id_document_url,
-        experience_summary: payload.experience_summary,
-        sample_itineraries: payload.sample_itineraries,
-        media_gallery: payload.media_gallery,
-        availability_notes: payload.availability_notes,
-      })
-      .eq("profile_id", userId);
-
-    if (updateError) {
-      console.error("[createGuideProfile] Error updating guide record:", updateError);
-      throw updateError;
-    }
-
-    console.log("[createGuideProfile] Guide record updated successfully for", userId);
-    return;
-  }
-
-  const { error: insertError } = await supabase.from("guides").insert(payload);
-
-  if (insertError) {
-    console.error("[createGuideProfile] Error inserting guide record:", insertError);
-    throw insertError;
-  }
-
-  console.log("[createGuideProfile] Guide record created successfully for", userId);
-
-  if (application.specializations && application.specializations.length > 0) {
-    // Store in guide record or separate table as needed
-  }
-}
-
-async function createOrganizationProfile(supabase: any, userId: string, application: any, type: string) {
-  console.log("[createOrganizationProfile] Creating organization for user:", userId);
-  console.log("[createOrganizationProfile] Type:", type);
-  console.log("[createOrganizationProfile] Application data:", {
-    legal_company_name: application.legal_company_name,
-    legal_entity_name: application.legal_entity_name,
-    company_description: application.company_description,
-  });
-
-  // Extract languages and specialties from application
-  const languages = Array.isArray(application.languages)
-    ? application.languages.filter(Boolean)
-    : Array.isArray(application.languages_spoken)
-    ? application.languages_spoken.map((lang: any) =>
-        typeof lang === 'object' && lang.language ? lang.language : String(lang)
-      ).filter(Boolean)
-    : [];
-
-  const specialties = Array.isArray(application.specializations)
-    ? application.specializations.filter(Boolean)
-    : Array.isArray(application.specialties)
-    ? application.specialties.filter(Boolean)
-    : [];
-
-  // Create agency (agencies table is used for all organizations: agency, dmc, transport)
-  const { data: agency, error: agencyError } = await supabase
-    .from("agencies")
-    .insert({
-      type: type, // Column is 'type', not 'agency_type'
-      name: application.legal_company_name || application.legal_entity_name,
-      description: application.company_description || application.company_overview || application.short_description,
-      coverage_summary: application.coverage_summary || application.service_areas,
-      website: application.website_url || application.website,
-      registration_number: application.registration_number || application.business_registration_number,
-      vat_id: application.vat_id || application.tax_id,
-      country_code: application.country_code || application.country,
-      languages: languages.length > 0 ? languages : null,
-      specialties: specialties.length > 0 ? specialties : null,
-      verified: true, // Set to true since admin is approving
-    })
-    .select()
-    .single();
-
-  if (agencyError || !agency) {
-    console.error("[createOrganizationProfile] Error creating agency:", agencyError);
-    console.error("[createOrganizationProfile] Error details:", {
-      message: agencyError?.message,
-      code: agencyError?.code,
-      details: agencyError?.details,
-    });
-    throw agencyError;
-  }
-
-  console.log("[createOrganizationProfile] Agency created:", agency.id);
-
-  // Link profile to agency
-  const { error: linkError } = await supabase
-    .from("profiles")
-    .update({ organization_id: agency.id })
-    .eq("id", userId);
-
-  if (linkError) {
-    console.error("[createOrganizationProfile] Error linking profile to agency:", linkError);
-    throw linkError;
-  }
-
-  console.log("[createOrganizationProfile] Profile linked to agency");
-
-  // Create agency member record
-  const { error: memberError } = await supabase
-    .from("agency_members")
-    .insert({
-      agency_id: agency.id,
-      profile_id: userId,
-      role: "owner",
-    });
-
-  if (memberError) {
-    console.error("[createOrganizationProfile] Error creating agency member:", memberError);
-    throw memberError;
-  }
-
-  console.log("[createOrganizationProfile] Agency member created successfully");
-}

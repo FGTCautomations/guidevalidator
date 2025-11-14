@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 
 export type CountryLocation = {
   countryCode: string;
@@ -22,6 +22,12 @@ export type MultiCountryLocationSelectorProps = {
   required?: boolean;
 };
 
+type LocationOption = {
+  id: string;
+  name: string;
+  code?: string;
+};
+
 export function MultiCountryLocationSelector({
   value,
   onChange,
@@ -31,13 +37,203 @@ export function MultiCountryLocationSelector({
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
 
+  // Location data cache
+  const [locationData, setLocationData] = useState<{
+    [countryCode: string]: {
+      regions: LocationOption[];
+      cities: LocationOption[];
+      parks: LocationOption[];
+      loading: boolean;
+      citiesLoading: boolean;
+      parksLoading: boolean;
+    };
+  }>({});
+
+  // Track selected region IDs for each country
+  const [selectedRegionIds, setSelectedRegionIds] = useState<{
+    [countryCode: string]: Set<string>;
+  }>({});
+
   // Initialize from value
   useEffect(() => {
     if (value.countries.length > 0) {
       setSelectedCountries(value.countries.map(c => c.countryCode));
       setExpandedCountries(new Set(value.countries.map(c => c.countryCode)));
+
+      // Fetch location data for each country
+      value.countries.forEach(country => {
+        fetchRegions(country.countryCode);
+      });
     }
   }, []);
+
+  const fetchRegions = async (countryCode: string) => {
+    if (locationData[countryCode]?.regions.length > 0) return; // Already loaded
+
+    setLocationData(prev => ({
+      ...prev,
+      [countryCode]: {
+        regions: [],
+        cities: [],
+        parks: [],
+        loading: true,
+        citiesLoading: false,
+        parksLoading: false,
+      },
+    }));
+
+    try {
+      const response = await fetch(`/api/locations/regions?country=${countryCode}`);
+      const data = await response.json();
+
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          regions: data.regions || [],
+          loading: false,
+        },
+      }));
+    } catch (error) {
+      console.error(`Error fetching regions for ${countryCode}:`, error);
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          regions: [],
+          loading: false,
+        },
+      }));
+    }
+  };
+
+  const fetchCitiesForRegions = async (countryCode: string, regionIds: string[]) => {
+    if (regionIds.length === 0) {
+      // No regions selected, clear cities
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          cities: [],
+          citiesLoading: false,
+        },
+      }));
+      return;
+    }
+
+    setLocationData(prev => ({
+      ...prev,
+      [countryCode]: {
+        ...prev[countryCode],
+        citiesLoading: true,
+      },
+    }));
+
+    try {
+      // Fetch cities for each selected region
+      const citiesPromises = regionIds.map(regionId =>
+        fetch(`/api/locations/cities?region=${regionId}`).then(res => res.json())
+      );
+
+      const citiesResults = await Promise.all(citiesPromises);
+      const allCities: LocationOption[] = [];
+      const seenIds = new Set<string>();
+
+      citiesResults.forEach(result => {
+        if (result.cities) {
+          result.cities.forEach((city: LocationOption) => {
+            if (!seenIds.has(city.id)) {
+              seenIds.add(city.id);
+              allCities.push(city);
+            }
+          });
+        }
+      });
+
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          cities: allCities,
+          citiesLoading: false,
+        },
+      }));
+    } catch (error) {
+      console.error(`Error fetching cities for ${countryCode}:`, error);
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          cities: [],
+          citiesLoading: false,
+        },
+      }));
+    }
+  };
+
+  const fetchParksForRegions = async (countryCode: string, regionIds: string[]) => {
+    if (regionIds.length === 0) {
+      // No regions selected, clear parks
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          parks: [],
+          parksLoading: false,
+        },
+      }));
+      return;
+    }
+
+    setLocationData(prev => ({
+      ...prev,
+      [countryCode]: {
+        ...prev[countryCode],
+        parksLoading: true,
+      },
+    }));
+
+    try {
+      // Fetch parks for each selected region
+      const parksPromises = regionIds.map(regionId =>
+        fetch(`/api/locations/parks?region=${regionId}`).then(res => res.json())
+      );
+
+      const parksResults = await Promise.all(parksPromises);
+      const allParks: LocationOption[] = [];
+      const seenIds = new Set<string>();
+
+      parksResults.forEach(result => {
+        if (result.parks) {
+          result.parks.forEach((park: LocationOption) => {
+            if (!seenIds.has(park.id)) {
+              seenIds.add(park.id);
+              allParks.push(park);
+            }
+          });
+        }
+      });
+
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          parks: allParks,
+          parksLoading: false,
+        },
+      }));
+    } catch (error) {
+      console.error(`Error fetching parks for ${countryCode}:`, error);
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          ...prev[countryCode],
+          parks: [],
+          parksLoading: false,
+        },
+      }));
+    }
+  };
 
   const availableCountries = countries.filter(
     country => !selectedCountries.includes(country.code)
@@ -63,6 +259,9 @@ export function MultiCountryLocationSelector({
     setSelectedCountries([...selectedCountries, countryCode]);
     setExpandedCountries(new Set([...expandedCountries, countryCode]));
     onChange({ countries: newCountries });
+
+    // Fetch regions for this country
+    fetchRegions(countryCode);
   };
 
   const handleRemoveCountry = (countryCode: string) => {
@@ -72,6 +271,11 @@ export function MultiCountryLocationSelector({
     const newExpanded = new Set(expandedCountries);
     newExpanded.delete(countryCode);
     setExpandedCountries(newExpanded);
+
+    // Clear region IDs
+    const newRegionIds = { ...selectedRegionIds };
+    delete newRegionIds[countryCode];
+    setSelectedRegionIds(newRegionIds);
 
     onChange({ countries: newCountries });
   };
@@ -86,14 +290,83 @@ export function MultiCountryLocationSelector({
     setExpandedCountries(newExpanded);
   };
 
-  const handleAddTag = (countryCode: string, field: 'regions' | 'cities' | 'parks', tagValue: string) => {
-    if (!tagValue.trim()) return;
+  const handleAddRegion = (countryCode: string, regionName: string, regionId: string) => {
+    if (!regionName) return;
 
+    // Add region name to countries
+    const newCountries = value.countries.map(country => {
+      if (country.countryCode === countryCode) {
+        if (country.regions.includes(regionName)) return country;
+        return {
+          ...country,
+          regions: [...country.regions, regionName],
+        };
+      }
+      return country;
+    });
+
+    onChange({ countries: newCountries });
+
+    // Track region ID
+    const newRegionIds = {
+      ...selectedRegionIds,
+      [countryCode]: new Set([...(selectedRegionIds[countryCode] || []), regionId]),
+    };
+    setSelectedRegionIds(newRegionIds);
+
+    // Fetch cities and parks for all selected regions in this country
+    const regionIds = Array.from(newRegionIds[countryCode]);
+    fetchCitiesForRegions(countryCode, regionIds);
+    fetchParksForRegions(countryCode, regionIds);
+  };
+
+  const handleRemoveRegion = (countryCode: string, regionName: string) => {
+    // Remove region name from countries
     const newCountries = value.countries.map(country => {
       if (country.countryCode === countryCode) {
         return {
           ...country,
-          [field]: [...country[field], tagValue.trim()],
+          regions: country.regions.filter(r => r !== regionName),
+          // Also clear cities and parks from this region
+          cities: [],
+          parks: [],
+        };
+      }
+      return country;
+    });
+
+    onChange({ countries: newCountries });
+
+    // Find region ID by name and remove it
+    const countryData = locationData[countryCode];
+    const regionToRemove = countryData?.regions.find(r => r.name === regionName);
+
+    if (regionToRemove) {
+      const currentRegionIds = selectedRegionIds[countryCode] || new Set();
+      currentRegionIds.delete(regionToRemove.id);
+
+      const newRegionIds = {
+        ...selectedRegionIds,
+        [countryCode]: currentRegionIds,
+      };
+      setSelectedRegionIds(newRegionIds);
+
+      // Re-fetch cities and parks for remaining regions
+      const regionIds = Array.from(currentRegionIds);
+      fetchCitiesForRegions(countryCode, regionIds);
+      fetchParksForRegions(countryCode, regionIds);
+    }
+  };
+
+  const handleAddSelection = (countryCode: string, field: 'cities' | 'parks', itemName: string) => {
+    if (!itemName) return;
+
+    const newCountries = value.countries.map(country => {
+      if (country.countryCode === countryCode) {
+        if (country[field].includes(itemName)) return country;
+        return {
+          ...country,
+          [field]: [...country[field], itemName],
         };
       }
       return country;
@@ -102,12 +375,12 @@ export function MultiCountryLocationSelector({
     onChange({ countries: newCountries });
   };
 
-  const handleRemoveTag = (countryCode: string, field: 'regions' | 'cities' | 'parks', index: number) => {
+  const handleRemoveSelection = (countryCode: string, field: 'cities' | 'parks', itemName: string) => {
     const newCountries = value.countries.map(country => {
       if (country.countryCode === countryCode) {
         return {
           ...country,
-          [field]: country[field].filter((_, i) => i !== index),
+          [field]: country[field].filter(item => item !== itemName),
         };
       }
       return country;
@@ -147,76 +420,123 @@ export function MultiCountryLocationSelector({
 
       {/* Selected Countries */}
       <div className="space-y-3">
-        {value.countries.map((country) => (
-          <div
-            key={country.countryCode}
-            className="rounded-xl border border-foreground/15 bg-white/80 overflow-hidden"
-          >
-            {/* Country Header */}
-            <div className="flex items-center justify-between p-4 bg-primary/5">
-              <div className="flex items-center gap-3 flex-1">
+        {value.countries.map((country) => {
+          const countryData = locationData[country.countryCode];
+          const isLoading = countryData?.loading ?? true;
+          const citiesLoading = countryData?.citiesLoading ?? false;
+          const parksLoading = countryData?.parksLoading ?? false;
+
+          return (
+            <div
+              key={country.countryCode}
+              className="rounded-xl border border-foreground/15 bg-white/80 overflow-hidden"
+            >
+              {/* Country Header */}
+              <div className="flex items-center justify-between p-4 bg-primary/5">
+                <div className="flex items-center gap-3 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(country.countryCode)}
+                    className="hover:text-primary transition"
+                  >
+                    {expandedCountries.has(country.countryCode) ? (
+                      <ChevronUp className="w-5 h-5" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5" />
+                    )}
+                  </button>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{country.countryName}</h3>
+                    <p className="text-xs text-foreground/60">
+                      {country.regions.length} regions, {country.cities.length} cities, {country.parks.length} parks
+                    </p>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => toggleExpanded(country.countryCode)}
-                  className="hover:text-primary transition"
+                  onClick={() => handleRemoveCountry(country.countryCode)}
+                  className="text-red-500 hover:text-red-700 transition"
                 >
-                  {expandedCountries.has(country.countryCode) ? (
-                    <ChevronUp className="w-5 h-5" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5" />
-                  )}
+                  <X className="w-5 h-5" />
                 </button>
-                <div>
-                  <h3 className="font-semibold text-foreground">{country.countryName}</h3>
-                  <p className="text-xs text-foreground/60">
-                    {country.regions.length} regions, {country.cities.length} cities, {country.parks.length} parks
-                  </p>
+              </div>
+
+              {/* Expanded Content */}
+              {expandedCountries.has(country.countryCode) && (
+                <div className="p-4 space-y-4">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-sm text-foreground/60">Loading regions...</span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Regions - Always shown first */}
+                      <RegionSelector
+                        label="Regions / Provinces"
+                        hint="Select states, provinces, or regions where you operate"
+                        regions={countryData?.regions || []}
+                        selected={country.regions}
+                        onAdd={(name, id) => handleAddRegion(country.countryCode, name, id)}
+                        onRemove={(name) => handleRemoveRegion(country.countryCode, name)}
+                        required
+                      />
+
+                      {/* Cities - Only shown after regions are selected */}
+                      {country.regions.length > 0 && (
+                        <>
+                          {citiesLoading ? (
+                            <div className="flex items-center py-4">
+                              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                              <span className="ml-2 text-sm text-foreground/60">Loading cities for selected regions...</span>
+                            </div>
+                          ) : (
+                            <DropdownSelector
+                              label="Cities"
+                              hint="Select cities in the selected regions"
+                              options={countryData?.cities || []}
+                              selected={country.cities}
+                              onAdd={(name) => handleAddSelection(country.countryCode, 'cities', name)}
+                              onRemove={(name) => handleRemoveSelection(country.countryCode, 'cities', name)}
+                              required
+                            />
+                          )}
+                        </>
+                      )}
+
+                      {/* National Parks - Only shown after regions are selected */}
+                      {country.regions.length > 0 && (
+                        <>
+                          {parksLoading ? (
+                            <div className="flex items-center py-4">
+                              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                              <span className="ml-2 text-sm text-foreground/60">Loading parks for selected regions...</span>
+                            </div>
+                          ) : (
+                            <DropdownSelector
+                              label="National Parks (Optional)"
+                              hint="Select parks and tourist attractions in the selected regions"
+                              options={countryData?.parks || []}
+                              selected={country.parks}
+                              onAdd={(name) => handleAddSelection(country.countryCode, 'parks', name)}
+                              onRemove={(name) => handleRemoveSelection(country.countryCode, 'parks', name)}
+                            />
+                          )}
+                        </>
+                      )}
+
+                      {country.regions.length === 0 && (
+                        <p className="text-sm text-foreground/60 italic">
+                          Select regions first to see cities and parks
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleRemoveCountry(country.countryCode)}
-                className="text-red-500 hover:text-red-700 transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              )}
             </div>
-
-            {/* Expanded Content */}
-            {expandedCountries.has(country.countryCode) && (
-              <div className="p-4 space-y-4">
-                <TagInput
-                  label="Regions / Provinces"
-                  placeholder="Type region name and press Enter or click +"
-                  tags={country.regions}
-                  onAdd={(val) => handleAddTag(country.countryCode, 'regions', val)}
-                  onRemove={(index) => handleRemoveTag(country.countryCode, 'regions', index)}
-                  hint="Add states, provinces, or regions where you operate"
-                  required
-                />
-
-                <TagInput
-                  label="Cities"
-                  placeholder="Type city name and press Enter or click +"
-                  tags={country.cities}
-                  onAdd={(val) => handleAddTag(country.countryCode, 'cities', val)}
-                  onRemove={(index) => handleRemoveTag(country.countryCode, 'cities', index)}
-                  hint="Add specific cities within the selected regions"
-                  required
-                />
-
-                <TagInput
-                  label="National Parks (Optional)"
-                  placeholder="Type park name and press Enter or click +"
-                  tags={country.parks}
-                  onAdd={(val) => handleAddTag(country.countryCode, 'parks', val)}
-                  onRemove={(index) => handleRemoveTag(country.countryCode, 'parks', index)}
-                  hint="Add national parks or protected areas"
-                />
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Hidden input for form submission */}
@@ -230,35 +550,26 @@ export function MultiCountryLocationSelector({
   );
 }
 
-type TagInputProps = {
+type RegionSelectorProps = {
   label: string;
-  placeholder: string;
-  tags: string[];
-  onAdd: (value: string) => void;
-  onRemove: (index: number) => void;
   hint?: string;
+  regions: LocationOption[];
+  selected: string[];
+  onAdd: (name: string, id: string) => void;
+  onRemove: (name: string) => void;
   required?: boolean;
 };
 
-function TagInput({ label, placeholder, tags, onAdd, onRemove, hint, required }: TagInputProps) {
-  const [inputValue, setInputValue] = useState("");
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (inputValue.trim()) {
-        onAdd(inputValue);
-        setInputValue("");
-      }
-    }
-  };
-
-  const handleAddClick = () => {
-    if (inputValue.trim()) {
-      onAdd(inputValue);
-      setInputValue("");
-    }
-  };
+function RegionSelector({
+  label,
+  hint,
+  regions,
+  selected,
+  onAdd,
+  onRemove,
+  required
+}: RegionSelectorProps) {
+  const availableRegions = regions.filter(reg => !selected.includes(reg.name));
 
   return (
     <div className="space-y-2">
@@ -267,35 +578,35 @@ function TagInput({ label, placeholder, tags, onAdd, onRemove, hint, required }:
       </label>
       {hint && <p className="text-xs text-foreground/60">{hint}</p>}
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className="flex-1 rounded-lg border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-        <button
-          type="button"
-          onClick={handleAddClick}
-          className="rounded-lg border border-primary bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-      </div>
+      <select
+        value=""
+        onChange={(e) => {
+          const selectedOption = regions.find(r => r.id === e.target.value);
+          if (selectedOption) {
+            onAdd(selectedOption.name, selectedOption.id);
+          }
+        }}
+        className="w-full rounded-lg border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+      >
+        <option value="">-- Select {label.toLowerCase()} --</option>
+        {availableRegions.map((region) => (
+          <option key={region.id} value={region.id}>
+            {region.name}
+          </option>
+        ))}
+      </select>
 
-      {tags.length > 0 && (
+      {selected.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
-          {tags.map((tag, index) => (
+          {selected.map((regionName) => (
             <span
-              key={index}
+              key={regionName}
               className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
             >
-              {tag}
+              {regionName}
               <button
                 type="button"
-                onClick={() => onRemove(index)}
+                onClick={() => onRemove(regionName)}
                 className="hover:text-red-500 transition"
               >
                 <X className="w-3 h-3" />
@@ -305,8 +616,85 @@ function TagInput({ label, placeholder, tags, onAdd, onRemove, hint, required }:
         </div>
       )}
 
-      {required && tags.length === 0 && (
-        <p className="text-xs text-red-500">Please add at least one {label.toLowerCase()}</p>
+      {required && selected.length === 0 && (
+        <p className="text-xs text-red-500">Please select at least one {label.toLowerCase()}</p>
+      )}
+    </div>
+  );
+}
+
+type DropdownSelectorProps = {
+  label: string;
+  hint?: string;
+  options: LocationOption[];
+  selected: string[];
+  onAdd: (name: string) => void;
+  onRemove: (name: string) => void;
+  required?: boolean;
+};
+
+function DropdownSelector({
+  label,
+  hint,
+  options,
+  selected,
+  onAdd,
+  onRemove,
+  required
+}: DropdownSelectorProps) {
+  const availableOptions = options.filter(opt => !selected.includes(opt.name));
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-foreground">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      {hint && <p className="text-xs text-foreground/60">{hint}</p>}
+
+      <select
+        value=""
+        onChange={(e) => {
+          if (e.target.value) {
+            onAdd(e.target.value);
+          }
+        }}
+        className="w-full rounded-lg border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+        disabled={options.length === 0}
+      >
+        <option value="">
+          {options.length === 0
+            ? `No ${label.toLowerCase()} available`
+            : `-- Select ${label.toLowerCase()} --`}
+        </option>
+        {availableOptions.map((option) => (
+          <option key={option.id} value={option.name}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {selected.map((item) => (
+            <span
+              key={item}
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+            >
+              {item}
+              <button
+                type="button"
+                onClick={() => onRemove(item)}
+                className="hover:text-red-500 transition"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {required && selected.length === 0 && (
+        <p className="text-xs text-red-500">Please select at least one {label.toLowerCase()}</p>
       )}
     </div>
   );

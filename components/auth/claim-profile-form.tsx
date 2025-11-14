@@ -14,32 +14,23 @@ export function ClaimProfileForm({ token, licenseNumber, guideName, locale }: Cl
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<"verify" | "create_account">("verify");
 
-  // Step 1: Verify license number
+  // All fields in one form
   const [verifiedLicenseNumber, setVerifiedLicenseNumber] = useState("");
-
-  // Step 2: Create account
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const handleVerifyLicense = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
+    // Validate license number
     if (verifiedLicenseNumber.trim().toLowerCase() !== licenseNumber.trim().toLowerCase()) {
       setError("License number does not match. Please enter your correct license number.");
       return;
     }
-
-    setStep("create_account");
-  };
-
-  const handleCreateAccount = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
 
     // Validation
     if (!email || !password || !confirmPassword) {
@@ -91,61 +82,47 @@ export function ClaimProfileForm({ token, licenseNumber, guideName, locale }: Cl
     }
   };
 
-  if (step === "verify") {
-    return (
-      <form onSubmit={handleVerifyLicense} className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Step 1: Verify Your Identity</h2>
-          <p className="text-sm text-foreground/70 mb-6">
-            To claim this profile, please enter your license number exactly as it appears on your
-            guide license.
-          </p>
-
-          <label className="block mb-2 text-sm font-medium text-foreground">
-            License Number <span className="text-destructive">*</span>
-          </label>
-          <input
-            type="text"
-            value={verifiedLicenseNumber}
-            onChange={(e) => setVerifiedLicenseNumber(e.target.value)}
-            placeholder="Enter your license number"
-            className="w-full px-4 py-3 rounded-lg border border-foreground/20 bg-background text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            required
-          />
-          <p className="mt-2 text-xs text-foreground/50">
-            This should match the license number shown above
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Verify & Continue
-        </button>
-      </form>
-    );
-  }
-
   return (
-    <form onSubmit={handleCreateAccount} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-4">
-          Step 2: Create Your Account
+          Claim Your Profile: {guideName}
         </h2>
         <p className="text-sm text-foreground/70 mb-6">
-          Create your Guide Validator account to access your profile and start receiving booking
-          requests.
+          To claim this profile, verify your identity with your license number and create your account.
+          You'll then be taken to complete your profile with all your information.
         </p>
       </div>
 
+      {/* License Verification */}
+      <div>
+        <label className="block mb-2 text-sm font-medium text-foreground">
+          License Number <span className="text-destructive">*</span>
+        </label>
+        <input
+          type="text"
+          value={verifiedLicenseNumber}
+          onChange={(e) => setVerifiedLicenseNumber(e.target.value)}
+          placeholder="Enter your license number"
+          className="w-full px-4 py-3 rounded-lg border border-foreground/20 bg-background text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          required
+        />
+        <p className="mt-2 text-xs text-foreground/50">
+          Enter your license number to verify this is your profile
+        </p>
+      </div>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-foreground/10"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white px-4 text-foreground/60">Create your account</span>
+        </div>
+      </div>
+
+      {/* Account Creation */}
       <div>
         <label className="block mb-2 text-sm font-medium text-foreground">
           Email Address <span className="text-destructive">*</span>
@@ -229,23 +206,13 @@ export function ClaimProfileForm({ token, licenseNumber, guideName, locale }: Cl
         </div>
       )}
 
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => setStep("verify")}
-          disabled={loading}
-          className="px-6 py-3 border border-foreground/20 text-foreground font-semibold rounded-lg hover:bg-foreground/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Back
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "Creating Account..." : "Create Account & Claim Profile"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {loading ? "Claiming Profile..." : "Verify & Claim Profile"}
+      </button>
     </form>
   );
 }

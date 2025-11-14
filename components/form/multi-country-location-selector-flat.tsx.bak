@@ -1,0 +1,395 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { X, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+
+export type CountryLocation = {
+  countryCode: string;
+  countryName: string;
+  regions: string[];
+  cities: string[];
+  parks: string[];
+};
+
+export type LocationSelection = {
+  countries: CountryLocation[];
+};
+
+export type MultiCountryLocationSelectorProps = {
+  value: LocationSelection;
+  onChange: (value: LocationSelection) => void;
+  countries: Array<{ code: string; name: string }>;
+  required?: boolean;
+};
+
+type LocationOption = {
+  id: string;
+  name: string;
+  code?: string;
+};
+
+export function MultiCountryLocationSelector({
+  value,
+  onChange,
+  countries,
+  required = false,
+}: MultiCountryLocationSelectorProps) {
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
+
+  // Location data cache
+  const [locationData, setLocationData] = useState<{
+    [countryCode: string]: {
+      regions: LocationOption[];
+      cities: LocationOption[];
+      parks: LocationOption[];
+      loading: boolean;
+    };
+  }>({});
+
+  // Initialize from value
+  useEffect(() => {
+    if (value.countries.length > 0) {
+      setSelectedCountries(value.countries.map(c => c.countryCode));
+      setExpandedCountries(new Set(value.countries.map(c => c.countryCode)));
+
+      // Fetch location data for each country
+      value.countries.forEach(country => {
+        fetchLocationData(country.countryCode);
+      });
+    }
+  }, []);
+
+  const fetchLocationData = async (countryCode: string) => {
+    if (locationData[countryCode]) return; // Already loaded
+
+    setLocationData(prev => ({
+      ...prev,
+      [countryCode]: {
+        regions: [],
+        cities: [],
+        parks: [],
+        loading: true,
+      },
+    }));
+
+    try {
+      // Fetch regions, cities, and parks in parallel
+      const [regionsRes, citiesRes, parksRes] = await Promise.all([
+        fetch(`/api/locations/regions?country=${countryCode}`),
+        fetch(`/api/locations/cities?country=${countryCode}`),
+        fetch(`/api/locations/parks?country=${countryCode}`),
+      ]);
+
+      const [regionsData, citiesData, parksData] = await Promise.all([
+        regionsRes.json(),
+        citiesRes.json(),
+        parksRes.json(),
+      ]);
+
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          regions: regionsData.regions || [],
+          cities: citiesData.cities || [],
+          parks: parksData.parks || [],
+          loading: false,
+        },
+      }));
+    } catch (error) {
+      console.error(`Error fetching location data for ${countryCode}:`, error);
+      setLocationData(prev => ({
+        ...prev,
+        [countryCode]: {
+          regions: [],
+          cities: [],
+          parks: [],
+          loading: false,
+        },
+      }));
+    }
+  };
+
+  const availableCountries = countries.filter(
+    country => !selectedCountries.includes(country.code)
+  );
+
+  const handleAddCountry = (countryCode: string) => {
+    if (!countryCode || selectedCountries.includes(countryCode)) return;
+
+    const country = countries.find(c => c.code === countryCode);
+    if (!country) return;
+
+    const newCountries = [
+      ...value.countries,
+      {
+        countryCode: country.code,
+        countryName: country.name,
+        regions: [],
+        cities: [],
+        parks: [],
+      },
+    ];
+
+    setSelectedCountries([...selectedCountries, countryCode]);
+    setExpandedCountries(new Set([...expandedCountries, countryCode]));
+    onChange({ countries: newCountries });
+
+    // Fetch location data for this country
+    fetchLocationData(countryCode);
+  };
+
+  const handleRemoveCountry = (countryCode: string) => {
+    const newCountries = value.countries.filter(c => c.countryCode !== countryCode);
+    setSelectedCountries(selectedCountries.filter(code => code !== countryCode));
+
+    const newExpanded = new Set(expandedCountries);
+    newExpanded.delete(countryCode);
+    setExpandedCountries(newExpanded);
+
+    onChange({ countries: newCountries });
+  };
+
+  const toggleExpanded = (countryCode: string) => {
+    const newExpanded = new Set(expandedCountries);
+    if (newExpanded.has(countryCode)) {
+      newExpanded.delete(countryCode);
+    } else {
+      newExpanded.add(countryCode);
+    }
+    setExpandedCountries(newExpanded);
+  };
+
+  const handleAddSelection = (countryCode: string, field: 'regions' | 'cities' | 'parks', itemName: string) => {
+    if (!itemName || itemName === "") return;
+
+    const newCountries = value.countries.map(country => {
+      if (country.countryCode === countryCode) {
+        // Prevent duplicates
+        if (country[field].includes(itemName)) return country;
+
+        return {
+          ...country,
+          [field]: [...country[field], itemName],
+        };
+      }
+      return country;
+    });
+
+    onChange({ countries: newCountries });
+  };
+
+  const handleRemoveSelection = (countryCode: string, field: 'regions' | 'cities' | 'parks', itemName: string) => {
+    const newCountries = value.countries.map(country => {
+      if (country.countryCode === countryCode) {
+        return {
+          ...country,
+          [field]: country[field].filter(item => item !== itemName),
+        };
+      }
+      return country;
+    });
+
+    onChange({ countries: newCountries });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Country Selection Dropdown */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground">
+          Select Countries {required && <span className="text-red-500">*</span>}
+        </label>
+        <p className="text-xs text-foreground/60">
+          Choose all countries where you offer services
+        </p>
+        <select
+          value=""
+          onChange={(e) => handleAddCountry(e.target.value)}
+          className="w-full rounded-xl border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+        >
+          <option value="">-- Select a country to add --</option>
+          {availableCountries.map((country) => (
+            <option key={country.code} value={country.code}>
+              {country.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Validation Message */}
+      {selectedCountries.length === 0 && required && (
+        <p className="text-sm text-red-500">Please select at least one country</p>
+      )}
+
+      {/* Selected Countries */}
+      <div className="space-y-3">
+        {value.countries.map((country) => {
+          const countryData = locationData[country.countryCode];
+          const isLoading = countryData?.loading ?? true;
+
+          return (
+            <div
+              key={country.countryCode}
+              className="rounded-xl border border-foreground/15 bg-white/80 overflow-hidden"
+            >
+              {/* Country Header */}
+              <div className="flex items-center justify-between p-4 bg-primary/5">
+                <div className="flex items-center gap-3 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(country.countryCode)}
+                    className="hover:text-primary transition"
+                  >
+                    {expandedCountries.has(country.countryCode) ? (
+                      <ChevronUp className="w-5 h-5" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5" />
+                    )}
+                  </button>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{country.countryName}</h3>
+                    <p className="text-xs text-foreground/60">
+                      {country.regions.length} regions, {country.cities.length} cities, {country.parks.length} parks
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveCountry(country.countryCode)}
+                  className="text-red-500 hover:text-red-700 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Expanded Content */}
+              {expandedCountries.has(country.countryCode) && (
+                <div className="p-4 space-y-4">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-sm text-foreground/60">Loading location data...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <DropdownSelector
+                        label="Regions / Provinces"
+                        hint="Select states, provinces, or regions where you operate"
+                        options={countryData?.regions || []}
+                        selected={country.regions}
+                        onAdd={(name) => handleAddSelection(country.countryCode, 'regions', name)}
+                        onRemove={(name) => handleRemoveSelection(country.countryCode, 'regions', name)}
+                        required
+                      />
+
+                      <DropdownSelector
+                        label="Cities"
+                        hint="Select specific cities within the selected regions"
+                        options={countryData?.cities || []}
+                        selected={country.cities}
+                        onAdd={(name) => handleAddSelection(country.countryCode, 'cities', name)}
+                        onRemove={(name) => handleRemoveSelection(country.countryCode, 'cities', name)}
+                        required
+                      />
+
+                      <DropdownSelector
+                        label="National Parks (Optional)"
+                        hint="Select national parks or protected areas"
+                        options={countryData?.parks || []}
+                        selected={country.parks}
+                        onAdd={(name) => handleAddSelection(country.countryCode, 'parks', name)}
+                        onRemove={(name) => handleRemoveSelection(country.countryCode, 'parks', name)}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Hidden input for form submission */}
+      <input
+        type="hidden"
+        name="locationData"
+        value={JSON.stringify(value)}
+        required={required && selectedCountries.length === 0}
+      />
+    </div>
+  );
+}
+
+type DropdownSelectorProps = {
+  label: string;
+  hint?: string;
+  options: LocationOption[];
+  selected: string[];
+  onAdd: (name: string) => void;
+  onRemove: (name: string) => void;
+  required?: boolean;
+};
+
+function DropdownSelector({
+  label,
+  hint,
+  options,
+  selected,
+  onAdd,
+  onRemove,
+  required
+}: DropdownSelectorProps) {
+  const availableOptions = options.filter(opt => !selected.includes(opt.name));
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-foreground">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      {hint && <p className="text-xs text-foreground/60">{hint}</p>}
+
+      <select
+        value=""
+        onChange={(e) => {
+          if (e.target.value) {
+            onAdd(e.target.value);
+            e.target.value = ""; // Reset
+          }
+        }}
+        className="w-full rounded-lg border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+      >
+        <option value="">-- Select {label.toLowerCase()} --</option>
+        {availableOptions.map((option) => (
+          <option key={option.id} value={option.name}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {selected.map((item) => (
+            <span
+              key={item}
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+            >
+              {item}
+              <button
+                type="button"
+                onClick={() => onRemove(item)}
+                className="hover:text-red-500 transition"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {required && selected.length === 0 && (
+        <p className="text-xs text-red-500">Please select at least one {label.toLowerCase()}</p>
+      )}
+    </div>
+  );
+}

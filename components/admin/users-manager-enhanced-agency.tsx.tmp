@@ -1,0 +1,191 @@
+          {/* Expanded Details */}
+          {isExpanded && (
+            <div className="mt-4 pt-4 border-t space-y-4 text-sm">
+              {/* Registration & Legal */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">📋 Registration & Legal</h4>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-foreground/80">Registration Number:</strong>
+                    <span className="ml-2">{agency.registration_number || "N/A"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-foreground/80">VAT ID:</strong>
+                    <span className="ml-2">{agency.vat_id || "N/A"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-foreground/80">Country Code:</strong>
+                    <span className="ml-2">{agency.country_code || "N/A"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-foreground/80">Slug:</strong>
+                    <span className="ml-2">{agency.slug || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Information */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">🏢 Business Information</h4>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-foreground/80">Description:</strong>
+                    <p className="text-foreground/70 mt-1">{agency.description || "No description provided"}</p>
+                  </div>
+                  {agency.coverage_summary && (
+                    <div>
+                      <strong className="text-foreground/80">Coverage Summary:</strong>
+                      <p className="text-foreground/70 mt-1">{agency.coverage_summary}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Services & Capabilities */}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">⚙️ Services & Capabilities</h4>
+                <div className="space-y-3">
+                  <div>
+                    <strong className="text-foreground/80">Services Offered:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {(agency.services_offered || agency.service_types || []).length > 0 ? (
+                        (agency.services_offered || agency.service_types || []).map((service: string, idx: number) => (
+                          <span key={idx} className="px-2 py-1 bg-green-200 text-green-900 rounded text-xs">
+                            {service}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 italic">No services listed</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Languages & Certifications */}
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">🌐 Languages & Certifications</h4>
+                <div className="space-y-3">
+                  <div>
+                    <strong className="text-foreground/80">Languages Supported:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {agency.languages_supported?.length > 0 ? (
+                        agency.languages_supported.map((lang, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-purple-200 text-purple-900 rounded text-xs">
+                            {lang}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 italic">No languages listed</span>
+                      )}
+                    </div>
+                  </div>
+                  {agency.certifications && agency.certifications.length > 0 && (
+                    <div>
+                      <strong className="text-foreground/80">Certifications:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {agency.certifications.map((cert, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-purple-200 text-purple-900 rounded text-xs">
+                            {cert}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Availability & Location */}
+              {(agency.timezone || agency.availability_timezone || agency.availability_notes || agency.location_data) && (
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-base mb-3">📍 Availability & Location</h4>
+                  <div className="space-y-2">
+                    {agency.timezone && (
+                      <div>
+                        <strong className="text-foreground/80">Timezone:</strong>
+                        <span className="ml-2">{agency.timezone}</span>
+                      </div>
+                    )}
+                    {agency.availability_timezone && (
+                      <div>
+                        <strong className="text-foreground/80">Availability Timezone:</strong>
+                        <span className="ml-2">{agency.availability_timezone}</span>
+                      </div>
+                    )}
+                    {agency.availability_notes && (
+                      <div>
+                        <strong className="text-foreground/80">Availability Notes:</strong>
+                        <p className="text-foreground/70 mt-1">{agency.availability_notes}</p>
+                      </div>
+                    )}
+                    {agency.working_hours && (
+                      <div>
+                        <strong className="text-foreground/80">Working Hours:</strong>
+                        <pre className="text-xs mt-1 bg-white p-2 rounded overflow-auto">{JSON.stringify(agency.working_hours, null, 2)}</pre>
+                      </div>
+                    )}
+                    {agency.location_data && (
+                      <div>
+                        <strong className="text-foreground/80">Location Data:</strong>
+                        <pre className="text-xs mt-1 bg-white p-2 rounded overflow-auto">{JSON.stringify(agency.location_data, null, 2)}</pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Fleet Data (for transport) */}
+              {agency.type === "transport" && agency.fleet_data && (
+                <div className="bg-indigo-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-base mb-3">🚗 Fleet Information</h4>
+                  <pre className="text-xs mt-1 bg-white p-2 rounded overflow-auto">{JSON.stringify(agency.fleet_data, null, 2)}</pre>
+                </div>
+              )}
+
+              {/* Additional Application Data */}
+              {agency.application_data && Object.keys(agency.application_data).length > 0 && (
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-base mb-3">📄 Additional Application Data</h4>
+                  <div className="space-y-1">
+                    {Object.entries(agency.application_data).map(([key, value]) => (
+                      <div key={key} className="text-xs">
+                        <strong className="capitalize">{key.replace(/_/g, ' ')}:</strong>
+                        <span className="ml-2">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dates */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-bold text-base mb-3">📅 Important Dates</h4>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-foreground/80">Created:</strong>
+                    <span className="ml-2">{format(parseISO(agency.created_at), "PPP")}</span>
+                  </div>
+                  {agency.application_submitted_at && (
+                    <div>
+                      <strong className="text-foreground/80">Applied:</strong>
+                      <span className="ml-2">{format(parseISO(agency.application_submitted_at), "PPP")}</span>
+                    </div>
+                  )}
+                  {agency.application_reviewed_at && (
+                    <div>
+                      <strong className="text-foreground/80">Reviewed:</strong>
+                      <span className="ml-2">{format(parseISO(agency.application_reviewed_at), "PPP")}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Rejection Reason */}
+              {agency.rejection_reason && (
+                <div className="bg-red-50 border border-red-200 rounded p-3">
+                  <strong className="text-red-800">Rejection Reason:</strong>
+                  <p className="text-red-700 mt-1">{agency.rejection_reason}</p>
+                </div>
+              )}
+            </div>
+          )}

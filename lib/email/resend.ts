@@ -815,3 +815,115 @@ ${buildFooter()}
 
   return sendEmail({ to: requesterEmail, subject, html, text });
 }
+/**
+ * Send email with access token for profile access
+ */
+export async function sendProfileAccessTokenEmail(payload: {
+  email: string;
+  name: string;
+  accessToken: string;
+  licenseNumber: string;
+  locale?: string;
+}): Promise<SendResult> {
+  const { email, name, accessToken, licenseNumber, locale = "en" } = payload;
+
+  if (!email) {
+    return { ok: false, error: "missing-email" };
+  }
+
+  const subject = "Your Guide Profile Access Token";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #3B82F6; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+          .token-box { background-color: white; padding: 20px; border-left: 4px solid #3B82F6; margin: 20px 0; text-align: center; }
+          .token { font-family: monospace; font-size: 18px; font-weight: bold; color: #1E40AF; background: #DBEAFE; padding: 10px 20px; border-radius: 4px; display: inline-block; margin: 10px 0; }
+          .warning-box { background-color: #FEF3C7; padding: 15px; border-left: 4px solid #F59E0B; margin: 15px 0; }
+          .button { background-color: #3B82F6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
+          .steps { background-color: white; padding: 20px; border-radius: 4px; margin: 15px 0; }
+          .step { margin: 10px 0; padding-left: 25px; position: relative; }
+          .step::before { content: "→"; position: absolute; left: 0; color: #3B82F6; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🔑 Your Profile Access Token</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${normaliseName(name)},</p>
+          <p>You requested access to your guide profile. Here is your access token:</p>
+
+          <div class="token-box">
+            <p><strong>Your Access Token:</strong></p>
+            <div class="token">${accessToken}</div>
+            <p style="font-size: 12px; color: #6B7280; margin-top: 10px;">
+              This token will be your temporary password
+            </p>
+          </div>
+
+          <div class="warning-box">
+            <p style="margin: 0; font-size: 14px;">
+              <strong>⏰ Important:</strong> This token expires in 24 hours. Please use it soon to access your profile.
+            </p>
+          </div>
+
+          <div class="steps">
+            <p><strong>How to Access Your Profile:</strong></p>
+            <div class="step">Go to the sign-in page</div>
+            <div class="step">Enter your email: <strong>${email}</strong></div>
+            <div class="step">Enter the access token as your password</div>
+            <div class="step">Update your profile information</div>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${APP_URL}/${locale}/auth/sign-in" class="button">Sign In Now</a>
+          </div>
+
+          <div class="warning-box">
+            <p style="margin: 0; font-size: 13px;">
+              <strong>🔒 Security Tip:</strong> After signing in, please set a permanent password in your account settings. Do not share this token with anyone.
+            </p>
+          </div>
+
+          <p style="font-size: 12px; color: #6B7280; margin-top: 20px;">
+            <strong>License Number:</strong> ${licenseNumber}<br>
+            <strong>Email:</strong> ${email}
+          </p>
+
+          ${buildFooter()}
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+Hi ${normaliseName(name)},
+
+You requested access to your guide profile. Here is your access token:
+
+ACCESS TOKEN: ${accessToken}
+
+This token will be your temporary password and expires in 24 hours.
+
+How to Access Your Profile:
+1. Go to ${APP_URL}/${locale}/auth/sign-in
+2. Enter your email: ${email}
+3. Enter the access token as your password
+4. Update your profile information
+
+IMPORTANT: After signing in, please set a permanent password in your account settings. Do not share this token with anyone.
+
+License Number: ${licenseNumber}
+Email: ${email}
+
+${buildFooter()}
+  `.trim();
+
+  return sendEmail({ to: email, subject, html, text });
+}

@@ -152,6 +152,12 @@ export async function submitAgencyApplicationAction(
     return { status: "error", message: "Invalid languages format." };
   }
 
+  try {
+    locationData = locationDataRaw ? JSON.parse(locationDataRaw) : null;
+  } catch {
+    return { status: "error", message: "Invalid location data format." };
+  }
+
   if (!legalCompanyName) {
     return { status: "error", message: "Legal company name is required." };
   }
@@ -241,10 +247,7 @@ export async function submitAgencyApplicationAction(
       full_name: legalCompanyName,
       role: "agency",
       pending_approval: true,
-      timezone,
-      availability_timezone: availabilityTimezone,
-      working_hours: workingHours,
-    location_data: locationData,
+      timezone: timezone || null,
       subscription_plan: subscriptionPlan || null,
     },
   });

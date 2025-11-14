@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     const supabase = getSupabaseServerClient();
 
     let query = supabase
-      .from("national_parks_stage")
+      .from("national_parks")
       .select("id, name, type, unesco_site, official_name", { count: "exact" });
 
     if (regionId) {

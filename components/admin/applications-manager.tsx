@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { approveApplicationAction, declineApplicationAction } from "@/app/_actions/applications";
+import { approveApplicationAction, declineApplicationAction } from "@/app/_actions/application-approval";
 import type { SupportedLocale } from "@/i18n/config";
 
 type ApplicationStatus = "pending" | "approved" | "declined";
@@ -17,25 +17,29 @@ interface BaseApplication {
 
 interface GuideApplication extends BaseApplication {
   full_name: string;
-  contact_email: string;
-  contact_phone: string | null;
-  license_number: string | null;
-  specializations: string[];
-  languages_spoken: any;
+  email: string;
+  locale?: string;
+  role?: string | null;
   application_status?: ApplicationStatus;
   application_submitted_at?: string;
   stripe_customer_id?: string;
   subscription_status?: string;
+  // Optional fields from guides table (not available for pending applications)
+  contact_email?: string;
+  contact_phone?: string | null;
+  license_number?: string | null;
+  specializations?: string[];
+  languages_spoken?: any;
 }
 
 interface AgencyApplication extends BaseApplication {
-  legal_company_name: string;
+  name: string;
   contact_email: string;
   contact_phone: string | null;
   registration_number: string | null;
   services_offered: string[];
   application_data?: any; // Full application form data
-  name?: string;
+  legal_company_name?: string; // Legacy field, use name instead
   website_url?: string;
   registration_country?: string;
   vat_id?: string;
@@ -102,6 +106,8 @@ export function ApplicationsManager({ locale, applications }: ApplicationsManage
   const supabase = createSupabaseBrowserClient();
 
   const handleApprove = async (appId: string, type: ApplicationType) => {
+    console.log("[CLIENT] Approving application:", { appId, type });
+
     if (!confirm("Are you sure you want to approve this application? This will create a user account and send approval email.")) {
       return;
     }
@@ -207,7 +213,9 @@ export function ApplicationsManager({ locale, applications }: ApplicationsManage
   };
 
   const renderApplicationCard = (app: any, type: ApplicationType) => {
-    const isExpanded = expandedApp === app.id;
+    // For guides: now querying profiles directly, so use app.id
+    const appId = app.id;
+    const isExpanded = expandedApp === appId;
     const appStatus = app.application_status || app.status;
     const isPending = appStatus === "pending";
     const name =
@@ -220,12 +228,14 @@ export function ApplicationsManager({ locale, applications }: ApplicationsManage
     const paymentStatus = hasPayment ? "Paid" : "Not Paid Yet";
 
     return (
-      <div key={app.id} className="border rounded-lg bg-white shadow-sm overflow-hidden">
+      <div key={appId} className="border rounded-lg bg-white shadow-sm overflow-hidden">
         <div className="p-4">
           <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
               <h3 className="font-semibold text-lg text-foreground">{name}</h3>
-              <p className="text-sm text-foreground/70">{app.contact_email}</p>
+              <p className="text-sm text-foreground/70">
+                {type === 'guide' ? app.email : app.contact_email}
+              </p>
               {app.contact_phone && (
                 <p className="text-sm text-foreground/70">{app.contact_phone}</p>
               )}
@@ -245,7 +255,7 @@ export function ApplicationsManager({ locale, applications }: ApplicationsManage
           </div>
 
           <button
-            onClick={() => setExpandedApp(isExpanded ? null : app.id)}
+            onClick={() => setExpandedApp(isExpanded ? null : appId)}
             className="text-sm text-blue-600 hover:text-blue-800 mb-3"
           >
             {isExpanded ? "Show Less ▲" : "Show All Details ▼"}

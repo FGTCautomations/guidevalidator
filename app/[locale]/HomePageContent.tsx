@@ -1,13 +1,12 @@
-"use client";
-
 import { HeroVideo } from "@/components/landing/hero-video";
 import { Hero } from "@/components/home/Hero";
 import { About } from "@/components/home/About";
 import { StakeholderGrid } from "@/components/home/StakeholderGrid";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { GlobalCTA } from "@/components/home/GlobalCTA";
+import { AdSlot } from "@/components/ads/AdSlot";
 
-export function HomePageContent() {
+export async function HomePageContent() {
   return (
     <main className="flex flex-col bg-background text-foreground">
       {/* Hero Section - Navy background with white text */}
@@ -23,6 +22,11 @@ export function HomePageContent() {
 
       {/* Stakeholder Value Grid - 4 cards */}
       <StakeholderGrid />
+
+      {/* Homepage Ad Slot - Appears before How It Works */}
+      <section className="mx-auto w-full max-w-6xl px-6 py-8 sm:px-12 lg:px-24">
+        {await AdSlot({ placement: "homepage_mid" })}
+      </section>
 
       {/* How It Works - 3 steps */}
       <HowItWorks />

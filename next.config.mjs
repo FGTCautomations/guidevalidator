@@ -5,6 +5,9 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const nextConfig = {
   experimental: {
     typedRoutes: true,
+    serverActions: {
+      bodySizeLimit: '15mb', // Increase limit for agency applications with file uploads
+    },
   },
   // Disable static optimization to fix build errors
   staticPageGenerationTimeout: 0,

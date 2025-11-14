@@ -123,6 +123,21 @@ function FileInput({
   hint?: string;
   required?: boolean;
 }) {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (2MB limit = 2 * 1024 * 1024 bytes)
+      if (file.size > 2 * 1024 * 1024) {
+        setError("File size must be less than 2MB");
+        e.target.value = ""; // Clear the input
+      } else {
+        setError(null);
+      }
+    }
+  };
+
   return (
     <label className="flex flex-col gap-2 text-sm text-foreground">
       <span className="font-medium">{label}</span>
@@ -131,8 +146,10 @@ function FileInput({
         name={name}
         accept="image/*"
         required={required}
+        onChange={handleChange}
         className="cursor-pointer rounded-xl border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
       />
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
       {hint ? <p className="text-xs text-foreground/60">{hint}</p> : null}
     </label>
   );
@@ -287,7 +304,7 @@ export function AgencySignUpForm({ locale, countries, preselectedPlan }: AgencyS
           label="Upload agency license"
           name="licenseProof"
           required
-          hint="JPEG or PNG, max 5MB. Required. Visible to (super) admins only."
+          hint="JPEG or PNG, max 2MB. Required. Visible to (super) admins only."
         />
       </Section>
 
@@ -307,7 +324,7 @@ export function AgencySignUpForm({ locale, countries, preselectedPlan }: AgencyS
           label="ID / passport copy"
           name="representativeIdDocument"
           required
-          hint="JPEG or PNG, max 5MB. Required. Visible only to (super) admins."
+          hint="JPEG or PNG, max 2MB. Required. Visible only to (super) admins."
         />
       </Section>
 

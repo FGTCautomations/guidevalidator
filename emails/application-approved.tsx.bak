@@ -1,0 +1,249 @@
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Img,
+  Link,
+  Preview,
+  Section,
+  Text,
+} from "@react-email/components";
+
+interface ApplicationApprovedEmailProps {
+  applicantName: string;
+  applicationType: "guide" | "agency" | "dmc" | "transport";
+  loginLink: string;
+}
+
+const roleLabels = {
+  guide: "Guide",
+  agency: "Travel Agency",
+  dmc: "Destination Management Company",
+  transport: "Transport Partner",
+};
+
+export const ApplicationApprovedEmail = ({
+  applicantName = "John Doe",
+  applicationType = "agency",
+  loginLink = "https://guidevalidator.com/en/auth/sign-in",
+}: ApplicationApprovedEmailProps) => {
+  const roleLabel = roleLabels[applicationType];
+
+  return (
+    <Html>
+      <Head />
+      <Preview>Great news! Your {roleLabel} application has been approved</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          {/* Logo */}
+          <Section style={logoSection}>
+            <Img
+              src="https://guidevalidator.com/logo.png"
+              width="150"
+              height="50"
+              alt="Guide Validator"
+              style={logo}
+            />
+          </Section>
+
+          {/* Header */}
+          <Section style={header}>
+            <Heading style={headerHeading}>Application Approved!</Heading>
+          </Section>
+
+          {/* Content */}
+          <Section style={content}>
+            <Text style={greeting}>Hi {applicantName},</Text>
+
+            <Text style={paragraph}>
+              <strong>Great news!</strong> Your {roleLabel} application has been approved. 🎉
+            </Text>
+
+            <Text style={paragraph}>
+              Your profile is now active on Guide Validator. You can sign in to complete your profile
+              and start connecting with potential clients.
+            </Text>
+
+            {/* CTA Button */}
+            <Section style={buttonContainer}>
+              <Button style={button} href={loginLink}>
+                Sign In to Your Account
+              </Button>
+            </Section>
+
+            <Text style={paragraph}>
+              Welcome to the Guide Validator community!
+            </Text>
+
+            {/* Quick Start Guide */}
+            <Section style={infoBox}>
+              <Heading as="h3" style={infoBoxHeading}>
+                Next Steps:
+              </Heading>
+              <Text style={infoBoxText}>
+                ✓ Complete your profile with photos and details<br />
+                ✓ Set your availability calendar<br />
+                ✓ Start receiving booking requests<br />
+                ✓ Get verified to boost your visibility
+              </Text>
+            </Section>
+
+            <Text style={paragraph}>
+              If you have any questions, feel free to reach out to our support team.
+            </Text>
+
+            <Text style={signature}>
+              Best regards,<br />
+              The Guide Validator Team
+            </Text>
+          </Section>
+
+          {/* Footer */}
+          <Section style={footer}>
+            <Text style={footerText}>
+              Guide Validator - Connecting travelers with verified guides worldwide
+            </Text>
+            <Text style={footerLinks}>
+              <Link href="https://guidevalidator.com/en/directory" style={link}>Browse Directory</Link>
+              {" • "}
+              <Link href="https://guidevalidator.com/en/contact" style={link}>Contact Support</Link>
+              {" • "}
+              <Link href="https://guidevalidator.com/en/legal/terms" style={link}>Terms</Link>
+            </Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
+  );
+};
+
+export default ApplicationApprovedEmail;
+
+// Styles
+const main = {
+  backgroundColor: "#f6f9fc",
+  fontFamily:
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+};
+
+const container = {
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "20px 0 48px",
+  marginBottom: "64px",
+  maxWidth: "600px",
+};
+
+const logoSection = {
+  padding: "32px 40px",
+  textAlign: "center" as const,
+};
+
+const logo = {
+  margin: "0 auto",
+};
+
+const header = {
+  backgroundColor: "#16a34a",
+  padding: "30px 40px",
+  textAlign: "center" as const,
+};
+
+const headerHeading = {
+  fontSize: "32px",
+  fontWeight: "bold",
+  color: "#ffffff",
+  margin: "0",
+};
+
+const content = {
+  padding: "40px",
+};
+
+const greeting = {
+  fontSize: "16px",
+  lineHeight: "24px",
+  marginBottom: "16px",
+  color: "#333333",
+};
+
+const paragraph = {
+  fontSize: "16px",
+  lineHeight: "24px",
+  marginBottom: "16px",
+  color: "#333333",
+};
+
+const buttonContainer = {
+  textAlign: "center" as const,
+  margin: "32px 0",
+};
+
+const button = {
+  backgroundColor: "#16a34a",
+  borderRadius: "8px",
+  color: "#fff",
+  fontSize: "16px",
+  fontWeight: "bold",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "16px 32px",
+};
+
+const infoBox = {
+  backgroundColor: "#f0fdf4",
+  border: "2px solid #86efac",
+  borderRadius: "8px",
+  padding: "24px",
+  margin: "24px 0",
+};
+
+const infoBoxHeading = {
+  fontSize: "18px",
+  fontWeight: "bold",
+  color: "#15803d",
+  margin: "0 0 12px 0",
+};
+
+const infoBoxText = {
+  fontSize: "14px",
+  lineHeight: "22px",
+  color: "#166534",
+  margin: "0",
+};
+
+const signature = {
+  fontSize: "16px",
+  lineHeight: "24px",
+  marginTop: "32px",
+  color: "#333333",
+};
+
+const footer = {
+  backgroundColor: "#f6f9fc",
+  padding: "24px 40px",
+  textAlign: "center" as const,
+};
+
+const footerText = {
+  fontSize: "12px",
+  lineHeight: "18px",
+  color: "#8898aa",
+  margin: "0 0 8px 0",
+};
+
+const footerLinks = {
+  fontSize: "12px",
+  lineHeight: "18px",
+  color: "#8898aa",
+  margin: "0",
+};
+
+const link = {
+  color: "#5469d4",
+  textDecoration: "underline",
+};

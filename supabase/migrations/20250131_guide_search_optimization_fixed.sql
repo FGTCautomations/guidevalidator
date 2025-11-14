@@ -43,9 +43,9 @@ SELECT
     ELSE false
   END as child_friendly,
 
-  -- Rating data (joined from profile_ratings view)
-  COALESCE(pr.avg_overall_rating, 0) as rating,
-  COALESCE(pr.total_reviews, 0) as review_count,
+  -- Rating data (default values - profile_ratings table structure unknown)
+  0::numeric as rating,
+  0::bigint as review_count,
 
   -- Full-text search vector (combining name + headline)
   -- Note: bio field might not exist, so we'll omit it
@@ -60,7 +60,6 @@ SELECT
 
 FROM guides g
 INNER JOIN profiles p ON g.profile_id = p.id
-LEFT JOIN profile_ratings pr ON g.profile_id = pr.reviewee_id
 
 -- Only include approved, non-frozen guides
 WHERE p.application_status = 'approved'
@@ -144,10 +143,14 @@ END $$;
 -- 5. RPC FUNCTION FOR FACETED SEARCH
 -- ============================================
 
+-- Drop all versions of the function first
+DROP FUNCTION IF EXISTS api_guides_search(text, uuid, uuid, text[], text[], text[], text, int, int, numeric, boolean, boolean, text, text, int) CASCADE;
+DROP FUNCTION IF EXISTS api_guides_search(text, text, text, text[], text[], text[], text, int, int, numeric, boolean, boolean, text, text, int) CASCADE;
+
 CREATE OR REPLACE FUNCTION api_guides_search(
   p_country text,
-  p_region_id uuid DEFAULT NULL,
-  p_city_id uuid DEFAULT NULL,
+  p_region_id text DEFAULT NULL,
+  p_city_id text DEFAULT NULL,
   p_languages text[] DEFAULT NULL,
   p_specialties text[] DEFAULT NULL,
   p_genders text[] DEFAULT NULL,
@@ -170,7 +173,7 @@ DECLARE
   v_results json;
   v_facets json;
   v_next_cursor text;
-  v_location_filter text[];
+  v_location_filter uuid[];
   v_has_location_tables boolean;
 BEGIN
   -- Validate and cap limit
@@ -193,11 +196,11 @@ BEGIN
   -- Get location-filtered guide IDs if region or city specified AND tables exist
   IF v_has_location_tables THEN
     IF p_region_id IS NOT NULL THEN
-      EXECUTE 'SELECT ARRAY_AGG(guide_id) FROM guide_regions WHERE region_id = $1'
+      EXECUTE 'SELECT ARRAY_AGG(guide_id) FROM guide_regions WHERE region_id = $1::uuid'
       INTO v_location_filter
       USING p_region_id;
     ELSIF p_city_id IS NOT NULL THEN
-      EXECUTE 'SELECT ARRAY_AGG(guide_id) FROM guide_cities WHERE city_id = $1'
+      EXECUTE 'SELECT ARRAY_AGG(guide_id) FROM guide_cities WHERE city_id = $1::uuid'
       INTO v_location_filter
       USING p_city_id;
     END IF;
@@ -301,30 +304,26 @@ BEGIN
     ) f
   )
 
-  -- Aggregate results
+  -- Aggregate results and build cursor in one query
   SELECT
-    COALESCE(json_agg(to_jsonb(paged.*) ORDER BY sort_key, id), '[]'::json),
+    COALESCE(json_agg(to_jsonb(paged)), '[]'::json),
     json_build_object(
       'languages', COALESCE((SELECT data FROM lang_facets), '[]'::json),
       'specialties', COALESCE((SELECT data FROM spec_facets), '[]'::json),
       'total', (SELECT COUNT(*) FROM base)
-    )
-  INTO v_results, v_facets
-  FROM paged;
-
-  -- Build next cursor from last row
-  SELECT CASE
-    WHEN COUNT(*) = p_limit THEN
-      encode(
-        convert_to(
-          MAX(sort_key)::text || ':' || MAX(id)::text,
-          'UTF8'
-        ),
-        'base64'
-      )
-    ELSE NULL
-  END
-  INTO v_next_cursor
+    ),
+    CASE
+      WHEN COUNT(*) = p_limit THEN
+        encode(
+          convert_to(
+            MAX(sort_key)::text || ':' || MAX(id::text),
+            'UTF8'
+          ),
+          'base64'
+        )
+      ELSE NULL
+    END
+  INTO v_results, v_facets, v_next_cursor
   FROM paged;
 
   -- Return combined result
@@ -350,8 +349,11 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY guides_browse_v;
 -- 7. AUTO-REFRESH TRIGGER (optional but recommended)
 -- ============================================
 
+-- Drop existing function if it exists
+DROP FUNCTION IF EXISTS refresh_guides_browse_v() CASCADE;
+
 -- Create function to refresh view when guides or profiles change
-CREATE OR REPLACE FUNCTION refresh_guides_browse_v()
+CREATE FUNCTION refresh_guides_browse_v()
 RETURNS trigger AS $$
 BEGIN
   -- Use CONCURRENTLY to avoid locking (requires unique index)

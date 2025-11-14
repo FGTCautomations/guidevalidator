@@ -87,6 +87,37 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Admin] Account deleted successfully: ${userId}`);
 
+    // Step 3: Refresh materialized views to update directory
+    try {
+      if (userType === "guides") {
+        const { error: refreshError } = await supabase.rpc("refresh_guides_view");
+        if (refreshError) {
+          console.error("[Admin] Error refreshing guides view:", refreshError);
+        } else {
+          console.log("[Admin] Guides materialized view refreshed");
+        }
+      } else {
+        // Refresh appropriate view based on user type
+        const refreshFunction =
+          userType === "agencies" ? "refresh_agencies_view" :
+          userType === "dmcs" ? "refresh_dmcs_view" :
+          userType === "transport" ? "refresh_transport_view" :
+          null;
+
+        if (refreshFunction) {
+          const { error: refreshError } = await supabase.rpc(refreshFunction);
+          if (refreshError) {
+            console.error(`[Admin] Error refreshing ${userType} view:`, refreshError);
+          } else {
+            console.log(`[Admin] ${userType} materialized view refreshed`);
+          }
+        }
+      }
+    } catch (refreshError) {
+      console.error("[Admin] Error refreshing materialized view:", refreshError);
+      // Don't fail the request if view refresh fails - deletion succeeded
+    }
+
     // TODO: Send email notification to user about account deletion
     // TODO: Archive user data for compliance/legal requirements
 

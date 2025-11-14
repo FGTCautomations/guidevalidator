@@ -56,6 +56,14 @@ export default async function CompleteProfilePage({
       .select("code, name")
       .order("name");
 
+    // Parse languages from CSV import format (comma-separated string) into array
+    let parsedLanguages = guide?.spoken_languages || [];
+    if (guide?.language && typeof guide.language === 'string') {
+      // If we have the CSV language field, parse it
+      const langList = guide.language.split(',').map((l: string) => l.trim().toLowerCase());
+      parsedLanguages = langList.length > 0 ? langList : parsedLanguages;
+    }
+
     return (
       <div className="mx-auto flex min-h-screen max-w-4xl flex-col px-6 py-12">
         <header className="mb-8">
@@ -66,9 +74,9 @@ export default async function CompleteProfilePage({
             Complete Your Guide Profile
           </h1>
           <p className="text-foreground/70">
-            Welcome, {profile.full_name}! Your profile has been imported from our database. Please
-            complete the missing information below to make your profile visible to travel agencies
-            and DMCs.
+            Welcome, {profile.full_name}! Your profile has been imported from our database. We've
+            pre-filled the information we have. Please review and complete any missing fields to make
+            your profile visible to travel agencies and DMCs.
           </p>
         </header>
 
@@ -80,14 +88,14 @@ export default async function CompleteProfilePage({
           countries={countries || []}
           claimedProfile={true}
           initialData={{
-            full_name: profile.full_name,
-            headline: guide?.headline || "",
+            full_name: profile.full_name || guide?.name || "",
+            headline: guide?.headline || "Licensed Tour Guide",
             bio: guide?.bio || "",
             years_experience: guide?.years_experience || 0,
             specialties: guide?.specialties || [],
-            spoken_languages: guide?.spoken_languages || [],
-            license_number: "",
-            license_authority: "",
+            spoken_languages: parsedLanguages,
+            license_number: guide?.license_number || guide?.card_number || "",
+            license_authority: guide?.license_authority || guide?.province_issue || "",
           }}
         />
       </div>
