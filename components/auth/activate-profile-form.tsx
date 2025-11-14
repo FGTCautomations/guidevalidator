@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import { Loader2 } from "lucide-react";
 
 type ActivateProfileFormProps = {
   locale: string;
@@ -131,7 +132,7 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
 
       console.log("[ACTIVATE] Signed in successfully, redirecting to profile completion...");
 
-      // Redirect to profile completion
+      // Redirect to profile completion form (now includes billing plan selection)
       router.push(`/${locale}/onboarding/complete-profile?claimed=true`);
     } catch (err) {
       console.error("Profile activation error:", err);
@@ -295,8 +296,9 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
+          {loading && <Loader2 className="h-5 w-5 animate-spin" />}
           {loading ? "Activating Profile..." : "Activate Profile & Create Account"}
         </button>
       </div>

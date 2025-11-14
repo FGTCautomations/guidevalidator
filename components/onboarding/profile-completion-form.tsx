@@ -7,6 +7,7 @@ import { CustomLanguageInput } from "@/components/form/custom-language-input";
 import { TimezoneSelect } from "@/components/form/timezone-select";
 import { WorkingHoursInput } from "@/components/form/working-hours-input";
 import { MultiCountryLocationSelectorDB, type LocationSelection } from "@/components/form/multi-country-location-selector-db";
+import { PlanSelector } from "@/components/form/plan-selector";
 
 // GUIDE_EXPERTISE_OPTIONS removed - now consolidated into GUIDE_SPECIALTY_OPTIONS
 
@@ -263,6 +264,7 @@ export function ProfileCompletionForm({
   const [contactMethods, setContactMethods] = useState("");
 
   // Subscription & billing
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
   const [billingNotes, setBillingNotes] = useState("");
 
   const languageOptions = useMemo(() => {
@@ -329,6 +331,7 @@ export function ProfileCompletionForm({
       formData.append("contactMethods", contactMethods);
 
       // Subscription & billing
+      formData.append("subscriptionPlan", subscriptionPlan);
       formData.append("billingNotes", billingNotes);
 
       const response = await fetch("/api/onboarding/complete-profile", {
@@ -598,6 +601,14 @@ Booking link | https://cal.com/guide"
       </Section>
 
       <Section title="Subscription & billing">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Select your plan</label>
+          <PlanSelector
+            role="guide"
+            value={subscriptionPlan}
+            onChange={setSubscriptionPlan}
+          />
+        </div>
         <TextArea
           label="Billing notes"
           name="billingNotes"
