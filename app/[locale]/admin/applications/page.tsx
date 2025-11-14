@@ -44,7 +44,7 @@ export default async function AdminApplicationsPage({
     // Query profiles table for guide applications
     supabase
       .from("profiles")
-      .select("id, full_name, email, application_status, application_submitted_at, created_at, updated_at, locale, role")
+      .select("id, full_name, application_status, application_submitted_at, created_at, updated_at, locale, role")
       .eq("application_status", "pending")
       .eq("role", "guide")
       .order("application_submitted_at", { ascending: false, nullsFirst: false })
@@ -75,8 +75,19 @@ export default async function AdminApplicationsPage({
       .limit(1000),
   ]);
 
+  // Fetch emails for guide applications from auth.users
+  const guideAppsWithEmails = await Promise.all(
+    (guideApps.data || []).map(async (app: any) => {
+      const { data: authUser } = await supabase.auth.admin.getUserById(app.id);
+      return {
+        ...app,
+        email: authUser?.user?.email || "No email",
+      };
+    })
+  );
+
   const applications = {
-    guide: (guideApps.data || []) as any[],
+    guide: guideAppsWithEmails as any[],
     agency: agencyApps.data || [],
     dmc: dmcApps.data || [],
     transport: transportApps.data || [],

@@ -19,6 +19,8 @@ export type SegmentSelection = {
   businessName?: string | null;
   bio?: string | null;
   yearsExperience?: number | null;
+  hourlyRateCents?: number | null;
+  currency?: string | null;
   avatarUrl?: string | null;
   timezone?: string | null;
   availabilityTimezone?: string | null;
@@ -50,7 +52,7 @@ export async function loadGuideSegments(profileId: string, client?: SupabaseClie
 
   const [{ data: guideRow, error: guideError }, { data: countryRows, error: countryError }, { data: regionRows, error: regionError }, { data: cityRows, error: cityError }] =
     await Promise.all([
-      supabase.from("guides").select("spoken_languages, specialties, business_name, bio, years_experience, avatar_url, timezone, availability_timezone, working_hours, expertise_areas, license_number, license_authority, license_proof_url, id_document_url, experience_summary, sample_itineraries, media_gallery, availability_notes").eq("profile_id", profileId).maybeSingle(),
+      supabase.from("guides").select("spoken_languages, specialties, business_name, bio, years_experience, hourly_rate_cents, currency, avatar_url, timezone, availability_timezone, working_hours, expertise_areas, license_number, license_authority, license_proof_url, id_document_url, experience_summary, sample_itineraries, media_gallery, availability_notes").eq("profile_id", profileId).maybeSingle(),
       supabase.from("guide_countries").select("country_code").eq("guide_id", profileId),
       supabase.from("guide_regions").select("region_id").eq("guide_id", profileId),
       supabase.from("guide_cities").select("city_id").eq("guide_id", profileId),
@@ -78,6 +80,8 @@ export async function loadGuideSegments(profileId: string, client?: SupabaseClie
     businessName: guideRow?.business_name ?? null,
     bio: guideRow?.bio ?? null,
     yearsExperience: guideRow?.years_experience ?? null,
+    hourlyRateCents: guideRow?.hourly_rate_cents ?? null,
+    currency: guideRow?.currency ?? null,
     avatarUrl: guideRow?.avatar_url ?? null,
     timezone: guideRow?.timezone ?? null,
     availabilityTimezone: guideRow?.availability_timezone ?? null,

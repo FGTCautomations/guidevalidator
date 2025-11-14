@@ -25,6 +25,8 @@ type GuideProfileFormProps = {
     businessName?: string | null;
     bio?: string | null;
     yearsExperience?: number | null;
+    hourlyRateCents?: number | null;
+    currency?: string | null;
     avatarUrl?: string | null;
     timezone?: string | null;
     availabilityTimezone?: string | null;
@@ -272,6 +274,30 @@ export function GuideProfileForm({ locale, initial, options }: GuideProfileFormP
           min="0"
           defaultValue={initial.yearsExperience || ""}
         />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextInput
+            label="Hourly Rate (in dollars)"
+            name="hourlyRate"
+            type="number"
+            min="0"
+            placeholder="e.g., 50"
+            defaultValue={initial.hourlyRateCents ? (initial.hourlyRateCents / 100).toString() : ""}
+          />
+          <label className="flex flex-col gap-2 text-sm text-foreground">
+            <span className="font-medium">Currency</span>
+            <select
+              name="currency"
+              defaultValue={initial.currency || "USD"}
+              className="rounded-xl border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="VND">VND (₫)</option>
+              <option value="THB">THB (฿)</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </label>
+        </div>
       </Section>
 
       <Section title="Credentials & Licensing">
