@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
-    const token = formData.get("token") as string;
+    const token = formData.get("token") as string | null;
     const guideId = formData.get("guideId") as string;
     const profileId = formData.get("profileId") as string;
 
@@ -48,26 +48,28 @@ export async function POST(request: NextRequest) {
     // Subscription & billing
     const billingNotes = formData.get("billingNotes") as string;
 
-    if (!token || !guideId) {
+    if (!guideId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const serviceClient = getSupabaseServiceClient();
 
-    // Verify token
-    const { data: guide, error: fetchError } = await serviceClient
-      .from("guides")
-      .select("application_data")
-      .eq("profile_id", guideId)
-      .single();
+    // Verify token only if provided (token is optional for claimed profiles)
+    if (token) {
+      const { data: guide, error: fetchError } = await serviceClient
+        .from("guides")
+        .select("application_data")
+        .eq("profile_id", guideId)
+        .single();
 
-    if (fetchError || !guide) {
-      return NextResponse.json({ error: "Guide not found" }, { status: 404 });
-    }
+      if (fetchError || !guide) {
+        return NextResponse.json({ error: "Guide not found" }, { status: 404 });
+      }
 
-    const appData = guide.application_data || {};
-    if (appData.profile_completion_token !== token) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 403 });
+      const appData = guide.application_data || {};
+      if (appData.profile_completion_token !== token) {
+        return NextResponse.json({ error: "Invalid token" }, { status: 403 });
+      }
     }
 
     // Upload files to Supabase Storage if provided
