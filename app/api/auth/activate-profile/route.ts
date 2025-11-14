@@ -139,13 +139,22 @@ export async function POST(request: NextRequest) {
       });
 
     if (profileInsertError) {
-      console.error("Profile creation error:", profileInsertError);
+      console.error("Profile creation error:", JSON.stringify(profileInsertError));
+      console.error("Error details:", {
+        code: profileInsertError.code,
+        message: profileInsertError.message,
+        details: profileInsertError.details,
+        hint: profileInsertError.hint,
+      });
 
       // Rollback: Delete the auth user we just created
       await supabase.auth.admin.deleteUser(newUserId);
 
       return NextResponse.json(
-        { error: "Failed to link profile to account" },
+        {
+          error: "Failed to link profile to account",
+          details: profileInsertError.message || "Unknown error"
+        },
         { status: 500 }
       );
     }
