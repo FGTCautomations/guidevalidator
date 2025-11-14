@@ -57,10 +57,10 @@ export function BannerAd({ ad, className = "", placement }: BannerAdProps) {
           alt={ad.headline || `${ad.advertiser_name} advertisement`}
           fill
           sizes={placement === 'sidebar' ? '300px' : '(max-width: 768px) 100vw, (max-width: 1200px) 970px, 728px'}
-          className="object-cover"
+          className="object-contain"
           onError={() => setImageError(true)}
           loading="lazy"
-          quality={85}
+          quality={90}
         />
       </div>
 

@@ -375,9 +375,21 @@ export function AdsManager() {
                   <span className="text-sm text-green-600">{uploadProgress}</span>
                 )}
               </div>
-              <p className="text-xs text-foreground/50">
-                Upload a file (max 5MB, JPEG/PNG/WebP/GIF) or paste URL above. Recommended: &lt;150KB, compressed
-              </p>
+              <div className="rounded-lg bg-blue-50 p-3 text-xs text-foreground/70">
+                <p className="font-semibold text-foreground mb-2">📐 Image Requirements:</p>
+                <ul className="space-y-1 list-disc list-inside">
+                  <li><strong>File formats:</strong> JPEG, PNG, WebP, or GIF</li>
+                  <li><strong>Max file size:</strong> 5MB (recommended: under 150KB for fast loading)</li>
+                  <li><strong>Aspect ratios & dimensions:</strong>
+                    <ul className="ml-4 mt-1 space-y-0.5">
+                      <li>• <strong>Banner ads:</strong> 728x90px (8:1 ratio) or 970x250px (3.88:1 ratio)</li>
+                      <li>• <strong>Sidebar ads:</strong> 300x600px (1:2 ratio)</li>
+                      <li>• <strong>Square/Native ads:</strong> 300x250px (6:5 ratio)</li>
+                    </ul>
+                  </li>
+                  <li><strong>Best practices:</strong> Use high-quality images, compress before uploading, ensure text is readable</li>
+                </ul>
+              </div>
             </div>
             {formData.image_url && (
               <div className="mt-2 overflow-hidden rounded-xl border border-foreground/10">
