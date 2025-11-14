@@ -70,6 +70,7 @@ export interface CreateAdInput {
   end_at: string;
   is_active?: boolean;
   weight?: number;
+  list_context?: 'guides' | 'dmcs' | 'transport' | 'agencies';
 }
 
 export interface UpdateAdInput extends Partial<CreateAdInput> {
