@@ -77,9 +77,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the profile
-    const { data: profileData, error: profileError } = await supabase
+    const { data: profileData, error: profileError} = await supabase
       .from("profiles")
-      .select("id, full_name, email, role")
+      .select("id, full_name, role")
       .eq("id", claimToken.profile_id)
       .maybeSingle();
 
@@ -91,7 +91,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stagingEmail = profileData.email || null; // May be null for imported profiles
     const profileId = claimToken.profile_id;
 
     // Step 2: Create auth user with the new email
@@ -125,12 +124,11 @@ export async function POST(request: NextRequest) {
 
     const newUserId = authData.user.id;
 
-    // Step 3: Update the profile with the new auth user ID and real email
+    // Step 3: Update the profile with the new auth user ID
     const { error: profileUpdateError } = await supabase
       .from("profiles")
       .update({
         id: newUserId, // Link to new auth user
-        email: email.toLowerCase().trim(),
         profile_completion_last_prompted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -193,17 +191,10 @@ export async function POST(request: NextRequest) {
 
     // Step 7: Delete the old staging profile record (with old UUID)
     // This is safe because we've already moved all data to the new user ID
-    let deleteQuery = supabase
+    const { error: deleteError } = await supabase
       .from("profiles")
       .delete()
       .eq("id", profileId);
-
-    // Only add email check if stagingEmail exists (for non-imported profiles)
-    if (stagingEmail) {
-      deleteQuery = deleteQuery.eq("email", stagingEmail);
-    }
-
-    const { error: deleteError } = await deleteQuery;
 
     if (deleteError) {
       console.error("Old profile deletion error:", deleteError);
