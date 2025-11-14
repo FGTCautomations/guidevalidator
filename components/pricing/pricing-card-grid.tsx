@@ -150,9 +150,9 @@ export function PricingCardGrid({ segments }: PricingCardGridProps) {
             </div>
 
             {/* Desktop: Hover flip card */}
-            <div className="hidden lg:block relative h-full w-full transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+            <div className="hidden lg:block relative h-full w-full flip-card-inner flip-card-3d transition-transform duration-500">
               {/* Front of card */}
-              <article className="absolute inset-0 flex h-full flex-col gap-4 rounded-3xl border-2 border-primary/30 bg-gradient-to-br from-white to-primary/5 p-6 shadow-md [backface-visibility:hidden]">
+              <article className="flip-card-front absolute inset-0 flex h-full flex-col gap-4 rounded-3xl border-2 border-primary/30 bg-gradient-to-br from-white to-primary/5 p-6 shadow-md">
                 <div className="space-y-3">
                   <div className="inline-block px-3 py-1.5 bg-primary/10 rounded-full">
                     <p className="text-sm font-bold uppercase tracking-wider text-primary">{segment.label}</p>
@@ -164,7 +164,7 @@ export function PricingCardGrid({ segments }: PricingCardGridProps) {
               </article>
 
               {/* Back of card */}
-              <article className="absolute inset-0 flex h-full flex-col rounded-3xl border-2 border-primary/30 bg-white p-5 text-foreground shadow-md [transform:rotateY(180deg)] [backface-visibility:hidden] overflow-hidden">
+              <article className="flip-card-back absolute inset-0 flex h-full flex-col rounded-3xl border-2 border-primary/30 bg-white p-5 text-foreground shadow-md overflow-hidden">
                 <div className="flex-shrink-0 mb-3 pb-3 border-b border-foreground/10">
                   <div className="inline-block px-2 py-1 bg-primary/10 rounded mb-1">
                     <p className="text-xs font-bold uppercase tracking-wide text-primary">{segment.label}</p>
