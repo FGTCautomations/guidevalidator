@@ -209,10 +209,8 @@ export async function POST(request: NextRequest) {
     // Update profile record with personal information
     const profileUpdateData: any = {
       full_name: fullName || null,
-      date_of_birth: dateOfBirth || null,
       country_code: nationality || null,
       phone: contactPhone || null,
-      city: cityOfResidence || null,
       updated_at: new Date().toISOString(),
     };
 

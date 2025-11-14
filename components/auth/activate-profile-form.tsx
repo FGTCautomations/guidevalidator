@@ -18,6 +18,7 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<"lookup" | "confirm">("lookup");
+  const [showEmailExistsModal, setShowEmailExistsModal] = useState(false);
 
   // Step 1: License lookup
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -112,6 +113,12 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if error is about email already being registered
+        if (data.error && (data.error.includes("already registered") || data.error.includes("already exists"))) {
+          setShowEmailExistsModal(true);
+          setLoading(false);
+          return;
+        }
         throw new Error(data.error || "Failed to activate profile");
       }
 
@@ -302,6 +309,97 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
           {loading ? "Activating Profile..." : "Activate Profile & Create Account"}
         </button>
       </div>
+
+      {/* Email Already Exists Modal */}
+      {showEmailExistsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="relative max-w-md w-full bg-background rounded-xl shadow-xl border border-foreground/10 p-6">
+            <button
+              onClick={() => setShowEmailExistsModal(false)}
+              className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"
+              aria-label="Close"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="mb-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">Email Already Registered</h3>
+              </div>
+
+              <p className="text-sm text-foreground/80 mb-4">
+                An account with this email address already exists. This could mean:
+              </p>
+
+              <ul className="text-sm text-foreground/70 space-y-2 mb-6 ml-4">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>You've already activated your profile with this email</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>Someone else registered using this email by mistake</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>You have an existing account from a previous signup</span>
+                </li>
+              </ul>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm font-medium text-blue-900 mb-2">What should you do?</p>
+                <ul className="text-sm text-blue-700 space-y-1.5">
+                  <li>1. Try signing in with this email if you already have an account</li>
+                  <li>2. Use a different email address to create a new account</li>
+                  <li>3. Contact us if you think this is an error</li>
+                </ul>
+              </div>
+
+              <div className="bg-foreground/5 rounded-lg p-4 border border-foreground/10">
+                <p className="text-sm font-medium text-foreground mb-2">Need Help?</p>
+                <p className="text-sm text-foreground/70 mb-3">
+                  If you believe this is an error or need assistance with your account, please contact our support team:
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4 text-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <a href="mailto:support@guidevalidator.com" className="text-primary hover:underline">
+                      support@guidevalidator.com
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowEmailExistsModal(false);
+                  setEmail("");
+                }}
+                className="flex-1 px-4 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Try Different Email
+              </button>
+              <button
+                onClick={() => router.push(`/${locale}/auth/sign-in`)}
+                className="px-4 py-2.5 border border-foreground/20 text-foreground font-medium rounded-lg hover:bg-foreground/5 transition-colors"
+              >
+                Sign In Instead
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

@@ -96,7 +96,7 @@ export default async function CompleteProfilePage({
             spoken_languages: parsedLanguages,
             license_number: guide?.license_number || guide?.card_number || "",
             license_authority: guide?.license_authority || guide?.province_issue || "",
-            avatar_url: profile.avatar_url || null,
+            avatar_url: guide?.image_url || profile.avatar_url || null,
           }}
         />
       </div>

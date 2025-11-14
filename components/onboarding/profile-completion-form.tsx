@@ -450,7 +450,6 @@ export function ProfileCompletionForm({
         <TextInput
           label="City of residence"
           name="cityOfResidence"
-          required
           value={cityOfResidence}
           onChange={setCityOfResidence}
         />
