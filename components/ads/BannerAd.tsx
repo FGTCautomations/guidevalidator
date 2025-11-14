@@ -45,7 +45,7 @@ export function BannerAd({ ad, className = "", placement }: BannerAdProps) {
       <div className={`relative w-full ${
         placement === 'sidebar'
           ? 'aspect-[300/600]'
-          : 'aspect-[728/90] sm:aspect-[970/250] md:aspect-[728/90]'
+          : 'aspect-[4/1] sm:aspect-[970/250] md:aspect-[728/90]'
       }`}>
         <Image
           src={ad.image_url}

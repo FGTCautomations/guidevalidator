@@ -84,7 +84,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
             <div className="flex flex-wrap items-center gap-4">
               <Link
                 href={`/${locale}/admin/users`}
-                className="relative inline-flex items-center gap-3 rounded-2xl bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
+                className="relative inline-flex items-center gap-3 rounded-2xl bg-blue-600 px-8 py-6 text-base font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
               >
                 <svg
                   aria-hidden="true"
@@ -104,7 +104,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/bulk-upload`}
-                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-4 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
+                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-6 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
               >
                 <svg
                   aria-hidden="true"
@@ -125,7 +125,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               <ExportDatabaseButton />
               <Link
                 href={`/${locale}/admin/verification`}
-                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-4 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
+                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-6 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
               >
                 <svg
                   aria-hidden="true"
@@ -145,7 +145,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/reviews`}
-                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-4 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
+                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-6 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
               >
                 <svg
                   aria-hidden="true"
@@ -165,7 +165,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/reviews/stats`}
-                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-4 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
+                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-6 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
               >
                 <svg
                   aria-hidden="true"
@@ -185,7 +185,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/ads`}
-                className="relative inline-flex items-center gap-3 rounded-2xl bg-brand-primary px-8 py-4 text-base font-semibold text-white shadow-md transition hover:bg-brand-primary/90 hover:shadow-lg"
+                className="relative inline-flex items-center gap-3 rounded-2xl bg-brand-primary px-8 py-6 text-base font-semibold text-white shadow-md transition hover:bg-brand-primary/90 hover:shadow-lg"
               >
                 <svg
                   aria-hidden="true"
@@ -205,7 +205,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/applications`}
-                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-4 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
+                className="relative inline-flex items-center gap-3 rounded-2xl bg-gray-200 px-8 py-6 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
                 aria-label={
                   pendingApplicationsCount > 0
                     ? `View applications (${pendingApplicationsCount} pending)`
@@ -238,7 +238,7 @@ export default async function AdminDashboardPage({ params }: { params: { locale:
               </Link>
               <Link
                 href={`/${locale}/admin/settings/anti-scraping`}
-                className="inline-flex items-center gap-3 rounded-2xl border border-gray-300 bg-gray-200 px-8 py-4 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
+                className="inline-flex items-center gap-3 rounded-2xl border border-gray-300 bg-gray-200 px-8 py-6 text-base font-semibold text-gray-700 shadow-md transition hover:bg-gray-300 hover:shadow-lg"
               >
                 <svg
                   aria-hidden="true"

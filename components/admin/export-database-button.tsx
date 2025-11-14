@@ -16,8 +16,20 @@ export function ExportDatabaseButton() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to export database");
+        // Check if response is JSON or HTML error page
+        const contentType = response.headers.get("content-type");
+
+        if (response.status === 504) {
+          throw new Error("Export timed out. The database is too large to export in one request. Please contact support for assistance with large exports.");
+        }
+
+        if (contentType?.includes("application/json")) {
+          const data = await response.json();
+          throw new Error(data.error || "Failed to export database");
+        } else {
+          // HTML error page or other non-JSON response
+          throw new Error(`Server error (${response.status}): Unable to export database. Please try again or contact support if the problem persists.`);
+        }
       }
 
       // Get the filename from Content-Disposition header
@@ -48,7 +60,7 @@ export function ExportDatabaseButton() {
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="inline-flex items-center gap-3 rounded-2xl bg-green-600 px-8 py-4 text-base font-semibold text-white shadow-md transition hover:bg-green-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-3 rounded-2xl bg-green-600 px-8 py-6 text-base font-semibold text-white shadow-md transition hover:bg-green-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isExporting ? (
           <>
@@ -86,9 +98,11 @@ export function ExportDatabaseButton() {
         )}
       </button>
       {error && (
-        <p className="text-xs text-red-600">
-          {error}
-        </p>
+        <div className="max-w-md rounded-lg border border-red-300 bg-red-50 p-3">
+          <p className="text-sm font-medium text-red-800">
+            {error}
+          </p>
+        </div>
       )}
     </div>
   );
