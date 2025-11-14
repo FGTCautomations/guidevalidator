@@ -27,6 +27,7 @@ type ProfileCompletionFormProps = {
     spoken_languages: string[];
     license_number: string;
     license_authority: string;
+    avatar_url: string | null;
   };
 };
 
@@ -145,6 +146,22 @@ function FileInput({
   hint?: string;
   onChange: (file: File | null) => void;
 }) {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setError(null);
+
+    if (file && file.size > 5 * 1024 * 1024) {
+      setError("File size must be less than 5MB");
+      e.target.value = "";
+      onChange(null);
+      return;
+    }
+
+    onChange(file);
+  };
+
   return (
     <label className="flex flex-col gap-2 text-sm text-foreground">
       <span className="font-medium">
@@ -155,10 +172,11 @@ function FileInput({
         name={name}
         accept="image/*"
         required={required}
-        onChange={(e) => onChange(e.target.files?.[0] || null)}
+        onChange={handleFileChange}
         className="cursor-pointer rounded-xl border border-foreground/15 bg-background/80 px-3 py-2 text-sm text-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
       />
-      {hint ? <p className="text-xs text-foreground/60">{hint}</p> : null}
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      {hint && !error ? <p className="text-xs text-foreground/60">{hint}</p> : null}
     </label>
   );
 }
@@ -503,6 +521,21 @@ export function ProfileCompletionForm({
       </Section>
 
       <Section title="Profile & portfolio">
+        {initialData.avatar_url && (
+          <div className="flex items-start gap-4 rounded-lg border border-foreground/10 bg-background/50 p-4">
+            <img
+              src={initialData.avatar_url}
+              alt="Current profile photo"
+              className="h-20 w-20 rounded-full object-cover"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">Current Profile Photo</p>
+              <p className="text-xs text-foreground/60 mt-1">
+                You already have a profile photo. Upload a new one below if you want to replace it.
+              </p>
+            </div>
+          </div>
+        )}
         <FileInput
           label="Profile photo"
           name="profilePhoto"
@@ -613,8 +646,7 @@ Booking link | https://cal.com/guide"
           label="Billing notes"
           name="billingNotes"
           rows={2}
-          required
-          placeholder="Company billing entity, VAT, etc"
+          placeholder="Company billing entity, VAT, etc (optional)"
           value={billingNotes}
           onChange={setBillingNotes}
         />
