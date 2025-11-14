@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 type ActivateProfileFormProps = {
   locale: string;
@@ -9,6 +10,7 @@ type ActivateProfileFormProps = {
 
 export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
   const router = useRouter();
+  const supabase = createClientComponentClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<"lookup" | "confirm">("lookup");
@@ -108,6 +110,23 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
       if (!response.ok) {
         throw new Error(data.error || "Failed to activate profile");
       }
+
+      console.log("[ACTIVATE] Profile activated successfully, now signing in...");
+
+      // Sign in the user with the newly created account
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase().trim(),
+        password: password,
+      });
+
+      if (signInError) {
+        console.error("[ACTIVATE] Sign-in error:", signInError);
+        setError("Account created but failed to sign in. Please try signing in manually.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("[ACTIVATE] Signed in successfully, redirecting to profile completion...");
 
       // Redirect to profile completion
       router.push(`/${locale}/onboarding/complete-profile?claimed=true`);
