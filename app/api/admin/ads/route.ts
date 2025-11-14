@@ -42,7 +42,25 @@ export async function GET() {
     // Use service role client to bypass RLS and show all ads (active and inactive)
     const supabase = getSupabaseServiceRoleClient();
     const ads = await getAllAds(supabase);
-    return NextResponse.json(ads);
+
+    // Fetch sponsored_listings for each ad to get list_context
+    const adsWithContext = await Promise.all(
+      ads.map(async (ad) => {
+        const { data: sponsoredListings } = await supabase
+          .from("sponsored_listings")
+          .select("list_context")
+          .eq("ad_id", ad.id)
+          .limit(1)
+          .maybeSingle();
+
+        return {
+          ...ad,
+          list_context: sponsoredListings?.list_context || null,
+        };
+      })
+    );
+
+    return NextResponse.json(adsWithContext);
   } catch (error) {
     console.error("Error fetching ads:", error);
     return NextResponse.json(

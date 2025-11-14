@@ -41,11 +41,6 @@ export function BannerAd({ ad, className = "", placement }: BannerAdProps) {
     <div
       className={`relative overflow-hidden rounded-2xl bg-brand-bg shadow-sm transition-shadow hover:shadow-md ${className}`}
     >
-      {/* Sponsored badge */}
-      <div className="absolute left-2 top-2 z-10 rounded-lg bg-brand-neutral/90 px-2 py-1 text-xs font-medium text-brand-ink">
-        Sponsored
-      </div>
-
       {/* Banner image */}
       <div className={`relative w-full ${
         placement === 'sidebar'

@@ -46,6 +46,7 @@ export function AdsManager() {
       placement: [],
       is_active: true,
       weight: 1,
+      list_context: "guides",
       start_at: new Date().toISOString().slice(0, 16),
       end_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
         .toISOString()
@@ -71,6 +72,7 @@ export function AdsManager() {
       end_at: new Date(ad.end_at).toISOString().slice(0, 16),
       is_active: ad.is_active,
       weight: ad.weight,
+      list_context: (ad as any).list_context || "guides",
     });
     setShowForm(true);
   };
