@@ -124,18 +124,22 @@ export async function POST(request: NextRequest) {
 
     const newUserId = authData.user.id;
 
-    // Step 3: Update the profile with the new auth user ID
-    const { error: profileUpdateError } = await supabase
+    // Step 3: Create new profile for the auth user by copying old profile data
+    const { error: profileInsertError } = await supabase
       .from("profiles")
-      .update({
-        id: newUserId, // Link to new auth user
+      .insert({
+        id: newUserId,
+        full_name: profileData.full_name,
+        role: profileData.role,
+        country_code: "VN", // Default for imported guides
+        locale: "en",
         profile_completion_last_prompted_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      })
-      .eq("id", profileId);
+      });
 
-    if (profileUpdateError) {
-      console.error("Profile update error:", profileUpdateError);
+    if (profileInsertError) {
+      console.error("Profile creation error:", profileInsertError);
 
       // Rollback: Delete the auth user we just created
       await supabase.auth.admin.deleteUser(newUserId);
