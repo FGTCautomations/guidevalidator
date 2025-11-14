@@ -48,12 +48,12 @@ export function ExportDatabaseButton() {
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-3 rounded-2xl bg-green-600 px-8 py-4 text-base font-semibold text-white shadow-md transition hover:bg-green-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isExporting ? (
           <>
             <svg
-              className="h-4 w-4 animate-spin"
+              className="h-6 w-6 animate-spin"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -69,11 +69,11 @@ export function ExportDatabaseButton() {
         ) : (
           <>
             <svg
-              className="h-4 w-4"
+              className="h-6 w-6"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth={1.5}
+              strokeWidth={2}
             >
               <path
                 d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
