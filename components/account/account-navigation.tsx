@@ -48,6 +48,13 @@ const NAV_ITEMS: NavItem[] = [
     icon: "✅",
     allowedRoles: ["guide", "transport"],
   },
+  {
+    label: "Security",
+    pathSuffix: "/account/security",
+    route: "/[locale]/account/security" as Route,
+    icon: "🔒",
+    allowedRoles: ["guide", "agency", "dmc", "transport", "admin", "super_admin"],
+  },
 ];
 
 export function AccountNavigation({ locale, userRole }: AccountNavigationProps) {

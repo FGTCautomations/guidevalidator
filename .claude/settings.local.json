@@ -71,7 +71,8 @@
       "Bash(else echo \"No .next directory found\")",
       "Bash(while true)",
       "Bash(do sleep 30)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(vercel ls:*)"
     ],
     "deny": [],
     "ask": []
