@@ -42,22 +42,10 @@ export async function POST(request: NextRequest) {
 
     const supabase = getServiceRoleClient();
 
-    // Step 1: Validate claim token and verify license number
+    // Step 1: Validate claim token
     const { data: claimToken, error: tokenError } = await supabase
       .from("profile_claim_tokens")
-      .select(`
-        id,
-        profile_id,
-        license_number,
-        expires_at,
-        claimed_at,
-        profiles!inner(
-          id,
-          full_name,
-          email,
-          role
-        )
-      `)
+      .select("id, profile_id, license_number, expires_at, claimed_at")
       .eq("token", token)
       .maybeSingle();
 
@@ -65,6 +53,21 @@ export async function POST(request: NextRequest) {
       console.error("Token validation error:", tokenError);
       return NextResponse.json(
         { error: "Invalid claim token" },
+        { status: 400 }
+      );
+    }
+
+    // Get the profile separately
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, role")
+      .eq("id", claimToken.profile_id)
+      .maybeSingle();
+
+    if (profileError || !profileData) {
+      console.error("Profile validation error:", profileError);
+      return NextResponse.json(
+        { error: "Profile not found" },
         { status: 400 }
       );
     }
@@ -93,7 +96,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const profileData = claimToken.profiles as any;
     const stagingEmail = profileData.email;
     const profileId = claimToken.profile_id;
 

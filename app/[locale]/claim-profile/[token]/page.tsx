@@ -188,12 +188,6 @@ export default async function ClaimProfilePage({ params, searchParams }: PagePro
                 <p className="text-sm text-foreground/60 mb-1">Profile for:</p>
                 <p className="font-semibold text-foreground">{result.guideName}</p>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-foreground/60 mb-1">License Number:</p>
-                <p className="font-mono text-sm font-semibold text-foreground">
-                  {result.licenseNumber}
-                </p>
-              </div>
             </div>
           </div>
 
