@@ -64,8 +64,16 @@ export async function POST(request: NextRequest) {
       .eq("id", claimToken.profile_id)
       .maybeSingle();
 
-    if (profileError || !profileData) {
+    if (profileError) {
       console.error("Profile validation error:", profileError);
+      return NextResponse.json(
+        { error: "Profile not found" },
+        { status: 400 }
+      );
+    }
+
+    if (!profileData) {
+      console.error("Profile data is null for token:", claimToken.profile_id);
       return NextResponse.json(
         { error: "Profile not found" },
         { status: 400 }
@@ -96,7 +104,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stagingEmail = profileData.email;
+    const stagingEmail = profileData.email || null; // May be null for imported profiles
     const profileId = claimToken.profile_id;
 
     // Step 2: Create auth user with the new email
@@ -198,11 +206,17 @@ export async function POST(request: NextRequest) {
 
     // Step 7: Delete the old staging profile record (with old UUID)
     // This is safe because we've already moved all data to the new user ID
-    const { error: deleteError } = await supabase
+    let deleteQuery = supabase
       .from("profiles")
       .delete()
-      .eq("id", profileId)
-      .eq("email", stagingEmail); // Extra safety check
+      .eq("id", profileId);
+
+    // Only add email check if stagingEmail exists (for non-imported profiles)
+    if (stagingEmail) {
+      deleteQuery = deleteQuery.eq("email", stagingEmail);
+    }
+
+    const { error: deleteError } = await deleteQuery;
 
     if (deleteError) {
       console.error("Old profile deletion error:", deleteError);
