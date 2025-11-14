@@ -124,27 +124,26 @@ export async function POST(request: NextRequest) {
 
     const newUserId = authData.user.id;
 
-    // Step 3: Create new profile for the auth user by copying old profile data
-    const { error: profileInsertError } = await supabase
+    // Step 3: Update the auto-created profile with imported data
+    // Note: Creating an auth user automatically creates a profile via database trigger
+    const { error: profileUpdateError } = await supabase
       .from("profiles")
-      .insert({
-        id: newUserId,
+      .update({
         full_name: profileData.full_name,
         role: profileData.role,
         country_code: "VN", // Default for imported guides
-        locale: "en",
         profile_completion_last_prompted_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      })
+      .eq("id", newUserId);
 
-    if (profileInsertError) {
-      console.error("Profile creation error:", JSON.stringify(profileInsertError));
+    if (profileUpdateError) {
+      console.error("Profile update error:", JSON.stringify(profileUpdateError));
       console.error("Error details:", {
-        code: profileInsertError.code,
-        message: profileInsertError.message,
-        details: profileInsertError.details,
-        hint: profileInsertError.hint,
+        code: profileUpdateError.code,
+        message: profileUpdateError.message,
+        details: profileUpdateError.details,
+        hint: profileUpdateError.hint,
       });
 
       // Rollback: Delete the auth user we just created
@@ -153,7 +152,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Failed to link profile to account",
-          details: profileInsertError.message || "Unknown error"
+          details: profileUpdateError.message || "Unknown error"
         },
         { status: 500 }
       );
