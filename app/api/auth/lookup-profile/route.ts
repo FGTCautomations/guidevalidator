@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { licenseNumber } = body;
 
+    console.log("[API] lookup-profile called with:", { licenseNumber });
+
     // Validation
     if (!licenseNumber) {
+      console.log("[API] lookup-profile: Missing license number");
       return NextResponse.json(
         { error: "License number is required" },
         { status: 400 }

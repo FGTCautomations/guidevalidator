@@ -28,12 +28,19 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
     setError(null);
     setLoading(true);
 
+    console.log("[ACTIVATE] Looking up license:", licenseNumber);
+
     try {
+      const payload = { licenseNumber };
+      console.log("[ACTIVATE] Sending payload:", JSON.stringify(payload));
+
       const response = await fetch("/api/auth/lookup-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ licenseNumber }),
+        body: JSON.stringify(payload),
       });
+
+      console.log("[ACTIVATE] Response status:", response.status, response.statusText);
 
       const data = await response.json();
 
@@ -78,16 +85,23 @@ export function ActivateProfileForm({ locale }: ActivateProfileFormProps) {
 
     setLoading(true);
 
+    console.log("[ACTIVATE] Activating with license:", licenseNumber, "email:", email);
+
     try {
+      const payload = {
+        licenseNumber,
+        email,
+        password,
+      };
+      console.log("[ACTIVATE] Activation payload:", JSON.stringify({ ...payload, password: "[REDACTED]" }));
+
       const response = await fetch("/api/auth/activate-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          licenseNumber,
-          email,
-          password,
-        }),
+        body: JSON.stringify(payload),
       });
+
+      console.log("[ACTIVATE] Activation response status:", response.status, response.statusText);
 
       const data = await response.json();
 

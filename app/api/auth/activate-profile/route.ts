@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { licenseNumber, email, password } = body;
 
+    console.log("[API] activate-profile called with:", { licenseNumber, email, password: "[REDACTED]" });
+
     // Validation
     if (!licenseNumber || !email || !password) {
+      console.log("[API] activate-profile: Missing required fields");
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
