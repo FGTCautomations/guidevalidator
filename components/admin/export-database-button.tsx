@@ -56,32 +56,32 @@ export function ExportDatabaseButton() {
   };
 
   return (
-    <div className="inline-flex flex-col gap-2">
+    <div className="flex w-full flex-col items-center gap-3">
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="inline-flex items-center gap-3 rounded-2xl bg-green-600 px-8 py-6 text-base font-semibold text-white shadow-md transition hover:bg-green-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex flex-col items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isExporting ? (
           <>
             <svg
-              className="h-6 w-6 animate-spin"
+              className="h-8 w-8 animate-spin text-green-600"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
+              strokeWidth={2}
             >
               <path
                 d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"
-                strokeWidth={2}
                 strokeLinecap="round"
               />
             </svg>
-            <span>Exporting...</span>
+            <span className="text-center text-sm font-semibold text-foreground">Exporting...</span>
           </>
         ) : (
           <>
             <svg
-              className="h-6 w-6"
+              className="h-8 w-8 text-green-600"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -93,13 +93,13 @@ export function ExportDatabaseButton() {
                 strokeLinejoin="round"
               />
             </svg>
-            <span>Export to Excel</span>
+            <span className="text-center text-sm font-semibold text-foreground">Export to Excel</span>
           </>
         )}
       </button>
       {error && (
-        <div className="max-w-md rounded-lg border border-red-300 bg-red-50 p-3">
-          <p className="text-sm font-medium text-red-800">
+        <div className="w-full rounded-lg border border-red-300 bg-red-50 p-2">
+          <p className="text-xs font-medium text-red-800 text-center">
             {error}
           </p>
         </div>
