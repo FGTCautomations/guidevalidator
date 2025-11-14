@@ -15,11 +15,13 @@ type GuideProfileRow = {
   media_gallery?: string | null;
   availability_notes?: string | null;
   avatar_url?: string | null;
+  image_url?: string | null;
   license_number?: string | null;
   profiles?: {
     full_name?: string | null;
     country_code?: string | null;
     verified?: boolean | null;
+    avatar_url?: string | null;
   } | null;
 };
 
@@ -61,7 +63,7 @@ export async function fetchGuideProfile(profileId: string): Promise<GuideProfile
   const { data, error } = await supabase
     .from("guides")
     .select(
-      `profile_id, headline, bio, specialties, spoken_languages, hourly_rate_cents, currency, years_experience, response_time_minutes, experience_summary, sample_itineraries, media_gallery, availability_notes, avatar_url, license_number, profiles!inner(id, full_name, country_code, verified)`
+      `profile_id, headline, bio, specialties, spoken_languages, hourly_rate_cents, currency, years_experience, response_time_minutes, experience_summary, sample_itineraries, media_gallery, availability_notes, avatar_url, image_url, license_number, profiles!inner(id, full_name, country_code, verified, avatar_url)`
     )
     .eq("profile_id", profileId)
     .maybeSingle();
@@ -117,7 +119,7 @@ export async function fetchGuideProfile(profileId: string): Promise<GuideProfile
     sampleItineraries,
     mediaGallery,
     availabilityNotes: row.availability_notes ?? undefined,
-    avatarUrl: row.avatar_url ?? undefined,
+    avatarUrl: row.image_url || profileData?.avatar_url || row.avatar_url || undefined,
     licenseNumber: row.license_number ?? undefined,
     locationData: undefined, // Will need to fetch from location tables if needed
   };

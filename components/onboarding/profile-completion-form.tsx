@@ -364,9 +364,9 @@ export function ProfileCompletionForm({
 
       setSuccess(true);
 
-      // Redirect to profile page after 2 seconds
+      // Redirect to edit profile page after 2 seconds
       setTimeout(() => {
-        router.push(`/${locale}/profiles/guide/${guideId}`);
+        router.push(`/${locale}/account/profile`);
       }, 2000);
     } catch (err) {
       console.error("Profile update error:", err);

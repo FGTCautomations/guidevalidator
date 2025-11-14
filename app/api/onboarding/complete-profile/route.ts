@@ -211,6 +211,8 @@ export async function POST(request: NextRequest) {
       full_name: fullName || null,
       country_code: nationality || null,
       phone: contactPhone || null,
+      application_status: "pending", // Set status to pending for admin approval
+      application_submitted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
