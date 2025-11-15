@@ -85,25 +85,15 @@ export async function fetchGuideProfile(guideId: string): Promise<GuideProfile |
   const row = data as GuideProfileRow;
   const profileData = row.profiles ?? null;
 
-  // Check if profile is activated (has an auth user)
-  const { data: authUser } = await supabase
-    .from("auth.users")
-    .select("id")
-    .eq("id", row.profile_id)
+  // Check activation and featured status from guides_browse_v (which already computes these)
+  const { data: browseData } = await supabase
+    .from("guides_browse_v")
+    .select("is_activated, is_featured")
+    .eq("id", guideId)
     .maybeSingle();
 
-  const isActivated = !!authUser;
-
-  // Check if profile has an active premium subscription (Featured status)
-  const { data: premiumSubscription } = await supabase
-    .from("subscriptions")
-    .select("id, plan_code, status")
-    .eq("profile_id", row.profile_id)
-    .in("plan_code", ["guide_premium_monthly", "guide_premium_yearly"])
-    .eq("status", "active")
-    .maybeSingle();
-
-  const isFeatured = !!premiumSubscription;
+  const isActivated = browseData?.is_activated ?? false;
+  const isFeatured = browseData?.is_featured ?? false;
 
   // Parse JSON fields if they exist
   let sampleItineraries: Array<{ title: string; url: string }> | undefined;
