@@ -41,6 +41,7 @@ export type GuideProfile = {
   yearsExperience?: number | null;
   responseTimeMinutes?: number | null;
   verified: boolean;
+  activated: boolean;
   experienceSummary?: string | null;
   certifications?: string[];
   education?: string | null;
@@ -83,6 +84,15 @@ export async function fetchGuideProfile(guideId: string): Promise<GuideProfile |
   const row = data as GuideProfileRow;
   const profileData = row.profiles ?? null;
 
+  // Check if profile is activated (has an auth user)
+  const { data: authUser } = await supabase
+    .from("auth.users")
+    .select("id")
+    .eq("id", row.profile_id)
+    .maybeSingle();
+
+  const isActivated = !!authUser;
+
   // Parse JSON fields if they exist
   let sampleItineraries: Array<{ title: string; url: string }> | undefined;
   let mediaGallery: Array<{ title: string; url: string }> | undefined;
@@ -117,6 +127,7 @@ export async function fetchGuideProfile(guideId: string): Promise<GuideProfile |
     yearsExperience: row.years_experience,
     responseTimeMinutes: row.response_time_minutes,
     verified: profileData?.verified ?? false,
+    activated: isActivated,
     experienceSummary: row.experience_summary ?? undefined,
     certifications: undefined, // Not stored in guides table yet
     education: undefined, // Not stored in guides table yet

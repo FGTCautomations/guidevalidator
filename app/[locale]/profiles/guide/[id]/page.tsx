@@ -95,6 +95,14 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
     <div className="flex flex-col gap-8 bg-background px-6 py-12 text-foreground sm:px-12 lg:px-24 contact-protected">
       <CopyProtection />
       <div className="mx-auto w-full max-w-5xl space-y-6">
+        {/* Activation Status Banner */}
+        {!profile.activated && (
+          <div className="rounded-lg border-2 border-red-500 bg-red-50 p-4 text-center">
+            <p className="text-lg font-semibold text-red-700">Not activated yet</p>
+            <p className="mt-1 text-sm text-red-600">This guide profile has not been activated. Contact information and booking features are limited.</p>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="flex justify-end gap-3">
           <RequestHoldButton
