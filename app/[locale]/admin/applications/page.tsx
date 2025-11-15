@@ -40,6 +40,7 @@ export default async function AdminApplicationsPage({
   }
 
   // Fetch pending applications from master tables (limited to 1000 each)
+  // Only show applications where application_submitted_at is not null (actual form submissions, not imports)
   const [guideApps, agencyApps, dmcApps, transportApps] = await Promise.all([
     // Query profiles table for guide applications
     supabase
@@ -47,6 +48,7 @@ export default async function AdminApplicationsPage({
       .select("id, full_name, application_status, application_submitted_at, created_at, updated_at, locale, role")
       .eq("application_status", "pending")
       .eq("role", "guide")
+      .not("application_submitted_at", "is", null)
       .order("application_submitted_at", { ascending: false, nullsFirst: false })
       .limit(1000),
     // Query agencies table with pending status and type='agency'
@@ -55,6 +57,7 @@ export default async function AdminApplicationsPage({
       .select("*")
       .eq("application_status", "pending")
       .eq("type", "agency")
+      .not("application_submitted_at", "is", null)
       .order("application_submitted_at", { ascending: false, nullsFirst: false })
       .limit(1000),
     // Query agencies table with pending status and type='dmc'
@@ -63,6 +66,7 @@ export default async function AdminApplicationsPage({
       .select("*")
       .eq("application_status", "pending")
       .eq("type", "dmc")
+      .not("application_submitted_at", "is", null)
       .order("application_submitted_at", { ascending: false, nullsFirst: false })
       .limit(1000),
     // Query agencies table with pending status and type='transport'
@@ -71,6 +75,7 @@ export default async function AdminApplicationsPage({
       .select("*")
       .eq("application_status", "pending")
       .eq("type", "transport")
+      .not("application_submitted_at", "is", null)
       .order("application_submitted_at", { ascending: false, nullsFirst: false })
       .limit(1000),
   ]);
