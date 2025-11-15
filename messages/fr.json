@@ -77,6 +77,7 @@
     "signIn": {
       "title": "Sign in",
       "description": "Access your workspace to manage profiles, jobs, and verifications.",
+            "notProvided": "This information has not been provided yet",
       "emailLabel": "Work email",
       "passwordLabel": "Password",
       "rememberMe": "Remember me",
@@ -92,6 +93,7 @@
     "signUp": {
       "title": "Create your account",
       "description": "Launch your presence on Guide Validator in minutes.",
+            "notProvided": "This information has not been provided yet",
       "firstNameLabel": "First name",
       "lastNameLabel": "Last name",
       "emailLabel": "Work email",
@@ -115,6 +117,7 @@
       "request": {
         "title": "Reset your password",
         "description": "Enter the email associated with your account.",
+            "notProvided": "This information has not been provided yet",
         "submit": "Send reset link",
         "success": "If an account exists, we'll send reset instructions.",
         "emailLabel": "Work email"
@@ -249,6 +252,7 @@
   "directory": {
     "title": "Find verified partners",
     "description": "Search across guides, DMCs, and transport companies with compliance-first filters.",
+            "notProvided": "This information has not been provided yet",
     "tabs": {
       "guides": "Guides",
       "dmcs": "DMCs",
@@ -335,7 +339,8 @@
     },
     "fallback": {
       "title": "We couldn't load this profile",
-      "description": "This guide may have been removed or is not available in this region."
+      "description": "This guide may have been removed or is not available in this region.",
+            "notProvided": "This information has not been provided yet"
     },
     "transport": {
       "headline": "Transport",
@@ -382,6 +387,7 @@
     "badge": "Marketplace jobs",
     "title": "Browse active agency requests",
     "description": "Find high-intent opportunities from vetted agencies and DMCs. Use filters to match your specialties, languages, and availability.",
+            "notProvided": "This information has not been provided yet",
     "cta": {
       "post": "Post a job",
       "contact": "Talk to our team",
@@ -416,7 +422,8 @@
     },
     "empty": {
       "title": "No jobs match your filters yet",
-      "description": "Adjust your filters or check back soon. New agency requests go live throughout the day."
+      "description": "Adjust your filters or check back soon. New agency requests go live throughout the day.",
+            "notProvided": "This information has not been provided yet"
     },
     "card": {
       "cta": "View details"
@@ -425,10 +432,12 @@
       "badge": "Create a job",
       "title": "Post a new job",
       "description": "Share availability details, budget, and requirements so qualified guides can apply.",
+            "notProvided": "This information has not been provided yet",
       "sections": {
         "details": {
           "heading": "Job details",
-          "description": "Add a clear title, summary, and location details."
+          "description": "Add a clear title, summary, and location details.",
+            "notProvided": "This information has not been provided yet"
         },
         "dates": {
           "heading": "Schedule"
@@ -510,6 +519,7 @@
       "application": {
         "heading": "Send your application",
         "description": "Introduce yourself, confirm availability, and highlight relevant experience.",
+            "notProvided": "This information has not been provided yet",
         "coverLetterLabel": "Cover letter",
         "coverLetterPlaceholder": "Explain why you're a great fit...",
         "budget": "Budget expectation",
@@ -550,6 +560,7 @@
       },
       "backToJobs": "Back to jobs",
       "description": "Job Description",
+            "notProvided": "This information has not been provided yet",
       "requirements": "Requirements",
       "startDate": "Start date",
       "endDate": "End date",
@@ -568,6 +579,7 @@
     "billing": {
       "title": "Manage guide subscriptions and verification",
       "description": "Upgrade to premium placement or renew your verified badge to stay visible to top agencies.",
+            "notProvided": "This information has not been provided yet",
       "guide": {
         "heading": "Guide billing",
         "body": "Premium boosts your profile in searches. The verification badge confirms your licensing for one year.",
@@ -629,6 +641,7 @@
     "verification": {
       "title": "Guide verification",
       "description": "Upload your licensing documents after checkout so we can review and activate your verified badge.",
+            "notProvided": "This information has not been provided yet",
       "body": "Once payment is complete we will prompt you for the required documents. Verification typically completes within 48 hours.",
       "steps": {
         "checkStatus": "Return to this page to check the status of your verification request.",
@@ -640,23 +653,28 @@
         "states": {
           "not_started": {
             "title": "No verification on file",
-            "description": "Purchase the badge in billing to unlock document uploads and get in the review queue."
+            "description": "Purchase the badge in billing to unlock document uploads and get in the review queue.",
+            "notProvided": "This information has not been provided yet"
           },
           "pending": {
             "title": "In review",
-            "description": "Submitted on {date}. Our verification team typically responds within 48 hours."
+            "description": "Submitted on {date}. Our verification team typically responds within 48 hours.",
+            "notProvided": "This information has not been provided yet"
           },
           "approved": {
             "title": "Badge active",
-            "description": "Valid through {date}. Keep your documents handy for annual renewal reminders."
+            "description": "Valid through {date}. Keep your documents handy for annual renewal reminders.",
+            "notProvided": "This information has not been provided yet"
           },
           "expired": {
             "title": "Verification expired",
-            "description": "Expired on {date}. Upload fresh documents so we can reactivate your badge."
+            "description": "Expired on {date}. Upload fresh documents so we can reactivate your badge.",
+            "notProvided": "This information has not been provided yet"
           },
           "rejected": {
             "title": "More information required",
-            "description": "Last review on {date}. Check your email for feedback and upload the requested documents again."
+            "description": "Last review on {date}. Check your email for feedback and upload the requested documents again.",
+            "notProvided": "This information has not been provided yet"
           }
         },
         "actions": {
@@ -672,7 +690,8 @@
     },
     "onboarding": {
       "title": "Complete Your Profile",
-      "description": "Please complete your profile information to get started with Guide Validator."
+      "description": "Please complete your profile information to get started with Guide Validator.",
+            "notProvided": "This information has not been provided yet"
     },
     "privacy Data": "Confidentialit' et donn'es",
     "yourProfileRoleDoes": "Le r'le de votre profil ne n'cessite pas de param'tres de couverture suppl'mentaires.",
@@ -773,6 +792,7 @@
       "create": {
         "title": "Add user",
         "description": "Create a user with an initial role. They can update their profile after signing in.",
+            "notProvided": "This information has not been provided yet",
         "email": "Email",
         "password": "Password",
         "fullName": "Full name",
@@ -1080,6 +1100,7 @@
     "phone": "T'l'phone:",
     "website": "Site internet:",
     "description": "Description:",
+            "notProvided": "This information has not been provided yet",
     "services": "Services:",
     "certifications": "Certifications:",
     "searchByNameOr": "Recherche par nom ou par e-mail...",
@@ -1092,6 +1113,7 @@
   "contact": {
     "title": "Get in Touch",
     "description": "Have questions or need support? We're here to help.",
+            "notProvided": "This information has not been provided yet",
     "info": {
       "title": "Contact Information",
       "email": {
@@ -1107,7 +1129,8 @@
     },
     "additional": {
       "title": "Need Help?",
-      "description": "Our support team typically responds within 24 hours. For urgent matters, please call us directly during business hours."
+      "description": "Our support team typically responds within 24 hours. For urgent matters, please call us directly during business hours.",
+            "notProvided": "This information has not been provided yet"
     },
     "form": {
       "title": "Send us a Message"

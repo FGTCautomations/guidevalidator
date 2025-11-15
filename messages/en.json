@@ -244,7 +244,8 @@
         },
         "fallback": {
             "title": "We couldn't load this profile",
-            "description": "This guide may have been removed or is not available in this region."
+            "description": "This guide may have been removed or is not available in this region.",
+            "notProvided": "This information has not been provided yet"
         },
         "transport": {
             "headline": "Transport",

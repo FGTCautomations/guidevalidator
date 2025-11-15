@@ -216,7 +216,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
         <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
           <div className="space-y-6">
             <InfoSection title={t("guide.infoTitle")}>
-              <p>{profile.bio ?? profile.headline ?? t("fallback.description")}</p>
+              <p>{profile.bio ?? profile.headline ?? t("fallback.notProvided")}</p>
             </InfoSection>
 
             {profile.experienceSummary && (
@@ -236,7 +236,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
                         {specialty}
                       </span>
                     ))
-                  : t("fallback.description")}
+                  : t("fallback.notProvided")}
               </div>
             </InfoSection>
 
@@ -251,7 +251,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
                         {language}
                       </span>
                     ))
-                  : t("fallback.description")}
+                  : t("fallback.notProvided")}
               </div>
             </InfoSection>
 
