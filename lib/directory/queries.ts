@@ -991,11 +991,10 @@ export async function fetchAvailableCountries(segment: DirectorySegment): Promis
   const countryCountMap = new Map<string, number>();
 
   if (segment === "guides") {
-    // Get country codes from all approved, non-frozen guides (up to 30k)
+    // Get country codes from all non-frozen guides (up to 30k)
     const { data, error } = await supabase
       .from("guides")
-      .select("profiles!inner(country_code, application_status, rejection_reason)")
-      .eq("profiles.application_status", "approved")
+      .select("profiles!inner(country_code, rejection_reason)")
       .range(0, 29999);
 
     if (error) {
