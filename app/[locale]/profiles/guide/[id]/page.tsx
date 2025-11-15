@@ -106,24 +106,26 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3">
-          <RequestHoldButton
-            targetId={profile.profileId}
-            targetName={profile.name}
-            targetRole="guide"
-            currentUserId={user?.id || ""}
-            currentUserRole={user?.user_metadata?.role || ""}
-            locale={locale}
-          />
-          <MessageUserButton
-            userId={profile.profileId}
-            userName={profile.name || undefined}
-            locale={locale}
-            variant="primary"
-            size="md"
-          />
-        </div>
+        {/* Action Buttons - Only show for activated profiles */}
+        {profile.activated && (
+          <div className="flex justify-end gap-3">
+            <RequestHoldButton
+              targetId={profile.profileId}
+              targetName={profile.name}
+              targetRole="guide"
+              currentUserId={user?.id || ""}
+              currentUserRole={user?.user_metadata?.role || ""}
+              locale={locale}
+            />
+            <MessageUserButton
+              userId={profile.profileId}
+              userName={profile.name || undefined}
+              locale={locale}
+              variant="primary"
+              size="md"
+            />
+          </div>
+        )}
 
         {/* Profile Header with Avatar */}
         <div className="flex flex-col gap-6 rounded-xl border border-foreground/10 bg-white/60 p-6 shadow-sm sm:flex-row sm:items-start">

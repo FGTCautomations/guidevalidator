@@ -27,6 +27,7 @@ export type DirectoryListing = {
   responseTimeMinutes?: number | null;
   featuredScore?: number;
   isFeatured?: boolean;
+  isActivated?: boolean;
   href: string;
   avatarUrl?: string;
   role?: string; // guide, transport, etc.

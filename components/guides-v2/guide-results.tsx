@@ -116,6 +116,7 @@ export function GuideResults({
       href: `/${locale}/profiles/guide/${guide.id}`,
       role: "guide" as const,
       isFeatured: guide.is_featured,
+      isActivated: guide.is_activated,
     };
   });
 

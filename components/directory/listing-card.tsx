@@ -39,7 +39,7 @@ export function ListingCard({ listing, actionLabel }: ListingCardProps) {
       )}
       <div className="flex items-start gap-3">
         {listing.avatarUrl ? (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 relative">
             <Image
               src={listing.avatarUrl}
               alt={listing.name}
@@ -47,6 +47,10 @@ export function ListingCard({ listing, actionLabel }: ListingCardProps) {
               height={48}
               className="rounded-full object-cover"
             />
+            {/* Green circle indicator for activated profiles */}
+            {listing.isActivated && (
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white" title="Active profile" />
+            )}
           </div>
         ) : null}
         <div className="flex-1 flex items-start justify-between gap-3">
@@ -135,12 +139,6 @@ export function ListingCard({ listing, actionLabel }: ListingCardProps) {
         </div>
       ) : null}
       <div className="flex justify-end gap-2 mt-1">
-        <Link
-          href={`/${locale}/availability/${listing.id}?role=${listing.role || "guide"}` as Route}
-          className="rounded-full border border-blue-500 px-3 py-1.5 text-xs font-semibold text-blue-500 transition hover:bg-blue-500 hover:text-white"
-        >
-          View Calendar
-        </Link>
         <Link
           href={listing.href as Route}
           className="rounded-full border border-secondary px-3 py-1.5 text-xs font-semibold text-secondary transition hover:bg-secondary hover:text-secondary-foreground"
