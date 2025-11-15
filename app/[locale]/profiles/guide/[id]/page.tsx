@@ -49,11 +49,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
   const supabase = getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [profile, profileRating, profileReviews] = await Promise.all([
-    fetchGuideProfile(id),
-    fetchProfileRating(id),
-    fetchProfileReviews(id, { limit: 5 }),
-  ]);
+  const profile = await fetchGuideProfile(id);
 
   if (!profile) {
     return (
@@ -63,6 +59,11 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
       </div>
     );
   }
+
+  const [profileRating, profileReviews] = await Promise.all([
+    fetchProfileRating(profile.profileId),
+    fetchProfileReviews(profile.profileId, { limit: 5 }),
+  ]);
 
   const formatted = formatGuideProfile(profile, locale);
   const location = formatted.countryLabel ?? (profile.countryCode ? profile.countryCode.toUpperCase() : "--");
@@ -86,7 +87,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
     const validReviewerRoles = ["agency", "dmc", "transport"];
 
     if (validReviewerRoles.includes(currentUserRole)) {
-      canReview = await canUserReviewProfile(user.id, id);
+      canReview = await canUserReviewProfile(user.id, profile.profileId);
     }
   }
 
@@ -97,7 +98,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
         {/* Action Buttons */}
         <div className="flex justify-end gap-3">
           <RequestHoldButton
-            targetId={profile.id}
+            targetId={profile.profileId}
             targetName={profile.name}
             targetRole="guide"
             currentUserId={user?.id || ""}
@@ -105,7 +106,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
             locale={locale}
           />
           <MessageUserButton
-            userId={profile.id}
+            userId={profile.profileId}
             userName={profile.name || undefined}
             locale={locale}
             variant="primary"
@@ -343,7 +344,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
             </InfoSection>
             <InfoSection title="Availability">
               <InteractiveAvailabilityCalendar
-                providerId={profile.id}
+                providerId={profile.profileId}
                 providerName={profile.name}
                 providerRole="guide"
                 currentUserId={user?.id || ""}
@@ -365,7 +366,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
             </h2>
             {canReview && (
               <Link
-                href={`/${locale}/reviews/submit?revieweeId=${id}&revieweeType=guide` as Route}
+                href={`/${locale}/reviews/submit?revieweeId=${profile.profileId}&revieweeType=guide` as Route}
                 className="rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-secondary-foreground transition hover:bg-secondary/90"
               >
                 {reviewsT("submit.cta")}
@@ -373,7 +374,7 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
             )}
           </div>
           <ReviewsList
-            revieweeId={id}
+            revieweeId={profile.profileId}
             initialReviews={profileReviews}
             initialTotal={profileRating?.totalReviews ?? 0}
             translations={{

@@ -1,7 +1,9 @@
 ﻿import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type GuideProfileRow = {
+  id: string;
   profile_id: string;
+  name?: string | null;
   headline?: string | null;
   bio?: string | null;
   specialties?: string[] | null;
@@ -27,6 +29,7 @@ type GuideProfileRow = {
 
 export type GuideProfile = {
   id: string;
+  profileId: string;
   name: string;
   headline?: string;
   bio?: string;
@@ -57,15 +60,15 @@ export type GuideProfile = {
   };
 };
 
-export async function fetchGuideProfile(profileId: string): Promise<GuideProfile | null> {
+export async function fetchGuideProfile(guideId: string): Promise<GuideProfile | null> {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
     .from("guides")
     .select(
-      `profile_id, headline, bio, specialties, spoken_languages, hourly_rate_cents, currency, years_experience, response_time_minutes, experience_summary, sample_itineraries, media_gallery, availability_notes, avatar_url, image_url, license_number, profiles!inner(id, full_name, country_code, verified, avatar_url)`
+      `id, profile_id, name, headline, bio, specialties, spoken_languages, hourly_rate_cents, currency, years_experience, response_time_minutes, experience_summary, sample_itineraries, media_gallery, availability_notes, avatar_url, image_url, license_number, profiles!inner(id, full_name, country_code, verified, avatar_url)`
     )
-    .eq("profile_id", profileId)
+    .eq("id", guideId)
     .maybeSingle();
 
   if (error) {
@@ -101,8 +104,9 @@ export async function fetchGuideProfile(profileId: string): Promise<GuideProfile
   }
 
   return {
-    id: row.profile_id,
-    name: profileData?.full_name ?? "Guide",
+    id: row.id,
+    profileId: row.profile_id,
+    name: row.name || profileData?.full_name || "Guide",
     headline: row.headline ?? undefined,
     bio: row.bio ?? undefined,
     countryCode: profileData?.country_code ?? null,
