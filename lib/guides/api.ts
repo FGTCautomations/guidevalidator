@@ -35,6 +35,8 @@ export interface GuideResult {
   currency?: string;
   rating: number;
   review_count: number;
+  is_featured: boolean;
+  is_activated: boolean;
 }
 
 export interface FacetCount {

@@ -72,7 +72,8 @@
       "Bash(while true)",
       "Bash(do sleep 30)",
       "Bash(done)",
-      "Bash(vercel ls:*)"
+      "Bash(vercel ls:*)",
+      "Bash(PGPASSWORD='TYN-ducks-Babes-01' psql -h aws-0-eu-central-1.pooler.supabase.com -p 6543 -U postgres.vhqzmunorymtoisijiqb -d postgres -c \"SELECT application_status, COUNT(*) FROM agencies WHERE type = ''agency'' AND deleted_at IS NULL GROUP BY application_status ORDER BY COUNT(*) DESC;\")"
     ],
     "deny": [],
     "ask": []

@@ -18,26 +18,18 @@ async function applyMigration() {
   console.log('╚════════════════════════════════════════════════╝\n');
 
   const migrationSQL = `
--- Add columns from CSV to guides table
+-- Add missing columns for profile completion
 ALTER TABLE guides
-ADD COLUMN IF NOT EXISTS name TEXT,
-ADD COLUMN IF NOT EXISTS card_number TEXT,
-ADD COLUMN IF NOT EXISTS expiry_date TEXT,
-ADD COLUMN IF NOT EXISTS province_issue TEXT,
-ADD COLUMN IF NOT EXISTS card_type TEXT,
-ADD COLUMN IF NOT EXISTS language TEXT,
-ADD COLUMN IF NOT EXISTS experience TEXT,
-ADD COLUMN IF NOT EXISTS image_url TEXT,
-ADD COLUMN IF NOT EXISTS source_url TEXT;
-
--- Add index on card_number for faster lookups
-CREATE INDEX IF NOT EXISTS idx_guides_card_number ON guides(card_number);
+ADD COLUMN IF NOT EXISTS professional_intro TEXT,
+ADD COLUMN IF NOT EXISTS contact_methods JSONB DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS location_data JSONB,
+ADD COLUMN IF NOT EXISTS profile_photo_url TEXT;
 `;
 
-  console.log('Applying migration...\n');
+  console.log('Applying migration to add missing profile completion columns...\n');
 
   try {
-    const { data, error } = await supabase.rpc('exec_sql', {
+    const { data, error} = await supabase.rpc('exec_sql', {
       sql_query: migrationSQL
     });
 
@@ -48,16 +40,10 @@ CREATE INDEX IF NOT EXISTS idx_guides_card_number ON guides(card_number);
       console.log('\nTrying alternative method...\n');
 
       const statements = [
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS name TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS card_number TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS expiry_date TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS province_issue TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS card_type TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS language TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS experience TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS image_url TEXT",
-        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS source_url TEXT",
-        "CREATE INDEX IF NOT EXISTS idx_guides_card_number ON guides(card_number)"
+        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS professional_intro TEXT",
+        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS contact_methods JSONB DEFAULT '[]'::jsonb",
+        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS location_data JSONB",
+        "ALTER TABLE guides ADD COLUMN IF NOT EXISTS profile_photo_url TEXT"
       ];
 
       for (const stmt of statements) {
@@ -76,24 +62,19 @@ CREATE INDEX IF NOT EXISTS idx_guides_card_number ON guides(card_number);
     console.log('\nVerifying columns...');
     const { data: guides, error: checkError } = await supabase
       .from('guides')
-      .select('*')
+      .select('professional_intro, contact_methods, location_data, profile_photo_url')
       .limit(1);
 
-    if (!checkError && guides && guides.length > 0) {
-      const columns = Object.keys(guides[0]);
-      const newColumns = ['name', 'card_number', 'expiry_date', 'province_issue', 'card_type', 'language', 'experience', 'image_url', 'source_url'];
-
-      console.log('\n✓ Columns in guides table:');
-      newColumns.forEach(col => {
-        const exists = columns.includes(col);
-        console.log(`  ${exists ? '✓' : '✗'} ${col}`);
-      });
+    if (!checkError) {
+      console.log('\n✓ All new columns added successfully:');
+      console.log('  ✓ professional_intro');
+      console.log('  ✓ contact_methods');
+      console.log('  ✓ location_data');
+      console.log('  ✓ profile_photo_url');
     } else if (checkError) {
       console.log('Could not verify columns, but migration may have succeeded.');
+      console.log('Error:', checkError.message);
       console.log('Please check the guides table in Supabase dashboard.');
-    } else {
-      console.log('Guides table is empty, cannot verify columns.');
-      console.log('Columns should be added. You can verify in Supabase dashboard.');
     }
 
   } catch (err) {

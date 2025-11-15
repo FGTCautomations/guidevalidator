@@ -18,8 +18,8 @@ export function ListingCard({ listing, actionLabel }: ListingCardProps) {
   const localeMatch = listing.href.match(/^\/([a-z]{2})\//);
   const locale = localeMatch ? localeMatch[1] : 'en';
 
-  // Check if profile is featured (has a featured score > 0)
-  const isFeatured = listing.featuredScore && listing.featuredScore > 0;
+  // Check if profile is featured (premium subscription)
+  const isFeatured = listing.isFeatured || (listing.featuredScore && listing.featuredScore > 0);
 
   return (
     <article className={`flex flex-col gap-2 rounded-[var(--radius-xl)] border p-4 shadow-sm contact-protected ${

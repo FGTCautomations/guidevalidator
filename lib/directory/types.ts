@@ -26,6 +26,7 @@ export type DirectoryListing = {
   currency?: string | null;
   responseTimeMinutes?: number | null;
   featuredScore?: number;
+  isFeatured?: boolean;
   href: string;
   avatarUrl?: string;
   role?: string; // guide, transport, etc.

@@ -115,6 +115,7 @@ export function GuideResults({
       avatarUrl: guide.avatar_url,
       href: `/${locale}/profiles/guide/${guide.id}`,
       role: "guide" as const,
+      isFeatured: guide.is_featured,
     };
   });
 

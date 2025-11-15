@@ -71,7 +71,10 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
   const languageLabels = formatted.languageLabels.length > 0
     ? formatted.languageLabels
     : profile.languages.map((language: string) => language.toUpperCase());
-  const badges = [profile.verified ? t("meta.verified") : undefined].filter(Boolean) as string[];
+  const badges = [
+    profile.isFeatured ? "Featured" : undefined,
+    profile.verified ? t("meta.verified") : undefined
+  ].filter(Boolean) as string[];
 
   // Determine if current user can submit a review
   let canReview = false;
@@ -167,14 +170,16 @@ export default async function GuideProfilePage({ params }: GuideProfilePageProps
             {/* Badges */}
             {badges.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {badges.map((badge) => (
-                  <span
-                    key={badge}
-                    className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700"
-                  >
-                    {badge}
+                {profile.isFeatured && (
+                  <span className="rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 px-3 py-1 text-xs font-bold text-white shadow-md">
+                    ⭐ Featured
                   </span>
-                ))}
+                )}
+                {profile.verified && (
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                    {t("meta.verified")}
+                  </span>
+                )}
               </div>
             )}
           </div>

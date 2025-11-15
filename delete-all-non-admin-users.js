@@ -1,202 +1,131 @@
-const { createClient } = require('@supabase/supabase-js');
+// Delete all non-admin users from authentication and database
 require('dotenv').config({ path: '.env.local' });
+const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+async function deleteNonAdminUsers() {
+  console.log('\n╔═══════════════════════════════════════════════════╗');
+  console.log('║  Delete All Non-Admin Users                        ║');
+  console.log('╚═══════════════════════════════════════════════════╝\n');
 
-async function deleteAllNonAdminUsers() {
-  console.log('\n╔════════════════════════════════════════════════╗');
-  console.log('║  DELETE ALL NON-ADMIN USERS                    ║');
-  console.log('╚════════════════════════════════════════════════╝\n');
+  // Step 1: Get all profiles that are NOT admins
+  console.log('Finding non-admin users...\n');
 
-  // Step 1: Get all non-admin profile IDs in batches
-  console.log('Step 1: Fetching non-admin profile IDs...');
-  let userIds = [];
-  let from = 0;
-  const fetchSize = 1000;
+  const { data: profiles, error: profileError } = await supabase
+    .from('profiles')
+    .select('id, full_name, role')
+    .not('role', 'in', '(admin,super_admin)');
 
-  while (true) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, role')
-      .not('role', 'in', '(admin,super_admin)')
-      .range(from, from + fetchSize - 1);
-
-    if (error) {
-      console.error('Error:', error);
-      break;
-    }
-
-    if (!data || data.length === 0) break;
-
-    userIds = userIds.concat(data.map(p => ({ id: p.id, full_name: p.full_name, role: p.role })));
-    console.log(`  Found ${userIds.length} non-admin users so far...`);
-
-    if (data.length < fetchSize) break;
-    from += fetchSize;
-  }
-
-  console.log(`✓ Total non-admin users: ${userIds.length}`);
-
-  // Show breakdown by role
-  const roleCount = {};
-  userIds.forEach(u => {
-    roleCount[u.role] = (roleCount[u.role] || 0) + 1;
-  });
-  console.log('\nBreakdown by role:');
-  Object.entries(roleCount).forEach(([role, count]) => {
-    console.log(`  ${role}: ${count}`);
-  });
-  console.log('');
-
-  if (userIds.length === 0) {
-    console.log('No non-admin users to delete!');
+  if (profileError) {
+    console.error('❌ Error fetching profiles:', profileError);
     return;
   }
 
-  const profileIds = userIds.map(u => u.id);
+  console.log(`Found ${profiles.length} non-admin users:\n`);
 
-  // Step 2: Delete audit logs in batches
-  console.log('Step 2: Deleting audit logs for non-admin users...');
-  let totalAuditLogsDeleted = 0;
-  const batchSize = 100;
-
-  for (let i = 0; i < profileIds.length; i += batchSize) {
-    const batch = profileIds.slice(i, i + batchSize);
-
-    const { error: auditError, count } = await supabase
-      .from('audit_logs')
-      .delete({ count: 'exact' })
-      .in('actor_id', batch);
-
-    if (auditError) {
-      console.error(`  ✗ Error deleting audit logs for batch ${i}:`, auditError.message);
-      continue;
-    }
-
-    totalAuditLogsDeleted += count || 0;
-    if ((i + batchSize) % 1000 === 0 || i + batchSize >= profileIds.length) {
-      console.log(`  Deleted ${totalAuditLogsDeleted} audit logs...`);
-    }
+  if (profiles.length === 0) {
+    console.log('No non-admin users to delete.\n');
+    return;
   }
 
-  console.log(`✓ Deleted ${totalAuditLogsDeleted} audit logs\n`);
+  // Show first 10
+  profiles.slice(0, 10).forEach((p, i) => {
+    console.log(`  ${i + 1}. ${p.full_name || p.id} (${p.role || 'no role'})`);
+  });
 
-  // Step 3: Delete from other tables that might reference profiles
-  console.log('Step 3: Deleting related records...');
+  if (profiles.length > 10) {
+    console.log(`  ... and ${profiles.length - 10} more\n`);
+  } else {
+    console.log('');
+  }
 
-  // Delete guides
+  // Step 2: Delete guides in batches (will cascade to guide_countries, guide_regions, guide_cities)
+  console.log('Deleting guides...');
+
+  const guideIds = profiles.map(p => p.id);
+  const batchSize = 50;
   let guidesDeleted = 0;
-  for (let i = 0; i < profileIds.length; i += batchSize) {
-    const batch = profileIds.slice(i, i + batchSize);
-    const { count } = await supabase
+
+  for (let i = 0; i < guideIds.length; i += batchSize) {
+    const batch = guideIds.slice(i, i + batchSize);
+    const { error: guidesError } = await supabase
       .from('guides')
-      .delete({ count: 'exact' })
+      .delete()
       .in('profile_id', batch);
-    guidesDeleted += count || 0;
-  }
-  console.log(`  ✓ Deleted ${guidesDeleted} guide records`);
 
-  // Delete profile_claim_tokens
-  let claimTokensDeleted = 0;
-  for (let i = 0; i < profileIds.length; i += batchSize) {
-    const batch = profileIds.slice(i, i + batchSize);
-    const { count } = await supabase
-      .from('profile_claim_tokens')
-      .delete({ count: 'exact' })
-      .in('profile_id', batch);
-    claimTokensDeleted += count || 0;
-  }
-  console.log(`  ✓ Deleted ${claimTokensDeleted} claim tokens\n`);
-
-  // Step 4: Delete auth accounts
-  console.log('Step 4: Deleting auth accounts...');
-  let deletedAuthCount = 0;
-  let authErrors = 0;
-
-  for (let i = 0; i < profileIds.length; i++) {
-    try {
-      const { error: authDeleteError } = await supabase.auth.admin.deleteUser(profileIds[i]);
-      if (!authDeleteError) {
-        deletedAuthCount++;
-        if (deletedAuthCount % 100 === 0) {
-          console.log(`  Deleted ${deletedAuthCount} auth accounts...`);
-        }
-      } else {
-        authErrors++;
+    if (guidesError) {
+      console.log(`  ⚠️  Warning for batch ${i}: ${guidesError.message}`);
+    } else {
+      guidesDeleted += batch.length;
+      if (guidesDeleted % 100 === 0 || i + batchSize >= guideIds.length) {
+        console.log(`  Deleted ${guidesDeleted} guides...`);
       }
-    } catch (e) {
-      authErrors++;
     }
   }
 
-  console.log(`✓ Deleted ${deletedAuthCount} auth accounts (${authErrors} errors/not found)\n`);
+  console.log('✅ Guides deleted\n');
 
-  // Step 5: Delete profiles in batches
-  console.log('Step 5: Deleting user profiles...');
-  let totalProfilesDeleted = 0;
+  // Step 3: Delete profiles in batches
+  console.log('Deleting profiles...');
 
-  for (let i = 0; i < profileIds.length; i += batchSize) {
-    const batch = profileIds.slice(i, i + batchSize);
+  let profilesDeleted = 0;
 
-    const { error: profileError, count } = await supabase
+  for (let i = 0; i < guideIds.length; i += batchSize) {
+    const batch = guideIds.slice(i, i + batchSize);
+    const { error: deleteProfilesError } = await supabase
       .from('profiles')
-      .delete({ count: 'exact' })
+      .delete()
       .in('id', batch);
 
-    if (profileError) {
-      console.error(`  ✗ Error deleting profiles for batch ${i}:`, profileError.message);
-      continue;
-    }
-
-    totalProfilesDeleted += count || 0;
-    if ((i + batchSize) % 1000 === 0 || i + batchSize >= profileIds.length) {
-      console.log(`  Deleted ${totalProfilesDeleted} profiles...`);
+    if (deleteProfilesError) {
+      console.log(`  ❌ Error for batch ${i}: ${deleteProfilesError.message}`);
+    } else {
+      profilesDeleted += batch.length;
+      if (profilesDeleted % 100 === 0 || i + batchSize >= guideIds.length) {
+        console.log(`  Deleted ${profilesDeleted} profiles...`);
+      }
     }
   }
 
-  console.log(`✓ Deleted ${totalProfilesDeleted} profiles\n`);
+  console.log('✅ Profiles deleted\n');
 
-  // Summary
-  console.log('\n╔════════════════════════════════════════════════╗');
-  console.log('║              DELETE SUMMARY                    ║');
-  console.log('╚════════════════════════════════════════════════╝');
-  console.log(`Non-admin users found:        ${userIds.length}`);
-  console.log(`Audit logs deleted:           ${totalAuditLogsDeleted}`);
-  console.log(`Guide records deleted:        ${guidesDeleted}`);
-  console.log(`Claim tokens deleted:         ${claimTokensDeleted}`);
-  console.log(`Auth accounts deleted:        ${deletedAuthCount}`);
-  console.log(`Profiles deleted:             ${totalProfilesDeleted}`);
-  console.log('════════════════════════════════════════════════\n');
+  // Step 4: Delete from auth.users
+  console.log('Deleting from authentication...\n');
 
-  // Check remaining admins
-  console.log('Verifying remaining users...');
-  const { data: remainingUsers, error: checkError } = await supabase
-    .from('profiles')
-    .select('id, full_name, role');
+  let deletedCount = 0;
+  let errorCount = 0;
 
-  if (!checkError && remainingUsers) {
-    console.log(`\n✓ ${remainingUsers.length} admin users remaining:`);
-    remainingUsers.forEach(u => {
-      console.log(`  - ${u.full_name} (${u.role})`);
-    });
+  for (const profile of profiles) {
+    try {
+      const { error: authError } = await supabase.auth.admin.deleteUser(profile.id);
+
+      if (authError) {
+        console.log(`  ❌ Failed to delete auth user: ${profile.full_name || profile.id}`);
+        errorCount++;
+      } else {
+        deletedCount++;
+        if (deletedCount % 10 === 0) {
+          console.log(`  Deleted ${deletedCount}/${profiles.length} auth users...`);
+        }
+      }
+    } catch (err) {
+      console.log(`  ❌ Error deleting ${profile.full_name || profile.id}: ${err.message}`);
+      errorCount++;
+    }
   }
-  console.log('');
+
+  console.log('\n╔═══════════════════════════════════════════════════╗');
+  console.log('║              CLEANUP SUMMARY                       ║');
+  console.log('╚═══════════════════════════════════════════════════╝\n');
+  console.log(`✅ Successfully deleted: ${deletedCount} users`);
+  if (errorCount > 0) {
+    console.log(`⚠️  Errors: ${errorCount} users`);
+  }
+  console.log('\n✅ Cleanup complete!\n');
 }
 
-deleteAllNonAdminUsers()
-  .then(() => {
-    console.log('✓ Process completed!');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('❌ Process failed:', error);
-    process.exit(1);
-  });
+deleteNonAdminUsers().catch(console.error);

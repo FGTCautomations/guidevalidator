@@ -42,6 +42,7 @@ export type GuideProfile = {
   responseTimeMinutes?: number | null;
   verified: boolean;
   activated: boolean;
+  isFeatured: boolean;
   experienceSummary?: string | null;
   certifications?: string[];
   education?: string | null;
@@ -93,6 +94,17 @@ export async function fetchGuideProfile(guideId: string): Promise<GuideProfile |
 
   const isActivated = !!authUser;
 
+  // Check if profile has an active premium subscription (Featured status)
+  const { data: premiumSubscription } = await supabase
+    .from("subscriptions")
+    .select("id, plan_code, status")
+    .eq("profile_id", row.profile_id)
+    .in("plan_code", ["guide_premium_monthly", "guide_premium_yearly"])
+    .eq("status", "active")
+    .maybeSingle();
+
+  const isFeatured = !!premiumSubscription;
+
   // Parse JSON fields if they exist
   let sampleItineraries: Array<{ title: string; url: string }> | undefined;
   let mediaGallery: Array<{ title: string; url: string }> | undefined;
@@ -128,6 +140,7 @@ export async function fetchGuideProfile(guideId: string): Promise<GuideProfile |
     responseTimeMinutes: row.response_time_minutes,
     verified: profileData?.verified ?? false,
     activated: isActivated,
+    isFeatured: isFeatured,
     experienceSummary: row.experience_summary ?? undefined,
     certifications: undefined, // Not stored in guides table yet
     education: undefined, // Not stored in guides table yet
