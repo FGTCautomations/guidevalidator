@@ -2,7 +2,7 @@
 // Provides fast, cacheable guide directory search with faceted filtering
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 // Types
 interface SearchParams {
@@ -174,31 +174,40 @@ serve(async (req: Request) => {
       throw new Error("Missing Supabase configuration");
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Call RPC function
-    const { data, error } = await supabase.rpc("api_guides_search", {
-      p_country: params.country,
-      p_region_id: params.regionId || null,
-      p_city_id: params.cityId || null,
-      p_languages: params.lang || null,
-      p_specialties: params.spec || null,
-      p_genders: params.gender || null,
-      p_q: params.q || null,
-      p_price_min: params.min || null,
-      p_price_max: params.max || null,
-      p_min_rating: params.minRating || null,
-      p_verified_only: params.verified || false,
-      p_license_only: params.license || false,
-      p_sort: params.sort || "featured",
-      p_after_cursor: params.cursor || null,
-      p_limit: params.limit || 24,
+    // Call RPC function directly via PostgREST to avoid client encoding issues
+    const rpcResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/api_guides_search`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+      },
+      body: JSON.stringify({
+        p_country: params.country,
+        p_region_id: params.regionId || null,
+        p_city_id: params.cityId || null,
+        p_languages: params.lang || null,
+        p_specialties: params.spec || null,
+        p_genders: params.gender || null,
+        p_q: params.q || null,
+        p_price_min: params.min || null,
+        p_price_max: params.max || null,
+        p_min_rating: params.minRating || null,
+        p_verified_only: params.verified || false,
+        p_license_only: params.license || false,
+        p_sort: params.sort || "featured",
+        p_after_cursor: params.cursor || null,
+        p_limit: params.limit || 24,
+      }),
     });
 
-    if (error) {
-      console.error("RPC error:", error);
-      throw new Error(`Database error: ${error.message}`);
+    if (!rpcResponse.ok) {
+      const errorText = await rpcResponse.text();
+      console.error("RPC error:", errorText);
+      throw new Error(`Database error: ${errorText}`);
     }
+
+    const data = await rpcResponse.json();
 
     // Build response with cache headers
     const response = new Response(JSON.stringify(data), {
