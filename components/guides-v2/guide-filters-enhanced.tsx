@@ -224,14 +224,14 @@ export function GuideFiltersEnhanced({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search without accents (e.g., NGUYEN instead of NGUYỄN)"
+          placeholder="Search by name or license number (e.g., NGUYEN or 101100116)"
           className="w-full rounded-md border border-foreground/20 px-4 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         {searchQuery !== debouncedQ ? (
           <p className="mt-1 text-xs text-foreground/60">Searching...</p>
         ) : (
           <p className="mt-1 text-xs text-foreground/50">
-            💡 Tip: Search without special characters for best results
+            💡 Tip: Search without accents (NGUYEN) or use license numbers
           </p>
         )}
       </div>
