@@ -174,31 +174,31 @@ serve(async (req: Request) => {
       throw new Error("Missing Supabase configuration");
     }
 
-    // Call RPC function directly via PostgREST to avoid client encoding issues
-    const rpcResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/api_guides_search`, {
-      method: "POST",
+    // Call RPC function using GET with URL parameters to avoid JSON encoding issues
+    const rpcParams = new URLSearchParams();
+    rpcParams.set("p_country", params.country);
+    if (params.regionId) rpcParams.set("p_region_id", params.regionId);
+    if (params.cityId) rpcParams.set("p_city_id", params.cityId);
+    if (params.lang) rpcParams.set("p_languages", `{${params.lang.join(",")}}`);
+    if (params.spec) rpcParams.set("p_specialties", `{${params.spec.join(",")}}`);
+    if (params.gender) rpcParams.set("p_genders", `{${params.gender.join(",")}}`);
+    if (params.q) rpcParams.set("p_q", params.q);
+    if (params.min !== undefined) rpcParams.set("p_price_min", String(params.min));
+    if (params.max !== undefined) rpcParams.set("p_price_max", String(params.max));
+    if (params.minRating !== undefined) rpcParams.set("p_min_rating", String(params.minRating));
+    rpcParams.set("p_verified_only", String(params.verified || false));
+    rpcParams.set("p_license_only", String(params.license || false));
+    rpcParams.set("p_sort", params.sort || "featured");
+    if (params.cursor) rpcParams.set("p_after_cursor", params.cursor);
+    rpcParams.set("p_limit", String(params.limit || 24));
+
+    const rpcResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/api_guides_search?${rpcParams.toString()}`, {
+      method: "GET",
       headers: {
-        "Content-Type": "application/json",
         "apikey": supabaseKey,
         "Authorization": `Bearer ${supabaseKey}`,
+        "Accept": "application/json",
       },
-      body: JSON.stringify({
-        p_country: params.country,
-        p_region_id: params.regionId || null,
-        p_city_id: params.cityId || null,
-        p_languages: params.lang || null,
-        p_specialties: params.spec || null,
-        p_genders: params.gender || null,
-        p_q: params.q || null,
-        p_price_min: params.min || null,
-        p_price_max: params.max || null,
-        p_min_rating: params.minRating || null,
-        p_verified_only: params.verified || false,
-        p_license_only: params.license || false,
-        p_sort: params.sort || "featured",
-        p_after_cursor: params.cursor || null,
-        p_limit: params.limit || 24,
-      }),
     });
 
     if (!rpcResponse.ok) {
